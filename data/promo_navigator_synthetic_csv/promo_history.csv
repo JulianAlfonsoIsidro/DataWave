@@ -1,0 +1,4 @@
+promo_id,promo_name,product_type,mechanic,threshold_php,reward,start_date,end_date,channels
+P001,Preferred Status Top-Up,Deposit,TOP_UP,500000,Keep Preferred status + gift,2026-02-01,2026-03-31,"Email, In-app"
+P002,Wealth Builder Starter,Investment,NEW_ACCOUNT,1000,Bonus 500 points,2026-04-01,2026-05-31,"Email, In-app, SMS"
+P003,Save-Up Challenge,Deposit,ADB_INCREASE,50000,Raffle entry per 10K,2026-06-01,2026-07-31,"Email, SMS"

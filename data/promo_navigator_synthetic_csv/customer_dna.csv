@@ -1,0 +1,2001 @@
+client_id,segment,age_band,tenure_years,region,sec_class,inflow_type,digital_app_user,online_shopper,frugal_flag,investment_propensity_decile,email_valid,mobile_valid
+C100000,Affluent-Preferred,45-54,5.8,NCR,B2,Remittance,1,Medium,0,3,1,1
+C100001,Mid-Market,55+,9.1,Visayas,C1,Business,1,Ultra High,0,9,1,1
+C100002,Affluent-Preferred,35-44,15.2,NCR,C1,Salary,1,Very High,1,10,1,1
+C100003,Mid-Market,35-44,8.3,Luzon,B2,Remittance,1,High,1,3,1,1
+C100004,Mass,35-44,8.1,Mindanao,C1,Remittance,0,Medium,1,1,0,1
+C100005,Affluent-Gold,45-54,5.8,Luzon,B2,Salary,0,Low,0,5,1,1
+C100006,Affluent-Preferred,45-54,7.7,NCR,B2,Mixed,0,Low,0,3,1,1
+C100007,Affluent-Preferred,25-34,4.7,NCR,B2,Salary,1,Ultra High,1,6,1,1
+C100008,Mass,55+,25.7,NCR,D,Salary,1,Ultra High,1,1,1,1
+C100009,Mid-Market,25-34,1.9,NCR,C2,Mixed,1,Very High,1,9,1,1
+C100010,Mass,45-54,5.2,Luzon,D,Salary,0,Medium,1,3,1,1
+C100011,Affluent-Gold,55+,8.4,NCR,A,Salary,1,Very High,0,6,1,1
+C100012,Mid-Market,45-54,8.1,NCR,C1,Salary,0,Medium,0,5,1,1
+C100013,Affluent-Preferred,25-34,4.7,NCR,B1,Salary,1,Ultra High,0,5,1,0
+C100014,Mid-Market,35-44,1.3,Mindanao,C2,Salary,1,Medium,0,5,1,1
+C100015,Mass,25-34,2.1,NCR,C2,Salary,1,High,0,1,1,0
+C100016,Mid-Market,45-54,6.7,NCR,C1,Remittance,0,Medium,0,1,1,1
+C100017,Mass,25-34,0.9,Luzon,C2,Salary,1,High,0,5,0,1
+C100018,Affluent-Preferred,45-54,8.8,NCR,B1,Mixed,1,Very High,0,8,1,1
+C100019,Mid-Market,55+,12.3,Mindanao,C1,Mixed,1,Ultra High,1,9,1,1
+C100020,Affluent-Preferred,25-34,9.8,NCR,C1,Salary,1,Ultra High,1,2,0,1
+C100021,Mass,25-34,11.1,Luzon,D,Mixed,1,Very High,1,3,1,1
+C100022,Affluent-Gold,35-44,1.0,Luzon,B1,Mixed,0,Medium,0,10,0,0
+C100023,Affluent-Preferred,35-44,4.8,Visayas,C1,Mixed,1,High,0,7,1,1
+C100024,Affluent-Preferred,25-34,2.6,Luzon,C1,Business,1,High,1,5,0,1
+C100025,Mass,18-24,1.5,Visayas,D,Salary,1,Ultra High,0,8,0,1
+C100026,Mid-Market,35-44,4.1,NCR,C2,Salary,1,Very High,0,8,0,1
+C100027,Mass,35-44,15.0,Luzon,D,Mixed,0,Medium,0,7,1,1
+C100028,Mass,35-44,17.6,Visayas,C2,Remittance,1,Medium,0,1,0,1
+C100029,Mid-Market,25-34,2.9,Luzon,C1,Mixed,1,Very High,1,5,1,1
+C100030,Mid-Market,35-44,6.1,Luzon,C2,Business,0,High,0,5,1,1
+C100031,Affluent-Gold,25-34,7.6,NCR,B2,Salary,1,High,1,4,1,1
+C100032,Mass,25-34,4.8,NCR,C2,Salary,1,Ultra High,0,1,1,1
+C100033,Mass,45-54,12.8,NCR,D,Mixed,0,Low,1,10,0,1
+C100034,Mid-Market,25-34,4.1,NCR,B2,Salary,1,Very High,1,7,1,1
+C100035,Mass,35-44,3.6,NCR,C2,Business,1,High,0,1,1,1
+C100036,Mass,55+,3.1,NCR,C2,Mixed,1,Ultra High,0,3,1,1
+C100037,Mid-Market,35-44,4.8,Luzon,C2,Salary,1,High,0,7,1,1
+C100038,Mass,35-44,0.3,Visayas,D,Salary,0,Medium,0,4,1,1
+C100039,Mid-Market,18-24,5.0,Luzon,C2,Remittance,1,High,1,4,1,1
+C100040,Mid-Market,25-34,6.4,Luzon,C1,Business,1,High,0,9,1,0
+C100041,Affluent-Preferred,25-34,6.7,NCR,C1,Remittance,1,High,1,4,1,1
+C100042,Mid-Market,45-54,2.5,NCR,B2,Salary,1,Very High,1,6,1,1
+C100043,Mass,45-54,6.6,Luzon,D,Salary,0,High,0,5,1,1
+C100044,Affluent-Preferred,25-34,6.5,Visayas,B2,Salary,1,Ultra High,0,4,1,1
+C100045,Affluent-Preferred,25-34,6.6,Visayas,B2,Salary,0,Low,0,7,1,0
+C100046,Mass,25-34,9.9,Luzon,C2,Salary,1,High,0,2,0,1
+C100047,Mass,35-44,2.4,Visayas,C1,Business,1,Very High,0,4,0,1
+C100048,Mid-Market,35-44,4.9,Visayas,C1,Salary,1,Medium,0,4,0,1
+C100049,Mass,45-54,1.2,Visayas,C1,Business,0,High,1,9,0,1
+C100050,Mass,55+,9.3,Visayas,D,Mixed,0,High,0,1,1,1
+C100051,Mass,25-34,2.7,NCR,C1,Remittance,0,Low,0,2,1,1
+C100052,Affluent-Preferred,35-44,10.9,NCR,B2,Remittance,0,Medium,0,9,0,1
+C100053,Mid-Market,35-44,11.2,NCR,C1,Salary,1,Ultra High,0,8,1,1
+C100054,Mid-Market,25-34,5.2,Luzon,C1,Remittance,1,Very High,0,7,0,1
+C100055,Affluent-Preferred,55+,5.0,Visayas,B1,Salary,0,High,0,3,1,1
+C100056,Mid-Market,18-24,1.7,NCR,C2,Salary,0,Low,0,6,0,1
+C100057,Mid-Market,45-54,6.0,NCR,C1,Remittance,0,Low,0,6,1,1
+C100058,Mass,45-54,9.9,Visayas,D,Salary,1,Ultra High,0,7,0,1
+C100059,Mass,55+,7.1,NCR,C2,Salary,1,High,0,10,1,1
+C100060,Mid-Market,35-44,13.8,Visayas,C2,Business,0,Medium,0,9,1,1
+C100061,Mid-Market,25-34,4.5,NCR,C1,Salary,1,Very High,1,9,0,0
+C100062,Mid-Market,45-54,4.4,NCR,C2,Salary,1,Medium,0,7,1,1
+C100063,Affluent-Preferred,45-54,2.9,NCR,C1,Salary,0,Low,0,2,1,1
+C100064,Mid-Market,35-44,19.7,NCR,C1,Salary,0,Low,1,8,1,1
+C100065,Mid-Market,45-54,1.7,NCR,C2,Remittance,1,High,1,5,1,1
+C100066,Mid-Market,25-34,9.4,NCR,C1,Remittance,1,Very High,0,1,1,1
+C100067,Mass,35-44,10.0,NCR,D,Salary,1,Very High,1,3,1,1
+C100068,Mass,45-54,9.7,NCR,C1,Remittance,1,High,0,5,1,1
+C100069,Mid-Market,25-34,3.1,Visayas,B2,Mixed,0,Low,1,2,1,1
+C100070,Mass,35-44,5.2,NCR,C2,Remittance,1,Medium,1,4,0,1
+C100071,Mid-Market,55+,8.6,NCR,C2,Remittance,1,Medium,1,5,1,1
+C100072,Affluent-Preferred,45-54,3.7,NCR,C1,Remittance,1,Medium,0,6,1,1
+C100073,Mass,55+,4.7,Mindanao,C1,Mixed,1,High,0,10,1,1
+C100074,Mass,25-34,3.7,Visayas,C1,Mixed,1,High,0,1,1,1
+C100075,Mass,55+,6.3,Mindanao,C1,Salary,0,Low,0,5,0,0
+C100076,Mass,25-34,6.0,Mindanao,C2,Salary,1,Very High,0,1,1,1
+C100077,Mid-Market,35-44,15.4,NCR,C1,Salary,1,High,1,7,1,0
+C100078,Mid-Market,35-44,8.7,Luzon,C2,Business,0,Low,1,6,1,1
+C100079,Affluent-Preferred,45-54,2.1,NCR,C1,Salary,1,High,0,2,0,1
+C100080,Mid-Market,55+,2.2,Mindanao,B2,Mixed,0,High,1,10,1,0
+C100081,Mid-Market,45-54,9.5,NCR,C1,Salary,0,Medium,0,3,1,1
+C100082,Affluent-Preferred,35-44,5.9,NCR,B2,Remittance,0,Medium,0,4,1,0
+C100083,Mass,35-44,19.0,Mindanao,C2,Salary,1,High,0,5,0,1
+C100084,Mass,35-44,18.9,Visayas,D,Salary,0,Medium,0,6,1,1
+C100085,Mass,35-44,2.9,Mindanao,C1,Salary,0,Low,0,5,1,1
+C100086,Mid-Market,18-24,7.2,NCR,B2,Business,1,Ultra High,0,3,0,1
+C100087,Mid-Market,35-44,2.3,NCR,B2,Salary,1,Medium,0,3,1,1
+C100088,Mass,45-54,9.4,NCR,C2,Salary,1,High,0,2,1,1
+C100089,Mid-Market,45-54,16.8,NCR,B2,Business,1,High,0,6,1,1
+C100090,Mass,45-54,6.5,Luzon,C2,Mixed,0,Low,0,7,0,1
+C100091,Mid-Market,25-34,4.3,NCR,C1,Business,1,High,0,6,1,1
+C100092,Mid-Market,35-44,7.7,Visayas,C2,Business,1,Very High,0,6,1,1
+C100093,Mass,18-24,10.7,NCR,C1,Salary,0,Medium,0,5,0,1
+C100094,Mass,25-34,10.8,Luzon,D,Mixed,1,Very High,1,10,1,1
+C100095,Mid-Market,35-44,4.4,Visayas,B2,Salary,0,Low,0,7,1,1
+C100096,Mass,25-34,3.6,Luzon,C2,Mixed,1,Very High,0,3,1,1
+C100097,Mass,18-24,7.0,NCR,D,Business,1,Very High,0,5,1,1
+C100098,Mass,45-54,4.6,NCR,C2,Salary,1,High,1,1,1,0
+C100099,Affluent-Gold,35-44,12.8,NCR,B2,Salary,0,Low,0,9,1,1
+C100100,Affluent-Preferred,35-44,4.6,Visayas,B2,Business,1,High,0,8,0,1
+C100101,Mid-Market,25-34,6.2,Luzon,C2,Business,1,Medium,0,5,1,1
+C100102,Mass,35-44,7.6,NCR,C1,Remittance,1,High,1,3,0,1
+C100103,Affluent-Gold,35-44,1.8,Mindanao,B1,Mixed,0,Low,1,7,1,1
+C100104,Affluent-Preferred,35-44,3.8,Luzon,B2,Remittance,0,Low,1,3,1,1
+C100105,Mid-Market,35-44,18.4,Visayas,B2,Salary,1,Very High,1,9,1,1
+C100106,Mid-Market,18-24,10.4,NCR,C1,Remittance,1,Ultra High,0,4,1,1
+C100107,Mass,55+,4.5,Mindanao,C2,Salary,0,Medium,0,6,1,1
+C100108,Mass,18-24,9.5,NCR,D,Remittance,1,High,0,1,1,1
+C100109,Affluent-Preferred,35-44,12.7,NCR,B2,Mixed,0,Low,0,7,1,1
+C100110,Mid-Market,25-34,5.0,Mindanao,B2,Salary,1,Ultra High,0,10,1,1
+C100111,Mass,35-44,10.1,Mindanao,C1,Business,0,High,1,5,1,1
+C100112,Mass,25-34,9.2,Luzon,C2,Business,1,Ultra High,0,3,0,1
+C100113,Mid-Market,45-54,2.3,NCR,C2,Salary,1,High,0,5,1,1
+C100114,Mass,25-34,5.1,NCR,C1,Business,1,Very High,0,7,1,1
+C100115,Affluent-Preferred,35-44,15.7,Visayas,C1,Business,0,Low,0,9,1,1
+C100116,Affluent-Preferred,25-34,18.1,Visayas,C1,Salary,1,Very High,0,3,1,1
+C100117,Mid-Market,18-24,10.5,NCR,B2,Salary,1,Ultra High,0,8,1,0
+C100118,Mid-Market,35-44,3.7,NCR,B2,Salary,0,Medium,0,2,1,1
+C100119,Mid-Market,35-44,0.7,Luzon,B2,Remittance,0,Medium,0,2,1,1
+C100120,Mid-Market,35-44,3.4,Visayas,C1,Salary,1,Very High,0,5,1,1
+C100121,Mid-Market,55+,2.0,NCR,B2,Salary,1,Ultra High,1,4,0,1
+C100122,Mass,45-54,16.4,Luzon,C1,Mixed,1,High,0,2,1,1
+C100123,Mid-Market,55+,1.2,Mindanao,C2,Business,1,Ultra High,0,9,1,0
+C100124,Mass,25-34,2.3,NCR,C1,Business,1,Very High,0,8,0,1
+C100125,Mid-Market,45-54,6.9,Luzon,B2,Mixed,1,Very High,1,7,1,1
+C100126,Mass,35-44,5.9,Luzon,D,Salary,0,Medium,0,1,1,1
+C100127,Mass,35-44,15.2,Luzon,C1,Salary,1,Medium,0,4,1,1
+C100128,Mass,55+,8.8,Visayas,C2,Business,1,Medium,1,3,0,1
+C100129,Mid-Market,35-44,5.3,Luzon,B2,Salary,1,High,0,10,1,1
+C100130,Mass,55+,13.0,Luzon,C2,Salary,1,Very High,0,1,1,1
+C100131,Affluent-Gold,45-54,4.4,NCR,B2,Business,1,Very High,1,7,1,1
+C100132,Mid-Market,25-34,15.9,Visayas,C2,Salary,1,Ultra High,1,9,1,1
+C100133,Mass,45-54,3.0,NCR,C2,Remittance,0,Medium,0,9,0,1
+C100134,Mid-Market,35-44,5.8,NCR,B2,Remittance,1,Very High,0,7,0,1
+C100135,Mass,55+,0.8,Luzon,C1,Remittance,1,Very High,0,4,1,1
+C100136,Affluent-Gold,45-54,10.8,Luzon,B2,Salary,1,Very High,0,10,1,1
+C100137,Mid-Market,25-34,6.6,Mindanao,B2,Salary,1,Very High,0,9,1,1
+C100138,Affluent-Preferred,25-34,16.0,Visayas,B2,Mixed,1,Very High,0,6,1,0
+C100139,Mass,18-24,4.9,Visayas,C2,Mixed,1,Medium,1,2,1,1
+C100140,Mid-Market,35-44,1.7,NCR,C2,Salary,1,High,0,1,1,1
+C100141,Mid-Market,18-24,8.1,Luzon,C1,Salary,1,Ultra High,0,7,0,1
+C100142,Affluent-Gold,45-54,3.9,Mindanao,B1,Remittance,0,Medium,0,6,0,1
+C100143,Mid-Market,35-44,9.8,NCR,B2,Salary,1,Medium,0,5,1,1
+C100144,Mid-Market,45-54,3.1,Visayas,C1,Salary,0,Medium,1,4,1,1
+C100145,Mass,25-34,14.2,Luzon,C2,Salary,1,High,0,6,0,1
+C100146,Mass,35-44,6.2,NCR,C2,Salary,1,High,0,6,1,0
+C100147,Mid-Market,25-34,5.3,Luzon,C1,Salary,1,High,1,8,1,1
+C100148,Mid-Market,55+,13.6,NCR,C1,Salary,1,Very High,0,2,1,1
+C100149,Mass,25-34,10.9,NCR,D,Business,1,Very High,0,1,0,1
+C100150,Affluent-Preferred,25-34,3.4,NCR,B1,Salary,1,Medium,0,3,1,1
+C100151,Affluent-Preferred,25-34,10.7,NCR,C1,Salary,1,Very High,0,4,1,1
+C100152,Mass,45-54,9.3,NCR,C1,Salary,0,Medium,1,3,1,1
+C100153,Mid-Market,25-34,5.6,Mindanao,B2,Mixed,1,Ultra High,1,10,1,1
+C100154,Mass,35-44,10.2,NCR,C1,Salary,1,High,1,2,1,1
+C100155,Mid-Market,45-54,14.2,Visayas,C2,Salary,0,Low,1,8,1,1
+C100156,Mass,45-54,5.7,Luzon,D,Remittance,0,Low,1,6,1,0
+C100157,Mid-Market,25-34,5.7,NCR,C2,Business,1,Very High,0,6,1,1
+C100158,Mid-Market,18-24,5.5,NCR,C1,Business,1,High,1,6,1,1
+C100159,Affluent-Preferred,35-44,3.3,Mindanao,B1,Salary,0,Low,0,10,0,1
+C100160,Mass,25-34,5.6,Luzon,C1,Salary,1,High,1,9,1,1
+C100161,Affluent-Preferred,45-54,5.2,Mindanao,B1,Salary,0,Medium,1,5,1,1
+C100162,Mass,25-34,5.0,NCR,C1,Remittance,1,High,0,4,1,1
+C100163,Mass,35-44,4.9,Visayas,D,Salary,1,Very High,0,6,1,1
+C100164,Mid-Market,25-34,2.3,Visayas,B2,Salary,1,Ultra High,0,2,1,1
+C100165,Mass,35-44,11.7,Mindanao,D,Salary,1,Very High,1,6,1,1
+C100166,Affluent-Preferred,25-34,3.8,NCR,B1,Mixed,0,Medium,0,7,1,1
+C100167,Affluent-Preferred,35-44,14.7,Mindanao,B1,Salary,0,High,1,10,1,1
+C100168,Mass,18-24,2.8,NCR,C1,Salary,1,Ultra High,0,1,0,1
+C100169,Affluent-Gold,55+,16.8,Visayas,B1,Mixed,1,Ultra High,0,9,0,1
+C100170,Mass,45-54,4.6,Luzon,C2,Business,1,Ultra High,0,4,1,1
+C100171,Mid-Market,25-34,10.8,Luzon,C1,Remittance,1,Very High,0,9,0,1
+C100172,Mass,18-24,6.5,NCR,C2,Business,1,Medium,0,1,1,1
+C100173,Affluent-Gold,25-34,2.1,Visayas,B1,Salary,1,High,1,5,1,0
+C100174,Mass,25-34,2.2,NCR,C2,Business,1,High,1,10,1,1
+C100175,Mass,25-34,3.6,Luzon,D,Salary,1,Very High,0,4,0,0
+C100176,Mid-Market,45-54,4.4,Luzon,C1,Mixed,1,Very High,0,5,1,1
+C100177,Affluent-Gold,35-44,5.8,Visayas,A,Salary,1,High,1,6,0,1
+C100178,Affluent-Preferred,25-34,7.5,Luzon,B1,Remittance,1,Very High,1,9,1,1
+C100179,Mid-Market,35-44,5.3,Luzon,C2,Remittance,1,Very High,0,8,1,1
+C100180,Affluent-Preferred,25-34,7.3,Luzon,C1,Salary,0,Medium,1,5,1,1
+C100181,Affluent-Preferred,55+,8.1,Luzon,B2,Salary,1,High,0,10,0,1
+C100182,Mid-Market,18-24,5.1,Luzon,B2,Business,1,High,0,6,0,1
+C100183,Mass,45-54,9.2,Visayas,D,Salary,1,High,1,10,1,1
+C100184,Affluent-Preferred,45-54,10.6,Visayas,C1,Mixed,0,Medium,0,7,1,1
+C100185,Mid-Market,18-24,8.2,Luzon,C2,Salary,1,Very High,0,2,1,1
+C100186,Mass,25-34,8.6,NCR,D,Remittance,1,Ultra High,0,4,0,0
+C100187,Mass,25-34,6.8,Luzon,D,Remittance,1,Ultra High,1,5,1,0
+C100188,Mid-Market,45-54,12.3,NCR,B2,Salary,1,Medium,1,7,1,1
+C100189,Mass,35-44,5.9,NCR,C1,Business,1,High,0,3,1,1
+C100190,Affluent-Gold,35-44,3.6,Visayas,B1,Business,0,Low,0,7,1,1
+C100191,Mass,45-54,6.0,NCR,D,Remittance,1,Very High,0,2,1,1
+C100192,Mass,45-54,2.1,Luzon,C1,Remittance,1,Medium,1,10,0,1
+C100193,Affluent-Preferred,35-44,1.9,Mindanao,C1,Remittance,0,High,0,7,1,1
+C100194,Mass,35-44,10.7,NCR,D,Salary,0,Medium,0,4,1,1
+C100195,Mass,45-54,14.8,NCR,D,Salary,1,High,1,7,1,1
+C100196,Mid-Market,25-34,4.7,NCR,C1,Salary,1,Ultra High,0,3,1,0
+C100197,Affluent-Preferred,45-54,10.7,NCR,B1,Remittance,1,High,0,9,1,1
+C100198,Mass,18-24,1.0,Visayas,C2,Mixed,1,Medium,1,4,1,1
+C100199,Mass,25-34,8.3,Visayas,C2,Salary,1,Ultra High,0,1,1,1
+C100200,Affluent-Preferred,45-54,5.9,Luzon,B2,Remittance,0,Medium,0,6,1,1
+C100201,Affluent-Gold,25-34,16.4,NCR,A,Salary,1,High,0,5,1,1
+C100202,Mid-Market,25-34,5.3,Luzon,B2,Remittance,1,Very High,1,9,1,1
+C100203,Mass,25-34,2.6,NCR,C2,Business,1,Ultra High,0,4,0,1
+C100204,Mass,35-44,1.6,Luzon,C2,Business,0,High,0,5,1,1
+C100205,Mass,45-54,6.0,Luzon,C2,Business,1,Ultra High,0,1,1,1
+C100206,Mass,18-24,6.8,NCR,C1,Business,1,High,1,6,0,1
+C100207,Mid-Market,18-24,5.1,Visayas,C1,Salary,1,Ultra High,1,7,0,0
+C100208,Mass,35-44,10.9,Visayas,C1,Remittance,1,High,0,7,1,1
+C100209,Mid-Market,55+,13.8,NCR,C2,Salary,1,High,0,8,1,1
+C100210,Mid-Market,25-34,4.6,Luzon,B2,Mixed,1,Ultra High,1,9,1,1
+C100211,Mid-Market,55+,1.2,Luzon,B2,Business,1,Low,0,9,1,1
+C100212,Mass,55+,7.3,NCR,C1,Salary,1,Very High,1,4,1,1
+C100213,Affluent-Preferred,25-34,12.5,NCR,B1,Salary,1,Ultra High,0,7,1,1
+C100214,Mid-Market,45-54,4.7,Luzon,C1,Salary,0,Medium,0,1,1,1
+C100215,Mid-Market,45-54,8.6,Mindanao,C2,Mixed,0,Low,1,7,1,1
+C100216,Mass,35-44,2.5,Luzon,C2,Salary,0,Medium,0,2,1,1
+C100217,Mass,35-44,7.2,Luzon,C2,Remittance,1,Very High,0,8,1,1
+C100218,Affluent-Gold,45-54,8.7,Luzon,B2,Salary,0,Low,0,4,1,0
+C100219,Mass,45-54,7.3,NCR,D,Remittance,1,Very High,0,2,1,1
+C100220,Mass,45-54,19.1,NCR,D,Remittance,1,Very High,0,6,1,1
+C100221,Mid-Market,55+,14.7,NCR,C1,Salary,1,Ultra High,0,3,1,1
+C100222,Mid-Market,35-44,9.6,Mindanao,C2,Business,1,Very High,1,10,1,1
+C100223,Affluent-Gold,45-54,11.7,Visayas,A,Salary,1,High,0,1,0,1
+C100224,Mass,45-54,7.1,Mindanao,D,Business,1,Ultra High,1,1,0,1
+C100225,Affluent-Gold,25-34,5.7,NCR,A,Salary,1,Very High,1,8,1,1
+C100226,Mass,18-24,4.3,Luzon,C1,Remittance,1,High,0,2,0,1
+C100227,Mid-Market,35-44,2.4,Luzon,C1,Salary,0,Low,0,10,1,1
+C100228,Mid-Market,45-54,15.1,NCR,C1,Remittance,0,Medium,1,4,1,1
+C100229,Mass,25-34,19.6,NCR,C1,Salary,1,Very High,1,8,1,1
+C100230,Mass,45-54,6.1,Visayas,D,Remittance,1,High,1,6,1,1
+C100231,Mid-Market,18-24,6.2,Luzon,B2,Salary,0,Medium,1,7,1,1
+C100232,Affluent-Gold,25-34,8.9,Luzon,B1,Salary,1,Very High,0,6,1,1
+C100233,Mid-Market,35-44,5.4,NCR,C2,Business,1,Very High,0,9,0,1
+C100234,Affluent-Gold,25-34,2.7,Luzon,A,Salary,1,Very High,1,5,0,1
+C100235,Affluent-Preferred,55+,2.0,NCR,B2,Salary,1,Very High,0,10,0,1
+C100236,Mid-Market,25-34,19.1,NCR,C2,Remittance,1,Very High,1,10,1,1
+C100237,Affluent-Preferred,55+,1.4,Luzon,B2,Salary,0,Medium,0,5,0,1
+C100238,Mass,25-34,7.5,NCR,C2,Mixed,0,Medium,0,2,1,0
+C100239,Mass,55+,1.6,Mindanao,C1,Salary,1,Very High,0,5,1,1
+C100240,Affluent-Preferred,35-44,5.6,Luzon,B2,Mixed,0,Low,1,10,1,1
+C100241,Affluent-Preferred,18-24,4.6,NCR,B1,Mixed,1,Ultra High,0,10,0,1
+C100242,Mass,18-24,1.8,NCR,C1,Salary,1,Ultra High,0,1,1,1
+C100243,Mid-Market,18-24,9.1,Visayas,C2,Salary,0,Low,0,2,1,1
+C100244,Mid-Market,35-44,2.5,NCR,C1,Business,1,Very High,1,3,0,1
+C100245,Affluent-Preferred,45-54,1.6,NCR,C1,Business,1,Very High,0,5,1,1
+C100246,Mid-Market,35-44,9.8,NCR,C1,Salary,1,Very High,0,5,1,1
+C100247,Mid-Market,35-44,4.6,NCR,C2,Salary,0,Low,0,10,1,1
+C100248,Mass,35-44,3.3,Luzon,C2,Salary,0,Medium,0,9,1,1
+C100249,Mid-Market,35-44,10.2,Luzon,C2,Business,0,Low,0,10,1,1
+C100250,Mid-Market,45-54,2.4,NCR,C1,Business,1,High,0,9,1,1
+C100251,Affluent-Preferred,35-44,1.3,Visayas,B2,Salary,1,High,1,6,1,1
+C100252,Mid-Market,45-54,13.2,NCR,B2,Remittance,0,Low,1,1,1,1
+C100253,Mass,55+,17.5,Luzon,C1,Business,0,High,0,2,1,1
+C100254,Mass,25-34,5.5,NCR,C2,Mixed,1,Very High,1,1,1,0
+C100255,Mid-Market,18-24,0.2,Luzon,C1,Salary,1,Very High,0,4,1,1
+C100256,Affluent-Preferred,25-34,5.4,NCR,B1,Salary,1,Very High,0,3,1,1
+C100257,Mass,35-44,10.6,Luzon,C1,Salary,0,Medium,0,5,1,1
+C100258,Mass,25-34,12.4,NCR,D,Remittance,1,High,1,4,1,1
+C100259,Mid-Market,55+,2.7,Mindanao,C1,Salary,1,High,0,3,1,1
+C100260,Mass,35-44,4.8,NCR,C1,Salary,1,High,0,6,0,1
+C100261,Affluent-Preferred,35-44,7.1,Mindanao,C1,Business,1,Very High,0,5,1,1
+C100262,Mass,45-54,10.2,Mindanao,D,Remittance,1,Very High,0,6,1,1
+C100263,Mass,25-34,9.5,NCR,C1,Salary,1,High,1,1,1,1
+C100264,Affluent-Gold,45-54,8.5,NCR,A,Salary,1,Ultra High,0,6,1,1
+C100265,Mass,18-24,12.4,NCR,C2,Salary,1,Very High,1,3,1,1
+C100266,Mass,35-44,5.7,Mindanao,C2,Salary,0,Medium,0,4,0,1
+C100267,Mass,55+,15.2,Luzon,C2,Salary,1,High,1,4,1,1
+C100268,Mass,45-54,3.9,Luzon,C2,Salary,1,High,1,8,1,1
+C100269,Mass,45-54,9.6,NCR,C1,Salary,1,High,1,5,1,0
+C100270,Mass,25-34,4.4,Visayas,C1,Mixed,0,Medium,1,2,1,1
+C100271,Mass,45-54,5.5,NCR,C2,Mixed,1,Ultra High,0,9,1,1
+C100272,Mass,35-44,6.1,NCR,D,Salary,1,Very High,0,1,1,1
+C100273,Mid-Market,35-44,4.2,NCR,C2,Remittance,1,High,1,6,1,1
+C100274,Mid-Market,18-24,12.7,Luzon,C2,Salary,1,High,1,9,1,1
+C100275,Mass,25-34,4.5,Mindanao,C2,Business,1,Ultra High,0,7,0,1
+C100276,Mass,35-44,5.9,Visayas,C2,Mixed,0,Low,1,2,1,1
+C100277,Mid-Market,18-24,8.8,NCR,B2,Remittance,1,Ultra High,0,5,1,1
+C100278,Affluent-Preferred,45-54,24.4,NCR,B1,Remittance,0,Medium,1,7,1,1
+C100279,Affluent-Preferred,45-54,9.0,Visayas,B2,Salary,1,Ultra High,0,2,1,1
+C100280,Mass,55+,6.3,Luzon,D,Salary,1,High,0,3,1,1
+C100281,Mass,25-34,1.1,NCR,C1,Salary,1,Ultra High,1,5,1,1
+C100282,Mass,55+,5.4,NCR,C1,Salary,0,Medium,0,2,1,1
+C100283,Mass,18-24,3.7,Luzon,C2,Business,1,Very High,0,1,0,1
+C100284,Mid-Market,35-44,4.8,Mindanao,C2,Salary,1,High,0,9,1,0
+C100285,Mid-Market,45-54,4.3,Luzon,C1,Salary,1,Very High,0,2,1,1
+C100286,Mass,18-24,8.8,NCR,C2,Remittance,1,Ultra High,0,4,1,1
+C100287,Mass,18-24,5.3,Visayas,C1,Business,1,High,0,2,1,1
+C100288,Mid-Market,18-24,3.0,NCR,C1,Remittance,1,Very High,0,9,1,1
+C100289,Mass,35-44,10.8,Visayas,C2,Remittance,1,Ultra High,1,2,1,1
+C100290,Affluent-Preferred,45-54,2.2,NCR,B2,Business,0,High,0,9,1,1
+C100291,Mass,25-34,6.1,NCR,C2,Salary,1,Very High,0,8,1,1
+C100292,Affluent-Gold,25-34,5.4,Luzon,B2,Remittance,1,Ultra High,1,6,1,1
+C100293,Mass,35-44,7.7,NCR,D,Salary,1,High,1,8,1,1
+C100294,Affluent-Preferred,25-34,12.5,NCR,B1,Salary,1,Very High,1,7,1,1
+C100295,Affluent-Preferred,45-54,26.7,Luzon,B2,Mixed,0,Medium,0,6,0,1
+C100296,Affluent-Gold,55+,6.3,Visayas,A,Salary,1,Medium,1,7,0,1
+C100297,Affluent-Preferred,45-54,3.6,Visayas,B2,Salary,1,Medium,1,4,1,1
+C100298,Affluent-Preferred,45-54,3.3,NCR,B1,Salary,1,High,1,3,1,1
+C100299,Mid-Market,35-44,3.3,NCR,C2,Mixed,1,Ultra High,0,5,1,1
+C100300,Affluent-Preferred,45-54,7.5,Luzon,C1,Mixed,1,High,1,7,1,1
+C100301,Mass,25-34,0.8,NCR,C2,Salary,1,Very High,1,9,1,1
+C100302,Mid-Market,18-24,2.1,NCR,B2,Remittance,1,High,1,2,0,1
+C100303,Mid-Market,35-44,7.5,Mindanao,C2,Salary,0,Medium,0,5,1,1
+C100304,Affluent-Preferred,18-24,11.2,Mindanao,B2,Business,1,Ultra High,1,8,1,1
+C100305,Mid-Market,55+,11.2,NCR,C2,Salary,0,Medium,0,9,1,1
+C100306,Mass,45-54,6.5,Visayas,C1,Salary,1,High,1,2,1,1
+C100307,Mid-Market,55+,10.3,Luzon,C1,Remittance,1,High,1,1,1,1
+C100308,Mass,25-34,12.6,NCR,C2,Mixed,1,Medium,0,6,1,1
+C100309,Mass,35-44,4.5,Luzon,D,Salary,0,Low,0,3,1,1
+C100310,Mid-Market,45-54,11.8,NCR,C2,Salary,0,Medium,0,7,1,1
+C100311,Mid-Market,25-34,1.5,NCR,C1,Mixed,1,Very High,1,10,1,1
+C100312,Mass,35-44,2.0,Mindanao,C2,Salary,0,High,0,8,1,1
+C100313,Mass,35-44,4.7,Luzon,C1,Salary,1,Ultra High,0,2,0,1
+C100314,Mass,55+,1.3,NCR,D,Remittance,1,Medium,0,4,1,0
+C100315,Mass,45-54,8.9,Luzon,D,Salary,0,Medium,0,1,1,1
+C100316,Mass,25-34,4.0,Mindanao,D,Salary,1,Ultra High,0,1,0,1
+C100317,Mid-Market,35-44,5.5,NCR,C2,Salary,1,Ultra High,0,1,1,1
+C100318,Mass,35-44,5.6,Mindanao,D,Salary,0,High,1,2,1,1
+C100319,Affluent-Gold,25-34,4.6,Visayas,B1,Remittance,1,Ultra High,0,3,0,1
+C100320,Affluent-Preferred,35-44,3.3,NCR,C1,Business,0,Low,0,8,1,1
+C100321,Mid-Market,25-34,8.6,Luzon,C2,Salary,1,Ultra High,0,7,0,1
+C100322,Mass,25-34,3.9,Luzon,C1,Business,1,Very High,1,6,1,1
+C100323,Mid-Market,35-44,5.6,Visayas,C1,Salary,1,Very High,1,5,1,1
+C100324,Affluent-Preferred,25-34,7.7,NCR,B1,Salary,1,High,1,10,1,0
+C100325,Mid-Market,35-44,12.5,NCR,B2,Remittance,0,Low,0,5,1,1
+C100326,Affluent-Preferred,25-34,11.9,NCR,C1,Salary,0,Medium,0,10,1,1
+C100327,Mid-Market,45-54,4.2,Luzon,C1,Remittance,0,Medium,1,7,1,1
+C100328,Mid-Market,25-34,3.2,Visayas,B2,Salary,1,Ultra High,1,8,1,1
+C100329,Mass,55+,14.2,Visayas,C2,Business,0,Low,1,9,1,1
+C100330,Mid-Market,18-24,3.9,Luzon,B2,Mixed,0,Medium,0,3,1,1
+C100331,Mass,35-44,8.4,NCR,C1,Salary,0,Medium,0,1,1,1
+C100332,Mid-Market,25-34,1.3,NCR,C1,Mixed,1,High,1,6,1,1
+C100333,Affluent-Preferred,25-34,0.8,Visayas,C1,Salary,1,Ultra High,0,6,1,1
+C100334,Mass,35-44,6.3,Luzon,C2,Salary,1,Medium,0,10,1,1
+C100335,Mid-Market,45-54,5.0,Visayas,B2,Salary,1,Very High,0,2,1,1
+C100336,Mass,55+,9.8,NCR,C2,Business,1,Ultra High,0,2,1,1
+C100337,Mid-Market,25-34,3.3,NCR,B2,Business,1,Ultra High,1,4,0,1
+C100338,Mass,25-34,7.3,Mindanao,C2,Mixed,0,Low,1,8,0,1
+C100339,Affluent-Gold,45-54,9.5,NCR,B1,Business,0,Medium,1,7,1,1
+C100340,Mass,35-44,3.5,NCR,C1,Salary,1,Very High,0,3,1,1
+C100341,Affluent-Gold,25-34,4.7,Luzon,B2,Mixed,1,High,0,6,0,1
+C100342,Affluent-Preferred,45-54,2.4,Luzon,B2,Mixed,1,High,1,10,1,1
+C100343,Mid-Market,35-44,10.1,Mindanao,C2,Business,1,High,0,6,1,1
+C100344,Affluent-Preferred,35-44,8.7,Mindanao,B2,Remittance,1,Very High,0,9,1,1
+C100345,Affluent-Preferred,25-34,9.1,Visayas,B1,Business,1,Ultra High,0,9,1,1
+C100346,Affluent-Gold,35-44,5.0,NCR,A,Salary,1,Very High,0,2,1,0
+C100347,Mass,25-34,8.6,Luzon,D,Mixed,1,High,1,4,1,1
+C100348,Mid-Market,45-54,5.4,Mindanao,B2,Mixed,1,Medium,0,2,1,1
+C100349,Mass,25-34,15.7,NCR,C1,Business,1,Ultra High,0,5,1,1
+C100350,Mid-Market,45-54,5.9,Mindanao,B2,Salary,0,Low,0,3,1,1
+C100351,Mass,45-54,11.5,Luzon,C2,Salary,1,Ultra High,0,6,1,1
+C100352,Mid-Market,45-54,5.0,NCR,C2,Mixed,1,Very High,0,6,0,1
+C100353,Mid-Market,18-24,13.7,Luzon,C1,Mixed,1,High,0,8,1,1
+C100354,Mid-Market,25-34,3.2,Luzon,B2,Business,1,Very High,1,9,1,1
+C100355,Mid-Market,35-44,8.0,NCR,C1,Mixed,0,Medium,0,6,1,0
+C100356,Affluent-Preferred,35-44,3.7,NCR,B2,Remittance,0,Low,1,6,1,0
+C100357,Affluent-Preferred,55+,7.1,Visayas,C1,Mixed,1,Very High,1,6,1,1
+C100358,Mid-Market,25-34,3.9,NCR,C1,Salary,0,High,1,8,1,1
+C100359,Mid-Market,45-54,5.9,NCR,C1,Salary,1,High,0,1,1,1
+C100360,Affluent-Gold,25-34,4.4,Luzon,B1,Remittance,1,High,0,10,0,1
+C100361,Mass,25-34,9.3,Visayas,C1,Salary,1,Very High,1,2,1,0
+C100362,Mass,18-24,8.2,Luzon,D,Salary,1,Ultra High,0,1,1,1
+C100363,Mass,45-54,3.6,Mindanao,D,Business,1,High,1,6,0,1
+C100364,Mid-Market,25-34,3.5,Mindanao,B2,Salary,1,Ultra High,0,6,1,1
+C100365,Mid-Market,25-34,3.0,Luzon,B2,Business,1,High,1,9,1,1
+C100366,Affluent-Preferred,45-54,2.5,NCR,C1,Salary,1,Very High,0,9,1,1
+C100367,Mid-Market,35-44,9.7,Visayas,B2,Business,0,Low,0,2,0,1
+C100368,Mass,18-24,2.8,NCR,D,Salary,1,Very High,0,6,1,1
+C100369,Affluent-Preferred,18-24,7.5,Visayas,C1,Business,0,High,0,5,1,1
+C100370,Affluent-Preferred,35-44,4.1,Luzon,C1,Remittance,0,High,0,7,1,1
+C100371,Mass,25-34,11.2,NCR,C2,Salary,0,Medium,1,5,1,1
+C100372,Mass,25-34,18.1,Luzon,D,Salary,1,High,1,2,1,1
+C100373,Mass,35-44,0.2,Luzon,D,Salary,1,High,1,5,0,1
+C100374,Mass,25-34,3.1,Mindanao,C1,Salary,1,High,0,1,1,0
+C100375,Mass,35-44,4.1,NCR,C2,Salary,1,High,0,5,0,1
+C100376,Affluent-Gold,25-34,5.2,Mindanao,B1,Salary,1,Ultra High,0,4,1,1
+C100377,Mid-Market,25-34,4.9,NCR,B2,Business,1,Very High,0,1,1,1
+C100378,Mass,25-34,2.0,Visayas,D,Salary,1,Ultra High,1,9,1,1
+C100379,Mid-Market,25-34,18.4,Mindanao,B2,Salary,1,Very High,1,8,1,1
+C100380,Mid-Market,18-24,5.1,NCR,C1,Salary,1,Ultra High,0,5,1,1
+C100381,Affluent-Gold,25-34,8.2,NCR,A,Salary,1,High,1,5,1,1
+C100382,Affluent-Preferred,55+,8.3,Visayas,B1,Remittance,0,Medium,0,3,1,1
+C100383,Mid-Market,45-54,1.6,Visayas,C2,Business,1,High,1,4,1,1
+C100384,Mass,25-34,4.6,NCR,D,Remittance,1,Very High,1,1,1,1
+C100385,Affluent-Gold,35-44,9.7,Luzon,B1,Salary,0,Medium,1,10,1,1
+C100386,Mid-Market,35-44,14.2,Visayas,C1,Salary,1,Very High,0,7,1,1
+C100387,Affluent-Gold,45-54,4.6,NCR,B2,Salary,0,Medium,1,10,1,0
+C100388,Mass,25-34,1.9,Luzon,D,Business,1,Very High,0,5,1,1
+C100389,Affluent-Preferred,25-34,3.8,NCR,B1,Salary,1,Very High,1,6,0,1
+C100390,Mid-Market,25-34,4.5,NCR,B2,Business,1,Medium,0,2,0,1
+C100391,Mass,18-24,4.4,Visayas,D,Remittance,1,High,0,5,1,1
+C100392,Mid-Market,25-34,3.0,NCR,B2,Remittance,1,Medium,0,4,1,1
+C100393,Mid-Market,45-54,1.7,Mindanao,C2,Remittance,1,High,1,8,1,1
+C100394,Mass,55+,2.4,Luzon,C2,Mixed,1,High,1,5,1,0
+C100395,Mid-Market,25-34,3.8,Luzon,C2,Salary,1,Medium,0,5,0,1
+C100396,Affluent-Preferred,35-44,9.6,NCR,B2,Salary,0,Low,0,8,1,1
+C100397,Mass,25-34,12.0,NCR,D,Mixed,1,Ultra High,1,2,0,1
+C100398,Mid-Market,35-44,6.4,Visayas,C2,Remittance,1,Very High,0,4,1,1
+C100399,Mid-Market,35-44,2.4,Luzon,C2,Salary,1,High,1,4,0,1
+C100400,Mass,18-24,4.0,Visayas,D,Salary,1,High,0,7,1,0
+C100401,Affluent-Preferred,45-54,0.9,NCR,C1,Salary,0,Medium,0,4,1,1
+C100402,Affluent-Preferred,55+,14.4,NCR,B2,Business,1,Very High,1,8,0,0
+C100403,Mass,35-44,3.5,NCR,C1,Salary,1,Very High,0,6,1,1
+C100404,Affluent-Gold,35-44,7.7,Visayas,B2,Salary,1,Ultra High,0,8,1,1
+C100405,Affluent-Preferred,35-44,11.5,NCR,B1,Salary,1,High,0,1,1,1
+C100406,Mass,25-34,17.0,Luzon,C2,Mixed,1,Medium,0,4,0,1
+C100407,Affluent-Preferred,25-34,10.3,Luzon,C1,Remittance,0,Low,0,5,0,1
+C100408,Mass,35-44,4.3,NCR,D,Salary,1,Ultra High,0,5,1,1
+C100409,Affluent-Gold,18-24,8.4,Luzon,A,Mixed,1,Ultra High,1,9,1,1
+C100410,Mid-Market,45-54,16.6,Luzon,C2,Salary,0,Medium,0,2,1,1
+C100411,Mid-Market,35-44,3.5,Mindanao,C1,Business,0,Low,1,9,1,1
+C100412,Mass,35-44,1.7,NCR,D,Business,0,Low,1,7,1,1
+C100413,Affluent-Preferred,25-34,3.0,Luzon,B1,Salary,1,Very High,0,6,1,1
+C100414,Mass,55+,8.0,NCR,C1,Business,1,High,1,2,1,1
+C100415,Mass,25-34,4.4,Visayas,D,Mixed,1,Very High,0,2,1,1
+C100416,Mass,25-34,5.5,Luzon,D,Salary,1,Ultra High,0,9,1,1
+C100417,Affluent-Preferred,25-34,9.0,NCR,B2,Salary,1,Very High,1,8,1,1
+C100418,Mass,35-44,2.9,Visayas,C2,Business,1,Medium,0,10,1,1
+C100419,Affluent-Preferred,55+,5.3,Luzon,B2,Salary,1,Ultra High,0,3,1,1
+C100420,Mid-Market,25-34,3.9,NCR,C1,Remittance,0,Low,0,10,1,1
+C100421,Mass,55+,16.1,Luzon,D,Salary,0,Low,0,2,0,1
+C100422,Mass,25-34,10.1,NCR,D,Business,1,High,1,2,1,1
+C100423,Mass,35-44,4.5,Mindanao,C2,Business,1,Very High,0,1,0,1
+C100424,Mid-Market,18-24,4.3,Visayas,B2,Mixed,1,Ultra High,0,6,1,1
+C100425,Affluent-Preferred,35-44,17.3,Visayas,B1,Salary,1,High,1,3,0,1
+C100426,Mass,35-44,16.4,Mindanao,C2,Mixed,0,Medium,0,8,1,1
+C100427,Affluent-Preferred,35-44,8.0,Visayas,B1,Remittance,0,Low,1,6,1,0
+C100428,Mass,25-34,5.7,NCR,C2,Remittance,1,High,1,5,1,1
+C100429,Affluent-Preferred,45-54,2.0,NCR,B2,Business,0,High,1,9,1,1
+C100430,Affluent-Gold,55+,3.0,NCR,B1,Salary,1,Ultra High,0,9,1,1
+C100431,Affluent-Preferred,35-44,1.9,Mindanao,B2,Remittance,0,Medium,0,8,1,1
+C100432,Mid-Market,35-44,11.8,Mindanao,C2,Salary,1,Ultra High,0,8,1,1
+C100433,Affluent-Preferred,45-54,2.1,Visayas,B1,Salary,1,Very High,1,8,1,1
+C100434,Mass,25-34,4.2,NCR,D,Business,1,High,0,2,0,1
+C100435,Mass,45-54,1.0,NCR,D,Salary,1,High,0,10,1,0
+C100436,Mass,25-34,1.5,Mindanao,C2,Business,1,Very High,1,8,1,1
+C100437,Mid-Market,45-54,9.2,NCR,C2,Salary,1,Medium,0,8,0,1
+C100438,Mid-Market,25-34,7.2,Luzon,C2,Salary,1,Ultra High,1,8,1,0
+C100439,Mid-Market,25-34,5.9,NCR,C1,Business,1,Very High,0,8,1,1
+C100440,Affluent-Preferred,35-44,4.3,NCR,C1,Salary,1,Ultra High,0,2,0,1
+C100441,Mass,35-44,1.3,Luzon,D,Mixed,1,High,1,4,0,1
+C100442,Mid-Market,45-54,3.9,Mindanao,C1,Mixed,0,Low,1,10,1,1
+C100443,Mass,55+,5.1,Visayas,C2,Salary,1,High,0,2,1,1
+C100444,Mass,25-34,8.8,Luzon,C1,Salary,1,Very High,0,1,1,1
+C100445,Mid-Market,25-34,11.4,NCR,C2,Salary,0,Medium,1,10,0,1
+C100446,Affluent-Gold,25-34,9.4,Mindanao,A,Business,1,Very High,1,8,0,1
+C100447,Mid-Market,35-44,7.2,Luzon,C1,Salary,1,High,0,7,1,1
+C100448,Mass,35-44,5.8,Luzon,C2,Mixed,0,Low,0,7,0,1
+C100449,Mid-Market,45-54,6.7,Luzon,B2,Mixed,0,Low,0,6,1,1
+C100450,Mass,45-54,3.7,NCR,D,Salary,0,Medium,0,5,1,0
+C100451,Affluent-Preferred,18-24,6.2,NCR,B1,Business,1,Ultra High,0,8,1,1
+C100452,Mid-Market,35-44,5.1,Visayas,C2,Salary,1,High,1,10,1,1
+C100453,Mass,35-44,21.8,Luzon,C2,Remittance,1,Ultra High,1,4,0,1
+C100454,Mass,35-44,6.8,NCR,D,Salary,1,High,0,5,1,1
+C100455,Mass,25-34,0.8,NCR,C2,Business,0,Medium,0,8,1,1
+C100456,Affluent-Gold,25-34,4.1,Mindanao,A,Salary,1,Ultra High,1,3,1,1
+C100457,Mid-Market,35-44,4.7,Luzon,B2,Mixed,0,High,1,2,1,1
+C100458,Affluent-Preferred,25-34,10.3,Luzon,B1,Salary,1,High,1,5,1,1
+C100459,Mid-Market,45-54,7.4,NCR,B2,Remittance,0,Medium,0,3,0,1
+C100460,Mid-Market,25-34,7.1,Mindanao,C1,Mixed,1,Ultra High,0,8,1,1
+C100461,Mass,35-44,13.4,Mindanao,C2,Business,1,Very High,0,2,1,1
+C100462,Affluent-Gold,35-44,16.5,Luzon,A,Remittance,1,Very High,1,10,1,1
+C100463,Mass,45-54,9.2,NCR,D,Salary,1,Very High,0,5,1,1
+C100464,Mid-Market,25-34,4.4,Luzon,B2,Salary,1,Ultra High,1,10,0,0
+C100465,Mid-Market,25-34,4.5,Visayas,C1,Salary,0,Low,0,3,1,1
+C100466,Mid-Market,25-34,12.3,Visayas,C1,Mixed,1,Medium,1,5,0,0
+C100467,Affluent-Gold,35-44,4.5,Mindanao,B1,Salary,0,Low,0,3,1,1
+C100468,Mass,25-34,5.5,Luzon,C1,Salary,1,High,0,7,1,1
+C100469,Mid-Market,45-54,4.1,NCR,B2,Business,0,Low,0,9,0,1
+C100470,Mid-Market,25-34,2.4,Luzon,C2,Salary,1,Ultra High,1,6,0,1
+C100471,Mid-Market,18-24,20.7,Visayas,B2,Mixed,1,High,1,9,1,1
+C100472,Mass,35-44,5.6,NCR,C1,Salary,1,High,0,2,1,1
+C100473,Mass,45-54,14.6,NCR,C1,Salary,0,Low,0,5,0,1
+C100474,Mass,45-54,4.5,Visayas,C1,Remittance,0,Low,0,3,1,1
+C100475,Mass,45-54,3.5,NCR,C1,Remittance,1,High,0,3,0,1
+C100476,Mid-Market,35-44,8.7,Visayas,C2,Mixed,1,Very High,0,9,1,1
+C100477,Mid-Market,45-54,11.3,NCR,C1,Salary,1,High,0,9,1,1
+C100478,Mid-Market,45-54,11.8,NCR,B2,Salary,0,Low,0,1,1,1
+C100479,Mid-Market,25-34,5.1,NCR,B2,Salary,0,High,0,6,1,1
+C100480,Mid-Market,35-44,9.3,Luzon,C1,Salary,1,Very High,0,7,1,1
+C100481,Mass,45-54,3.8,Visayas,C1,Remittance,0,Medium,1,7,1,1
+C100482,Mid-Market,25-34,6.1,Luzon,B2,Salary,1,Medium,0,6,0,1
+C100483,Mass,35-44,4.7,Luzon,D,Remittance,0,Low,1,1,1,0
+C100484,Mass,35-44,4.2,NCR,C1,Mixed,0,Low,1,10,0,1
+C100485,Mid-Market,35-44,6.3,Visayas,C1,Salary,0,Low,1,9,1,1
+C100486,Mid-Market,18-24,2.3,Mindanao,C1,Business,1,Ultra High,0,2,1,1
+C100487,Mass,35-44,10.7,Visayas,D,Salary,0,Low,0,3,1,1
+C100488,Mid-Market,45-54,4.2,NCR,B2,Business,1,Medium,1,8,1,1
+C100489,Mid-Market,25-34,10.4,Luzon,C2,Salary,1,High,1,10,1,1
+C100490,Mid-Market,25-34,2.8,NCR,C1,Remittance,1,Ultra High,1,9,1,1
+C100491,Mid-Market,18-24,4.2,NCR,C2,Salary,0,Medium,1,8,1,1
+C100492,Mid-Market,18-24,2.3,NCR,B2,Salary,1,Very High,1,8,1,1
+C100493,Mass,55+,2.3,NCR,C2,Salary,1,Very High,1,2,1,1
+C100494,Affluent-Preferred,35-44,3.1,NCR,C1,Salary,0,Low,0,3,1,1
+C100495,Mid-Market,25-34,2.8,Visayas,C2,Mixed,1,Very High,0,1,1,1
+C100496,Mid-Market,25-34,2.4,NCR,B2,Salary,1,Very High,1,6,1,1
+C100497,Mid-Market,55+,5.8,Visayas,C2,Mixed,1,High,1,9,1,0
+C100498,Mass,25-34,8.6,Mindanao,C1,Salary,1,Ultra High,1,10,0,1
+C100499,Mid-Market,45-54,8.9,Luzon,C2,Salary,0,Low,1,10,0,1
+C100500,Mid-Market,25-34,1.2,Luzon,B2,Salary,1,High,0,6,1,1
+C100501,Affluent-Preferred,18-24,4.7,Visayas,B2,Salary,1,Ultra High,0,4,1,0
+C100502,Affluent-Gold,45-54,4.3,NCR,B2,Business,1,Very High,0,9,0,1
+C100503,Mid-Market,18-24,13.6,NCR,B2,Salary,1,Very High,0,8,0,1
+C100504,Mid-Market,35-44,4.8,Luzon,C2,Mixed,1,Ultra High,1,10,1,1
+C100505,Affluent-Preferred,25-34,5.5,Visayas,B1,Salary,0,Medium,0,5,1,1
+C100506,Mass,45-54,1.7,Visayas,C2,Salary,1,Very High,0,3,1,1
+C100507,Affluent-Preferred,45-54,3.0,Visayas,B2,Salary,1,Very High,1,6,0,1
+C100508,Mid-Market,45-54,1.6,Luzon,C2,Business,0,High,0,4,1,1
+C100509,Mass,18-24,6.1,Luzon,D,Remittance,1,Ultra High,1,1,1,1
+C100510,Mass,45-54,13.8,Visayas,D,Mixed,1,High,0,7,0,1
+C100511,Affluent-Preferred,55+,3.1,Mindanao,B1,Salary,0,Low,1,7,1,1
+C100512,Mass,25-34,4.8,Luzon,D,Salary,1,Ultra High,0,4,1,1
+C100513,Mass,25-34,2.8,Mindanao,D,Business,1,High,1,8,1,1
+C100514,Mass,45-54,3.6,Mindanao,D,Remittance,1,Ultra High,0,1,1,1
+C100515,Mass,25-34,6.2,Luzon,C1,Business,1,Ultra High,0,1,1,1
+C100516,Mass,35-44,18.0,NCR,C1,Salary,0,Medium,0,2,1,1
+C100517,Mid-Market,45-54,13.4,NCR,B2,Business,1,Ultra High,0,8,1,1
+C100518,Mass,18-24,15.9,Visayas,D,Salary,1,Ultra High,1,1,1,1
+C100519,Affluent-Preferred,35-44,10.5,NCR,B2,Mixed,0,Medium,0,3,1,1
+C100520,Affluent-Preferred,35-44,4.8,Luzon,B1,Salary,1,High,1,4,1,1
+C100521,Mass,25-34,4.3,Luzon,D,Business,1,Ultra High,0,7,1,1
+C100522,Mass,45-54,3.1,Mindanao,C1,Salary,0,High,1,5,1,1
+C100523,Mid-Market,25-34,0.4,Visayas,C2,Business,1,Very High,0,10,1,0
+C100524,Mass,25-34,4.7,Visayas,C1,Mixed,1,Ultra High,0,4,1,1
+C100525,Mass,45-54,14.0,NCR,C2,Mixed,0,Low,0,6,1,1
+C100526,Affluent-Gold,25-34,13.9,NCR,A,Salary,0,Low,0,9,1,1
+C100527,Affluent-Gold,45-54,22.3,Luzon,B1,Salary,1,High,1,7,1,1
+C100528,Affluent-Preferred,18-24,6.5,NCR,B1,Business,0,Low,0,3,1,1
+C100529,Mass,35-44,2.0,Luzon,C1,Remittance,0,Low,1,2,0,1
+C100530,Mid-Market,18-24,8.2,Mindanao,C2,Remittance,0,Medium,1,6,1,1
+C100531,Mid-Market,35-44,18.2,Luzon,C1,Salary,0,Low,0,6,0,1
+C100532,Mass,45-54,15.1,Luzon,C2,Salary,1,High,0,8,1,1
+C100533,Mid-Market,45-54,4.0,Luzon,C1,Salary,1,Medium,0,3,0,1
+C100534,Mass,55+,2.2,Visayas,C1,Business,1,High,0,1,1,1
+C100535,Mass,35-44,2.2,NCR,D,Salary,0,Low,1,7,1,1
+C100536,Mid-Market,45-54,3.3,Luzon,C2,Salary,0,Low,1,6,1,1
+C100537,Mass,35-44,3.7,NCR,C2,Business,1,High,0,2,1,1
+C100538,Mass,55+,4.5,Luzon,C1,Remittance,1,Medium,1,1,1,0
+C100539,Affluent-Preferred,35-44,9.0,NCR,C1,Mixed,1,High,0,5,1,1
+C100540,Affluent-Gold,55+,4.4,Luzon,B1,Salary,1,Very High,0,5,1,1
+C100541,Mid-Market,25-34,5.9,Visayas,B2,Salary,1,Very High,1,2,1,1
+C100542,Affluent-Preferred,35-44,1.5,NCR,B2,Remittance,0,Low,0,8,1,1
+C100543,Affluent-Gold,45-54,3.1,Luzon,B1,Salary,0,Low,0,2,1,1
+C100544,Mass,25-34,3.0,NCR,C2,Business,1,Very High,0,5,1,1
+C100545,Mid-Market,25-34,1.3,NCR,B2,Salary,1,High,0,10,0,1
+C100546,Mass,55+,4.3,NCR,C1,Remittance,0,Medium,0,6,1,1
+C100547,Mass,35-44,1.5,NCR,C2,Salary,1,Medium,1,7,1,1
+C100548,Affluent-Preferred,25-34,4.1,Mindanao,B2,Remittance,1,Ultra High,0,2,1,1
+C100549,Mid-Market,25-34,6.2,Mindanao,C2,Business,1,Very High,0,7,1,1
+C100550,Mid-Market,25-34,14.1,Visayas,C1,Salary,1,Ultra High,0,5,1,1
+C100551,Mass,35-44,2.9,Luzon,C1,Salary,0,Low,0,5,0,1
+C100552,Mass,55+,6.1,Visayas,C2,Salary,1,Very High,0,2,1,1
+C100553,Affluent-Preferred,55+,3.5,Mindanao,B1,Business,1,Very High,1,3,0,1
+C100554,Mass,35-44,1.4,Luzon,C2,Salary,1,High,1,8,1,1
+C100555,Mass,45-54,14.2,NCR,C1,Salary,1,Very High,0,8,0,1
+C100556,Mass,25-34,6.4,Visayas,C1,Business,1,Very High,0,3,1,1
+C100557,Mid-Market,45-54,7.9,Mindanao,C1,Remittance,0,High,0,3,1,1
+C100558,Mid-Market,25-34,15.7,NCR,B2,Business,1,Very High,0,9,1,1
+C100559,Mid-Market,25-34,4.1,Luzon,B2,Salary,1,Ultra High,0,6,1,1
+C100560,Mass,55+,2.0,NCR,D,Mixed,0,Low,0,1,1,1
+C100561,Mass,45-54,2.9,NCR,D,Salary,1,Very High,0,8,1,1
+C100562,Affluent-Preferred,25-34,1.8,Visayas,B1,Salary,1,Very High,0,5,1,1
+C100563,Mid-Market,35-44,11.8,NCR,C1,Remittance,1,Very High,0,2,1,1
+C100564,Mid-Market,35-44,18.6,Mindanao,C2,Salary,1,High,0,2,0,1
+C100565,Mid-Market,25-34,6.2,Visayas,B2,Remittance,0,Medium,0,8,1,1
+C100566,Affluent-Preferred,25-34,9.1,NCR,B2,Salary,1,Very High,0,2,1,1
+C100567,Mass,25-34,10.8,Visayas,D,Salary,1,Ultra High,0,9,1,1
+C100568,Mass,35-44,16.4,Visayas,D,Business,1,High,1,8,1,1
+C100569,Mid-Market,35-44,18.1,Luzon,B2,Salary,1,Very High,1,7,0,1
+C100570,Mass,35-44,1.0,Luzon,C1,Business,1,Very High,0,5,0,1
+C100571,Affluent-Preferred,25-34,3.6,Visayas,B2,Remittance,1,Very High,0,7,1,1
+C100572,Mid-Market,55+,5.7,NCR,B2,Salary,1,Medium,0,4,1,1
+C100573,Affluent-Preferred,35-44,3.2,NCR,C1,Business,1,Very High,1,4,0,0
+C100574,Affluent-Preferred,55+,4.6,NCR,B1,Mixed,1,Very High,1,6,1,1
+C100575,Mid-Market,25-34,7.6,NCR,C2,Business,1,Very High,0,9,0,1
+C100576,Affluent-Preferred,35-44,7.5,Luzon,B2,Salary,1,High,0,1,1,1
+C100577,Mid-Market,45-54,10.5,NCR,B2,Remittance,1,Very High,0,8,1,1
+C100578,Affluent-Preferred,25-34,5.8,Luzon,B2,Mixed,1,Very High,0,3,1,0
+C100579,Mass,25-34,0.5,Luzon,C1,Remittance,1,High,0,7,1,1
+C100580,Mid-Market,25-34,4.3,Visayas,C1,Salary,1,Ultra High,0,1,0,1
+C100581,Mid-Market,25-34,7.1,Luzon,C2,Salary,1,Very High,1,2,1,1
+C100582,Mass,35-44,11.0,Mindanao,D,Business,1,Very High,0,3,1,1
+C100583,Mass,25-34,10.0,Mindanao,D,Business,1,Very High,0,3,1,1
+C100584,Affluent-Preferred,25-34,5.2,NCR,C1,Mixed,0,High,0,4,1,1
+C100585,Mid-Market,35-44,3.4,Luzon,C2,Mixed,1,High,0,10,0,1
+C100586,Mass,18-24,5.4,NCR,C1,Salary,1,Very High,0,4,1,0
+C100587,Mass,25-34,1.1,Visayas,D,Remittance,1,Very High,1,2,1,1
+C100588,Mass,45-54,3.6,Luzon,D,Salary,1,High,1,1,1,1
+C100589,Mass,25-34,12.4,NCR,C1,Salary,1,Medium,0,3,0,1
+C100590,Affluent-Gold,25-34,5.4,NCR,B1,Salary,1,Ultra High,0,4,1,1
+C100591,Mid-Market,25-34,7.3,NCR,C2,Mixed,1,Ultra High,0,8,1,1
+C100592,Mass,18-24,1.7,Visayas,C1,Salary,1,Ultra High,1,7,1,1
+C100593,Mid-Market,35-44,11.0,Visayas,C2,Salary,1,High,0,8,1,0
+C100594,Mass,18-24,5.1,NCR,C1,Salary,1,High,1,9,1,1
+C100595,Mass,25-34,7.1,NCR,D,Salary,1,Very High,1,9,1,1
+C100596,Mid-Market,55+,8.2,NCR,C1,Remittance,0,Medium,1,4,1,1
+C100597,Mid-Market,55+,10.7,Luzon,C1,Salary,1,High,0,7,0,1
+C100598,Affluent-Gold,25-34,6.4,NCR,B1,Salary,1,High,1,4,1,1
+C100599,Mid-Market,25-34,5.1,NCR,B2,Salary,0,Medium,1,5,1,1
+C100600,Mid-Market,35-44,2.1,Mindanao,C1,Business,1,Very High,1,5,0,1
+C100601,Affluent-Preferred,45-54,1.6,Luzon,B2,Business,0,High,0,8,1,1
+C100602,Affluent-Preferred,45-54,6.3,Visayas,C1,Business,1,High,1,3,1,1
+C100603,Mid-Market,25-34,7.2,Luzon,C1,Salary,1,Very High,1,2,0,1
+C100604,Affluent-Gold,25-34,8.0,Luzon,A,Salary,1,Very High,0,4,1,1
+C100605,Affluent-Preferred,35-44,2.9,Luzon,B1,Salary,0,Low,0,5,0,1
+C100606,Affluent-Preferred,45-54,3.7,NCR,B2,Mixed,0,Medium,0,6,1,1
+C100607,Mass,55+,6.2,NCR,C2,Salary,0,Medium,0,7,1,1
+C100608,Mid-Market,25-34,4.0,Mindanao,C1,Salary,1,High,0,7,0,1
+C100609,Mid-Market,35-44,23.4,Visayas,B2,Mixed,0,Medium,0,5,1,1
+C100610,Mid-Market,25-34,3.6,Visayas,B2,Mixed,1,Very High,0,10,1,0
+C100611,Mid-Market,45-54,7.5,NCR,C1,Salary,1,Ultra High,0,8,0,0
+C100612,Affluent-Gold,55+,9.8,NCR,A,Business,1,Very High,1,4,0,1
+C100613,Affluent-Gold,35-44,10.2,NCR,B2,Salary,0,Medium,1,9,0,1
+C100614,Mass,18-24,4.0,Mindanao,C1,Salary,1,Ultra High,1,8,1,1
+C100615,Mid-Market,35-44,8.3,Visayas,B2,Salary,1,Ultra High,0,10,1,1
+C100616,Mid-Market,35-44,7.6,Luzon,B2,Mixed,0,Medium,0,8,1,1
+C100617,Mass,45-54,8.5,Mindanao,C2,Salary,1,High,1,3,0,1
+C100618,Mass,25-34,6.2,NCR,C1,Business,1,Ultra High,0,9,1,0
+C100619,Mass,45-54,9.9,Luzon,C2,Salary,1,Medium,0,4,1,1
+C100620,Affluent-Preferred,25-34,6.7,NCR,B1,Remittance,1,Very High,0,6,1,1
+C100621,Mid-Market,25-34,1.9,NCR,C2,Business,1,Very High,1,3,1,1
+C100622,Affluent-Gold,25-34,6.6,Mindanao,B1,Business,1,Ultra High,0,4,1,1
+C100623,Mid-Market,18-24,7.1,Visayas,C1,Mixed,1,High,1,9,1,1
+C100624,Affluent-Gold,25-34,9.4,NCR,A,Business,1,High,1,6,1,0
+C100625,Mid-Market,35-44,6.3,NCR,B2,Business,0,Low,0,5,1,0
+C100626,Affluent-Preferred,25-34,16.6,Luzon,B1,Salary,1,Ultra High,1,6,1,1
+C100627,Mass,25-34,5.3,NCR,D,Mixed,1,Very High,0,5,0,1
+C100628,Mid-Market,25-34,3.8,Luzon,C1,Salary,1,Very High,1,10,1,1
+C100629,Affluent-Preferred,18-24,13.4,Luzon,C1,Salary,1,Ultra High,0,5,1,0
+C100630,Affluent-Gold,45-54,5.2,NCR,A,Remittance,0,High,1,7,1,1
+C100631,Affluent-Preferred,55+,5.9,NCR,C1,Salary,1,Ultra High,0,6,1,1
+C100632,Mass,18-24,7.1,NCR,C2,Remittance,1,Very High,1,7,1,1
+C100633,Mass,45-54,6.7,Mindanao,C2,Salary,1,Very High,0,4,0,1
+C100634,Mass,45-54,8.5,NCR,C1,Salary,1,High,1,1,1,1
+C100635,Mass,55+,9.0,Luzon,C1,Mixed,1,Ultra High,0,6,1,1
+C100636,Mid-Market,25-34,3.6,NCR,B2,Mixed,1,Very High,0,6,0,1
+C100637,Mid-Market,25-34,2.3,Visayas,C1,Salary,1,High,0,4,0,1
+C100638,Affluent-Preferred,35-44,2.5,NCR,C1,Mixed,0,Low,1,10,1,1
+C100639,Affluent-Preferred,45-54,12.5,NCR,B1,Salary,1,Very High,0,4,1,1
+C100640,Mid-Market,45-54,4.9,Visayas,C2,Salary,0,Medium,0,4,1,1
+C100641,Affluent-Preferred,35-44,9.8,Visayas,B2,Mixed,0,High,0,6,1,0
+C100642,Mass,25-34,9.2,NCR,C2,Remittance,1,High,0,4,1,1
+C100643,Mass,45-54,5.9,NCR,C2,Business,1,Very High,0,8,1,1
+C100644,Mid-Market,45-54,2.9,Mindanao,B2,Salary,0,Low,0,3,1,1
+C100645,Affluent-Preferred,25-34,9.4,NCR,C1,Salary,0,Low,0,5,1,1
+C100646,Mass,35-44,5.8,NCR,C2,Salary,1,High,1,1,1,1
+C100647,Mid-Market,35-44,2.1,NCR,C2,Mixed,0,Low,1,2,1,1
+C100648,Mid-Market,35-44,4.1,NCR,B2,Salary,1,High,0,7,1,1
+C100649,Mass,35-44,1.5,Luzon,C1,Salary,1,Very High,0,6,0,1
+C100650,Mid-Market,45-54,4.2,Luzon,C1,Salary,1,Medium,0,10,1,1
+C100651,Affluent-Preferred,55+,6.1,Luzon,C1,Remittance,1,Very High,1,3,1,1
+C100652,Mid-Market,35-44,5.3,Luzon,C2,Salary,1,High,0,6,1,1
+C100653,Mass,25-34,4.9,NCR,D,Business,1,Ultra High,0,3,1,1
+C100654,Affluent-Preferred,25-34,6.1,Visayas,B2,Remittance,1,High,0,5,1,1
+C100655,Mass,25-34,8.1,NCR,C1,Salary,0,Medium,0,4,1,1
+C100656,Affluent-Preferred,25-34,10.3,NCR,C1,Salary,1,Ultra High,1,10,1,1
+C100657,Mass,18-24,11.2,Luzon,C2,Salary,1,Ultra High,1,7,1,1
+C100658,Mid-Market,35-44,3.3,NCR,C1,Business,1,Very High,1,7,1,1
+C100659,Mass,25-34,11.9,NCR,D,Business,1,High,0,10,0,1
+C100660,Mass,25-34,5.8,NCR,C2,Salary,1,Ultra High,0,4,0,1
+C100661,Affluent-Preferred,45-54,4.5,Visayas,B1,Remittance,1,Very High,1,9,1,1
+C100662,Mass,25-34,2.6,NCR,C1,Salary,1,Ultra High,1,6,1,1
+C100663,Mass,35-44,0.4,Visayas,C2,Mixed,1,Very High,0,7,1,1
+C100664,Mass,55+,7.7,Visayas,D,Mixed,0,Medium,0,1,1,1
+C100665,Mid-Market,35-44,7.5,Luzon,B2,Business,1,Very High,0,3,1,1
+C100666,Affluent-Preferred,25-34,3.8,NCR,C1,Salary,1,Ultra High,0,10,0,1
+C100667,Affluent-Gold,25-34,3.9,Visayas,A,Salary,1,High,0,6,1,0
+C100668,Mass,35-44,5.2,NCR,C1,Mixed,0,Medium,0,2,1,1
+C100669,Mid-Market,35-44,4.4,Mindanao,C2,Salary,1,Ultra High,0,1,1,1
+C100670,Mass,25-34,3.1,Visayas,C1,Business,1,Very High,1,2,1,1
+C100671,Mid-Market,35-44,2.3,NCR,C2,Mixed,1,Medium,1,7,1,1
+C100672,Affluent-Gold,35-44,12.0,Visayas,B1,Business,0,Low,1,7,1,1
+C100673,Mid-Market,25-34,4.0,Luzon,C2,Remittance,1,Ultra High,0,9,1,1
+C100674,Mid-Market,35-44,7.5,Luzon,C2,Remittance,1,High,0,9,1,1
+C100675,Mass,18-24,8.5,NCR,C1,Mixed,1,High,1,1,0,1
+C100676,Affluent-Preferred,25-34,7.8,Luzon,B2,Salary,1,Very High,0,2,1,1
+C100677,Mid-Market,45-54,8.8,Visayas,C1,Mixed,0,High,0,8,1,1
+C100678,Mass,25-34,7.7,Mindanao,C2,Salary,1,Medium,1,9,1,1
+C100679,Mass,35-44,3.5,NCR,C1,Business,1,Medium,0,7,1,1
+C100680,Mass,35-44,4.6,Luzon,C1,Mixed,0,Medium,0,1,1,1
+C100681,Mass,25-34,11.8,Luzon,C2,Remittance,1,Ultra High,1,9,1,1
+C100682,Mass,55+,4.0,Luzon,D,Salary,1,Very High,0,9,1,1
+C100683,Mid-Market,25-34,5.8,Luzon,C2,Salary,1,High,1,4,1,1
+C100684,Mid-Market,25-34,8.1,NCR,C1,Business,1,Ultra High,0,9,1,0
+C100685,Mass,55+,14.6,Visayas,D,Remittance,0,Medium,0,3,1,1
+C100686,Mid-Market,45-54,11.1,NCR,C2,Salary,1,High,0,5,1,1
+C100687,Affluent-Gold,45-54,2.8,NCR,B2,Mixed,1,Very High,0,3,1,1
+C100688,Affluent-Preferred,18-24,7.3,Luzon,B1,Mixed,0,Medium,1,4,0,1
+C100689,Mid-Market,25-34,6.8,NCR,C1,Mixed,1,High,0,10,1,1
+C100690,Mass,35-44,4.7,NCR,C1,Remittance,0,Medium,0,9,1,1
+C100691,Affluent-Preferred,25-34,5.9,NCR,B2,Mixed,1,High,1,3,1,1
+C100692,Mass,25-34,3.5,Luzon,C2,Mixed,1,Very High,0,2,1,1
+C100693,Mass,45-54,5.1,Mindanao,C1,Salary,1,High,1,3,1,1
+C100694,Affluent-Preferred,25-34,4.0,Luzon,B1,Mixed,1,High,1,10,1,1
+C100695,Mid-Market,18-24,6.2,NCR,C2,Remittance,1,Ultra High,0,1,1,1
+C100696,Mid-Market,18-24,4.5,Visayas,C2,Mixed,1,Very High,0,4,0,1
+C100697,Mid-Market,35-44,15.3,NCR,C1,Business,1,Medium,0,2,1,0
+C100698,Mid-Market,35-44,6.4,Mindanao,C2,Remittance,1,High,0,2,1,1
+C100699,Mass,45-54,5.5,Luzon,D,Salary,1,Very High,0,5,1,1
+C100700,Mass,25-34,4.9,NCR,D,Salary,1,Ultra High,0,3,1,1
+C100701,Mass,25-34,4.5,Luzon,C1,Salary,1,High,0,1,1,1
+C100702,Mass,35-44,2.1,NCR,C2,Business,0,Low,0,3,1,1
+C100703,Affluent-Preferred,25-34,9.7,Visayas,C1,Mixed,0,Medium,0,10,1,1
+C100704,Mass,35-44,13.4,NCR,C1,Salary,0,Medium,0,1,1,1
+C100705,Mid-Market,55+,3.9,Visayas,C1,Salary,1,Very High,1,4,1,1
+C100706,Affluent-Preferred,35-44,11.7,Visayas,B1,Business,0,Low,0,9,1,1
+C100707,Affluent-Preferred,35-44,23.3,Visayas,C1,Salary,1,Very High,1,5,1,1
+C100708,Mid-Market,55+,18.2,Mindanao,B2,Salary,0,High,0,10,0,0
+C100709,Mid-Market,18-24,13.1,NCR,C2,Salary,1,High,0,2,1,1
+C100710,Affluent-Gold,55+,2.4,Luzon,B1,Remittance,1,High,0,10,1,1
+C100711,Mid-Market,35-44,2.3,Visayas,C1,Remittance,1,Ultra High,0,9,1,1
+C100712,Affluent-Preferred,35-44,8.8,NCR,C1,Mixed,0,Low,0,5,1,1
+C100713,Affluent-Preferred,55+,5.8,NCR,B2,Salary,1,High,1,3,1,1
+C100714,Affluent-Preferred,35-44,0.9,NCR,C1,Salary,0,Low,0,3,1,1
+C100715,Mass,35-44,4.3,NCR,C2,Business,0,Low,0,1,1,1
+C100716,Mid-Market,25-34,8.5,Mindanao,B2,Mixed,1,High,1,8,1,1
+C100717,Mass,35-44,5.2,Luzon,D,Salary,1,Ultra High,1,7,1,1
+C100718,Mid-Market,35-44,5.8,Luzon,C1,Mixed,0,Medium,0,7,1,1
+C100719,Affluent-Gold,25-34,2.3,Mindanao,A,Business,1,High,0,6,1,1
+C100720,Mid-Market,45-54,4.2,NCR,C2,Mixed,1,Medium,0,10,1,1
+C100721,Mid-Market,35-44,8.8,Visayas,C2,Salary,1,High,0,6,0,1
+C100722,Mass,25-34,4.1,NCR,D,Salary,1,Medium,0,3,1,1
+C100723,Affluent-Gold,18-24,12.3,NCR,B1,Salary,1,Very High,1,10,0,1
+C100724,Mass,35-44,5.9,NCR,D,Business,1,Medium,0,9,1,0
+C100725,Mass,18-24,7.7,NCR,C1,Mixed,1,Ultra High,0,6,1,1
+C100726,Mass,18-24,8.7,NCR,D,Salary,1,Very High,0,1,1,0
+C100727,Mass,35-44,8.5,Luzon,C2,Salary,1,Very High,0,3,1,1
+C100728,Mid-Market,18-24,2.7,NCR,C2,Salary,1,Ultra High,1,8,1,1
+C100729,Mid-Market,25-34,3.1,NCR,C2,Remittance,1,Ultra High,1,7,1,0
+C100730,Mass,35-44,0.9,Luzon,D,Mixed,0,Medium,0,4,1,1
+C100731,Mass,25-34,4.6,NCR,C2,Salary,1,Ultra High,0,4,1,1
+C100732,Mass,55+,2.9,Visayas,D,Business,1,Very High,0,9,1,1
+C100733,Mass,55+,4.0,Mindanao,D,Remittance,1,Ultra High,0,4,1,1
+C100734,Mass,35-44,5.0,Visayas,C2,Mixed,1,Medium,0,4,1,0
+C100735,Mid-Market,55+,6.5,Luzon,C1,Business,1,Medium,0,8,1,1
+C100736,Mass,45-54,5.2,Luzon,D,Salary,1,Very High,1,5,0,1
+C100737,Mass,25-34,5.2,Luzon,C2,Business,1,Very High,1,6,0,1
+C100738,Mass,45-54,7.3,Mindanao,C2,Business,1,Very High,0,3,1,1
+C100739,Mid-Market,25-34,5.7,Mindanao,B2,Mixed,1,Ultra High,1,1,1,1
+C100740,Mass,45-54,10.2,NCR,C2,Remittance,1,Medium,1,1,1,1
+C100741,Mass,35-44,5.7,Luzon,C1,Salary,0,Low,1,7,1,1
+C100742,Affluent-Preferred,18-24,14.6,Visayas,C1,Remittance,0,Medium,0,3,1,1
+C100743,Mass,25-34,2.6,NCR,D,Business,1,Ultra High,1,1,1,1
+C100744,Mid-Market,55+,4.6,Luzon,C1,Salary,0,Low,1,3,1,1
+C100745,Mid-Market,25-34,3.5,Luzon,C2,Mixed,1,Ultra High,0,9,1,1
+C100746,Mass,25-34,6.6,Visayas,C1,Salary,0,Medium,0,5,0,1
+C100747,Mid-Market,25-34,2.6,NCR,C1,Mixed,1,High,1,8,1,1
+C100748,Affluent-Preferred,35-44,1.7,NCR,B2,Salary,0,High,0,8,1,1
+C100749,Affluent-Preferred,45-54,3.0,NCR,B2,Salary,1,Ultra High,0,4,1,1
+C100750,Mass,45-54,1.9,Luzon,D,Remittance,0,High,0,3,1,1
+C100751,Mass,35-44,5.0,Mindanao,C2,Remittance,1,High,0,6,0,1
+C100752,Mass,25-34,6.5,Mindanao,C1,Mixed,1,Ultra High,1,3,1,1
+C100753,Mid-Market,18-24,1.5,NCR,C1,Remittance,1,Very High,1,7,0,1
+C100754,Mid-Market,35-44,4.4,NCR,C1,Salary,1,High,0,3,1,1
+C100755,Mass,45-54,11.1,Visayas,C2,Mixed,1,High,1,3,1,1
+C100756,Mass,45-54,13.2,Visayas,C2,Remittance,0,Low,0,8,1,1
+C100757,Affluent-Gold,35-44,9.3,Luzon,A,Salary,1,High,1,8,1,1
+C100758,Mass,35-44,0.6,NCR,C1,Mixed,1,High,0,2,0,0
+C100759,Mid-Market,35-44,6.1,NCR,C1,Salary,1,Very High,0,10,1,1
+C100760,Mid-Market,35-44,11.9,Visayas,B2,Salary,0,High,0,4,1,0
+C100761,Mass,35-44,4.0,Luzon,D,Remittance,1,High,1,3,1,1
+C100762,Mass,45-54,2.2,NCR,D,Remittance,1,Very High,1,3,1,1
+C100763,Mass,35-44,11.4,Mindanao,D,Remittance,0,High,0,2,0,1
+C100764,Affluent-Preferred,55+,12.4,Luzon,B1,Mixed,0,Medium,1,10,0,1
+C100765,Mass,35-44,5.6,Mindanao,C2,Salary,1,Very High,0,1,1,0
+C100766,Mass,18-24,2.2,Luzon,C2,Mixed,1,Very High,0,10,1,1
+C100767,Mass,25-34,1.3,Luzon,D,Salary,1,Ultra High,1,5,1,1
+C100768,Mass,35-44,7.1,Mindanao,C2,Salary,0,High,0,5,0,0
+C100769,Mid-Market,35-44,3.6,Mindanao,C2,Salary,0,Medium,1,5,1,1
+C100770,Mass,35-44,5.4,Mindanao,C2,Salary,0,Medium,0,6,0,1
+C100771,Mid-Market,45-54,5.0,Visayas,C1,Salary,1,High,0,3,0,1
+C100772,Mid-Market,25-34,2.9,Luzon,B2,Mixed,1,High,0,9,1,1
+C100773,Affluent-Preferred,35-44,1.3,NCR,B1,Business,0,High,0,2,1,0
+C100774,Mass,45-54,4.1,NCR,D,Business,0,Medium,0,1,1,1
+C100775,Affluent-Preferred,35-44,6.2,Mindanao,B1,Salary,0,High,1,3,1,1
+C100776,Mid-Market,35-44,6.4,NCR,C1,Mixed,1,High,1,9,1,1
+C100777,Mass,25-34,3.4,Visayas,C2,Salary,1,Ultra High,1,10,1,1
+C100778,Affluent-Preferred,35-44,12.3,Mindanao,B2,Business,0,Low,0,3,1,1
+C100779,Affluent-Preferred,45-54,2.4,Mindanao,C1,Business,1,High,0,9,1,1
+C100780,Mass,55+,10.5,Mindanao,D,Salary,1,Very High,0,1,0,1
+C100781,Affluent-Preferred,35-44,6.1,Luzon,B2,Remittance,1,Medium,0,9,0,1
+C100782,Mid-Market,25-34,4.1,Luzon,B2,Mixed,1,Very High,0,1,1,1
+C100783,Mid-Market,45-54,7.7,Mindanao,C1,Salary,1,Very High,1,8,1,1
+C100784,Affluent-Gold,45-54,4.8,NCR,B1,Business,0,Medium,1,8,1,1
+C100785,Mass,25-34,1.7,NCR,C1,Mixed,1,Very High,0,7,1,1
+C100786,Affluent-Preferred,45-54,2.2,Mindanao,B1,Salary,0,Low,1,6,1,1
+C100787,Mass,18-24,4.6,Luzon,C2,Salary,0,Low,1,3,1,1
+C100788,Affluent-Preferred,18-24,3.7,Luzon,C1,Salary,1,Very High,1,3,1,1
+C100789,Mid-Market,25-34,10.4,NCR,B2,Business,0,Medium,0,3,1,1
+C100790,Mass,25-34,3.6,Luzon,C1,Salary,1,Ultra High,1,9,0,1
+C100791,Mid-Market,45-54,3.5,Mindanao,B2,Salary,1,Very High,0,7,1,1
+C100792,Mass,35-44,3.1,Luzon,C1,Salary,1,Ultra High,1,2,0,1
+C100793,Mass,25-34,2.9,NCR,C2,Mixed,1,Ultra High,1,9,0,1
+C100794,Mass,35-44,3.0,Luzon,D,Mixed,1,Very High,0,3,1,1
+C100795,Mass,25-34,2.0,Mindanao,D,Remittance,1,Ultra High,0,6,1,0
+C100796,Mass,25-34,6.3,Mindanao,C1,Mixed,1,Very High,0,2,0,1
+C100797,Mass,25-34,5.1,NCR,C2,Business,0,High,1,8,1,1
+C100798,Mid-Market,35-44,4.9,Luzon,C1,Mixed,1,Ultra High,0,8,1,1
+C100799,Mid-Market,25-34,1.4,NCR,C1,Salary,1,High,0,7,1,1
+C100800,Mid-Market,45-54,7.3,Luzon,B2,Salary,1,Very High,0,3,1,1
+C100801,Mass,25-34,7.8,NCR,C2,Mixed,1,Very High,1,10,1,1
+C100802,Affluent-Preferred,45-54,14.2,Luzon,C1,Salary,0,Low,0,10,1,1
+C100803,Mid-Market,45-54,7.5,Luzon,B2,Salary,1,Very High,1,7,0,1
+C100804,Mass,25-34,16.0,NCR,C2,Business,1,Ultra High,0,5,1,1
+C100805,Mass,18-24,3.3,NCR,D,Remittance,1,Ultra High,0,4,0,1
+C100806,Mid-Market,55+,14.7,NCR,C2,Salary,0,Medium,0,3,0,1
+C100807,Mass,35-44,7.7,NCR,C2,Salary,0,Medium,1,8,1,1
+C100808,Mid-Market,35-44,7.0,Visayas,B2,Salary,1,High,1,6,1,1
+C100809,Affluent-Gold,18-24,4.8,NCR,B2,Salary,1,High,1,10,1,0
+C100810,Mass,25-34,4.1,NCR,D,Salary,1,Ultra High,0,8,1,1
+C100811,Mass,35-44,3.5,Mindanao,D,Remittance,1,Very High,1,5,0,1
+C100812,Affluent-Gold,55+,15.0,NCR,B2,Business,0,Low,1,7,0,1
+C100813,Mid-Market,25-34,4.7,Mindanao,C1,Salary,1,Ultra High,0,9,1,0
+C100814,Mass,45-54,7.8,Luzon,D,Salary,1,Medium,1,9,0,1
+C100815,Affluent-Preferred,35-44,8.9,Visayas,B1,Business,1,Medium,0,6,1,1
+C100816,Affluent-Preferred,25-34,8.8,Luzon,B2,Salary,1,Very High,1,3,0,1
+C100817,Mid-Market,25-34,6.3,NCR,C1,Salary,1,Ultra High,0,9,1,1
+C100818,Mid-Market,25-34,14.5,Visayas,C2,Salary,1,High,0,3,1,1
+C100819,Mass,35-44,7.4,Visayas,D,Business,0,High,0,10,0,1
+C100820,Mass,35-44,3.5,NCR,C2,Salary,1,Medium,0,5,1,1
+C100821,Mid-Market,35-44,4.3,Visayas,C2,Salary,0,Medium,0,7,1,1
+C100822,Mass,25-34,1.5,Luzon,C2,Remittance,0,Medium,0,5,1,1
+C100823,Mid-Market,45-54,6.8,Mindanao,C1,Business,1,Very High,1,7,1,1
+C100824,Affluent-Preferred,35-44,8.2,Visayas,B2,Business,1,Ultra High,0,2,1,1
+C100825,Mass,35-44,8.7,NCR,C2,Mixed,0,Low,0,2,1,1
+C100826,Mid-Market,35-44,7.7,Mindanao,B2,Business,1,High,0,9,1,1
+C100827,Mass,25-34,4.8,Mindanao,C1,Salary,1,Very High,0,6,1,1
+C100828,Affluent-Preferred,45-54,5.5,Visayas,C1,Salary,1,High,0,10,1,1
+C100829,Mass,25-34,5.5,NCR,C2,Salary,1,High,0,3,1,1
+C100830,Mid-Market,25-34,10.4,Visayas,B2,Salary,0,Medium,0,6,1,1
+C100831,Mid-Market,25-34,1.0,Luzon,B2,Salary,0,Medium,1,9,0,1
+C100832,Mass,35-44,3.9,NCR,D,Salary,1,Very High,0,2,0,1
+C100833,Mid-Market,35-44,2.5,Mindanao,B2,Business,0,Medium,1,2,1,1
+C100834,Mid-Market,25-34,18.2,Luzon,B2,Business,1,High,0,4,1,1
+C100835,Mid-Market,45-54,11.7,Visayas,C1,Salary,1,Ultra High,1,6,0,1
+C100836,Affluent-Preferred,45-54,4.0,Luzon,B1,Remittance,0,Medium,0,1,0,1
+C100837,Affluent-Gold,25-34,1.8,NCR,B1,Salary,1,Very High,0,7,1,0
+C100838,Mid-Market,45-54,2.2,Mindanao,B2,Remittance,1,Ultra High,0,9,1,1
+C100839,Mid-Market,25-34,10.3,Luzon,B2,Remittance,1,Very High,0,9,1,1
+C100840,Mass,55+,1.5,Luzon,C1,Salary,0,Low,1,4,1,1
+C100841,Affluent-Preferred,25-34,5.6,NCR,B1,Salary,1,Very High,0,4,1,1
+C100842,Mid-Market,25-34,9.3,NCR,B2,Mixed,1,Ultra High,1,9,1,1
+C100843,Mid-Market,35-44,2.1,Luzon,C1,Remittance,1,Ultra High,1,6,1,1
+C100844,Mass,25-34,5.5,NCR,C2,Remittance,1,High,0,6,0,1
+C100845,Affluent-Preferred,45-54,4.1,Mindanao,B2,Salary,0,Medium,0,10,1,1
+C100846,Mass,35-44,3.7,Mindanao,C1,Salary,1,Very High,0,1,1,1
+C100847,Mid-Market,25-34,3.3,Visayas,C1,Salary,1,Ultra High,1,7,1,1
+C100848,Mass,35-44,9.8,NCR,D,Mixed,1,Very High,0,7,1,1
+C100849,Affluent-Gold,55+,13.3,Visayas,A,Salary,0,Medium,1,5,1,1
+C100850,Mass,45-54,4.6,NCR,C1,Salary,0,Medium,1,7,0,1
+C100851,Mass,35-44,7.1,Visayas,C1,Mixed,1,High,1,6,1,1
+C100852,Affluent-Preferred,25-34,5.6,Luzon,C1,Salary,1,Very High,0,10,1,1
+C100853,Affluent-Preferred,25-34,1.1,Mindanao,B1,Salary,1,High,0,9,1,1
+C100854,Mass,45-54,4.4,NCR,C1,Remittance,1,High,1,9,1,1
+C100855,Mid-Market,45-54,0.9,NCR,C2,Salary,0,Low,1,9,0,0
+C100856,Mid-Market,35-44,3.8,Mindanao,C2,Mixed,1,Very High,0,4,0,1
+C100857,Affluent-Preferred,45-54,5.4,Luzon,C1,Salary,1,High,0,3,1,1
+C100858,Mass,25-34,8.8,Visayas,C1,Business,1,Ultra High,1,8,0,1
+C100859,Mid-Market,45-54,6.6,Mindanao,B2,Salary,1,High,0,9,1,1
+C100860,Mid-Market,25-34,9.9,Luzon,C1,Business,1,Very High,0,6,0,1
+C100861,Mid-Market,25-34,2.9,Luzon,C1,Business,0,Medium,0,10,1,1
+C100862,Affluent-Preferred,35-44,12.3,Luzon,B2,Business,0,Low,1,5,1,1
+C100863,Mid-Market,25-34,13.3,Visayas,B2,Mixed,1,Very High,0,8,1,1
+C100864,Mass,55+,0.9,Mindanao,D,Business,1,High,0,5,0,1
+C100865,Affluent-Preferred,25-34,1.4,NCR,C1,Salary,1,Very High,0,2,0,1
+C100866,Affluent-Preferred,45-54,5.3,Visayas,C1,Salary,0,Low,0,6,1,0
+C100867,Affluent-Preferred,45-54,3.6,NCR,B1,Salary,0,Medium,0,10,0,1
+C100868,Mass,35-44,4.1,Luzon,C2,Salary,1,Very High,0,5,1,1
+C100869,Mass,55+,6.6,Visayas,C1,Salary,1,Very High,0,4,1,1
+C100870,Mid-Market,35-44,10.2,Mindanao,B2,Business,0,Medium,1,4,1,1
+C100871,Mass,25-34,2.7,NCR,D,Business,1,Very High,0,1,1,1
+C100872,Affluent-Gold,25-34,11.3,NCR,A,Mixed,1,Ultra High,1,5,1,1
+C100873,Mass,25-34,3.2,NCR,D,Salary,1,Very High,0,7,1,1
+C100874,Mid-Market,45-54,19.8,NCR,B2,Business,1,Ultra High,0,3,1,1
+C100875,Affluent-Preferred,35-44,12.3,NCR,B1,Business,0,High,1,10,1,1
+C100876,Mass,25-34,3.5,Mindanao,C1,Mixed,1,Ultra High,0,3,1,1
+C100877,Mass,25-34,1.8,NCR,D,Business,1,Ultra High,0,3,1,1
+C100878,Mid-Market,35-44,3.4,NCR,B2,Salary,1,High,0,9,1,1
+C100879,Mid-Market,45-54,3.1,Visayas,B2,Salary,1,Very High,0,2,1,1
+C100880,Mid-Market,25-34,8.1,NCR,C2,Mixed,1,Ultra High,1,9,1,0
+C100881,Mid-Market,45-54,0.9,NCR,C1,Business,1,Medium,1,7,0,1
+C100882,Affluent-Gold,35-44,1.4,Mindanao,A,Business,1,High,0,8,0,1
+C100883,Mid-Market,45-54,7.9,NCR,C1,Business,1,Ultra High,0,3,1,1
+C100884,Mass,25-34,3.0,NCR,C2,Business,1,Very High,0,3,0,1
+C100885,Mass,35-44,3.9,Luzon,D,Business,0,Low,0,7,1,1
+C100886,Mass,25-34,9.2,NCR,C2,Mixed,1,Very High,0,7,0,1
+C100887,Mass,25-34,10.5,NCR,C1,Mixed,1,Ultra High,0,3,1,1
+C100888,Mass,45-54,12.0,NCR,C2,Salary,1,High,0,1,1,1
+C100889,Mid-Market,35-44,8.7,NCR,B2,Salary,1,Very High,0,4,1,1
+C100890,Mass,25-34,4.7,Mindanao,C1,Salary,1,Ultra High,0,2,0,1
+C100891,Affluent-Gold,45-54,4.5,NCR,A,Salary,1,Very High,0,5,1,1
+C100892,Mass,18-24,4.1,NCR,C2,Business,1,Ultra High,1,1,1,0
+C100893,Mass,35-44,2.1,NCR,C1,Business,1,Ultra High,0,9,1,1
+C100894,Affluent-Preferred,55+,2.6,Mindanao,C1,Salary,1,High,1,9,0,0
+C100895,Affluent-Preferred,35-44,11.0,NCR,B2,Salary,1,Very High,0,10,1,1
+C100896,Mass,45-54,3.2,Mindanao,D,Remittance,1,High,0,1,1,1
+C100897,Mass,35-44,2.1,NCR,C1,Business,1,Very High,0,1,1,1
+C100898,Mass,45-54,11.6,Mindanao,C1,Remittance,1,High,1,9,0,1
+C100899,Mid-Market,35-44,6.3,NCR,C1,Salary,1,High,0,3,1,1
+C100900,Mid-Market,45-54,15.2,NCR,C1,Salary,1,High,1,4,1,0
+C100901,Mass,25-34,14.2,Luzon,C2,Remittance,1,High,0,6,1,1
+C100902,Mass,45-54,2.2,NCR,C1,Remittance,1,Ultra High,0,6,1,0
+C100903,Mid-Market,25-34,5.1,Visayas,C2,Business,1,Very High,0,4,1,1
+C100904,Affluent-Gold,55+,2.5,Luzon,A,Mixed,0,Medium,1,9,1,1
+C100905,Mid-Market,25-34,2.5,Luzon,C2,Salary,1,High,0,5,1,1
+C100906,Mid-Market,25-34,4.0,NCR,C2,Salary,0,Low,0,6,1,1
+C100907,Mass,45-54,8.2,Visayas,C1,Salary,1,Very High,0,10,1,1
+C100908,Mass,25-34,8.3,NCR,C1,Salary,1,High,0,2,1,1
+C100909,Mass,25-34,7.6,Mindanao,C2,Salary,1,Ultra High,0,8,0,1
+C100910,Affluent-Preferred,45-54,4.7,Visayas,B2,Salary,1,Very High,0,9,1,1
+C100911,Affluent-Preferred,25-34,8.6,Luzon,B1,Salary,1,High,1,8,1,1
+C100912,Affluent-Preferred,25-34,2.0,Visayas,B1,Business,1,Very High,0,3,1,1
+C100913,Affluent-Gold,35-44,6.4,Luzon,A,Salary,0,High,0,4,0,1
+C100914,Affluent-Gold,25-34,5.5,Luzon,A,Business,1,High,1,7,0,0
+C100915,Affluent-Gold,25-34,4.5,NCR,B1,Salary,1,Very High,1,5,0,1
+C100916,Mass,18-24,6.6,Luzon,D,Salary,1,Very High,0,2,1,1
+C100917,Mass,25-34,0.8,NCR,D,Salary,1,Very High,0,1,1,1
+C100918,Mass,25-34,2.5,NCR,C2,Salary,1,Very High,0,1,1,1
+C100919,Mid-Market,18-24,7.8,Visayas,C1,Salary,1,High,0,2,1,0
+C100920,Mass,35-44,5.4,NCR,C1,Business,0,Low,0,2,1,1
+C100921,Affluent-Preferred,35-44,1.5,Luzon,C1,Mixed,1,High,0,1,1,1
+C100922,Mid-Market,18-24,5.4,NCR,B2,Salary,1,Very High,1,10,1,1
+C100923,Mid-Market,25-34,3.7,NCR,B2,Salary,1,Ultra High,0,3,1,1
+C100924,Mass,45-54,11.2,Visayas,C1,Salary,1,Very High,0,8,1,1
+C100925,Mass,35-44,2.2,NCR,C2,Business,1,Ultra High,0,5,0,1
+C100926,Mass,35-44,2.2,Luzon,D,Salary,1,High,1,10,1,1
+C100927,Affluent-Preferred,35-44,7.1,Luzon,B2,Salary,1,Ultra High,0,9,1,1
+C100928,Mid-Market,25-34,4.9,Visayas,C1,Mixed,1,Ultra High,0,2,1,1
+C100929,Mid-Market,45-54,4.7,NCR,C1,Mixed,0,Low,0,10,1,1
+C100930,Mass,55+,19.8,Visayas,C2,Business,0,Low,0,9,1,1
+C100931,Mass,55+,8.4,Luzon,C2,Salary,1,Medium,0,1,1,1
+C100932,Mid-Market,25-34,4.3,NCR,C1,Salary,1,Ultra High,0,9,1,1
+C100933,Affluent-Preferred,25-34,1.3,NCR,C1,Salary,1,Ultra High,0,7,1,1
+C100934,Affluent-Preferred,25-34,4.1,NCR,B2,Business,1,Very High,1,6,1,1
+C100935,Mass,25-34,2.0,Luzon,D,Business,1,Very High,0,1,1,1
+C100936,Affluent-Gold,25-34,2.7,NCR,B1,Salary,1,High,0,5,1,1
+C100937,Mass,35-44,2.7,NCR,C2,Mixed,0,Low,0,2,1,1
+C100938,Affluent-Preferred,25-34,10.6,Luzon,B1,Salary,1,High,0,9,1,1
+C100939,Mass,55+,1.6,Luzon,C1,Business,1,High,0,3,1,1
+C100940,Mass,25-34,9.9,NCR,C2,Salary,1,High,0,4,1,1
+C100941,Affluent-Preferred,18-24,7.4,NCR,C1,Salary,1,Very High,0,3,1,1
+C100942,Mass,45-54,7.3,NCR,C1,Salary,1,Ultra High,1,9,1,1
+C100943,Mid-Market,45-54,2.6,Luzon,C2,Business,1,Medium,0,7,0,1
+C100944,Mid-Market,25-34,9.1,Mindanao,C2,Salary,1,Ultra High,1,3,1,1
+C100945,Mass,35-44,2.3,Luzon,D,Salary,0,Low,0,6,1,1
+C100946,Mid-Market,25-34,13.5,Luzon,B2,Business,1,Medium,0,6,0,1
+C100947,Affluent-Preferred,25-34,10.8,NCR,B2,Business,1,Very High,0,1,1,1
+C100948,Affluent-Preferred,35-44,15.0,Mindanao,C1,Remittance,1,High,1,7,1,1
+C100949,Mass,25-34,5.6,NCR,D,Business,1,Medium,0,9,1,1
+C100950,Mid-Market,35-44,4.9,NCR,C1,Business,1,Very High,0,7,1,1
+C100951,Mass,25-34,4.0,NCR,C1,Remittance,1,Very High,0,1,1,0
+C100952,Mass,35-44,19.6,NCR,C2,Salary,0,Medium,0,4,1,1
+C100953,Mass,45-54,8.2,Visayas,D,Salary,1,Ultra High,0,6,1,1
+C100954,Affluent-Gold,25-34,2.0,NCR,B1,Salary,0,Low,0,4,1,1
+C100955,Affluent-Preferred,18-24,12.5,NCR,B2,Salary,1,Ultra High,1,7,1,1
+C100956,Affluent-Preferred,35-44,4.7,NCR,C1,Salary,0,Medium,1,3,1,1
+C100957,Mid-Market,45-54,0.4,Mindanao,C2,Salary,1,Very High,0,5,1,1
+C100958,Mid-Market,35-44,3.0,Visayas,C2,Salary,0,Medium,0,5,0,1
+C100959,Mid-Market,45-54,10.7,Mindanao,C1,Business,1,High,1,10,1,1
+C100960,Mid-Market,35-44,7.4,Visayas,C2,Business,0,Medium,1,3,1,1
+C100961,Mid-Market,25-34,8.4,Mindanao,C2,Remittance,1,Very High,0,3,1,1
+C100962,Mass,35-44,12.4,Luzon,D,Mixed,1,Very High,1,3,0,1
+C100963,Mass,25-34,1.1,NCR,C1,Salary,1,High,0,2,1,1
+C100964,Affluent-Gold,45-54,3.1,NCR,B1,Salary,1,Ultra High,0,5,1,1
+C100965,Mid-Market,25-34,5.7,NCR,B2,Salary,1,Very High,0,1,0,1
+C100966,Affluent-Gold,25-34,11.0,Visayas,B1,Remittance,1,Ultra High,1,4,1,1
+C100967,Mass,35-44,2.3,NCR,D,Salary,0,Medium,1,7,0,1
+C100968,Mid-Market,35-44,4.2,NCR,C2,Mixed,1,High,1,8,1,1
+C100969,Mass,35-44,5.4,Luzon,C1,Salary,0,Medium,1,4,0,1
+C100970,Mass,35-44,3.0,NCR,C2,Salary,1,Very High,0,1,1,1
+C100971,Mass,55+,5.4,NCR,D,Remittance,1,Very High,0,4,1,1
+C100972,Mass,45-54,4.8,NCR,C2,Salary,0,Low,1,3,1,1
+C100973,Affluent-Preferred,45-54,3.6,Luzon,B2,Business,0,Medium,0,6,1,1
+C100974,Mass,35-44,9.1,NCR,D,Business,0,High,0,7,1,1
+C100975,Mid-Market,35-44,8.0,NCR,B2,Business,1,High,1,3,0,1
+C100976,Mid-Market,35-44,9.3,NCR,C2,Remittance,1,High,1,9,1,1
+C100977,Mid-Market,35-44,9.9,Visayas,C2,Salary,0,Low,0,2,1,1
+C100978,Mid-Market,25-34,14.4,NCR,B2,Salary,1,Very High,0,6,1,0
+C100979,Mass,35-44,1.5,NCR,C2,Business,1,Very High,0,1,0,1
+C100980,Affluent-Gold,18-24,1.6,Mindanao,B2,Salary,1,High,1,9,1,1
+C100981,Affluent-Preferred,18-24,8.6,Mindanao,C1,Salary,1,Very High,0,10,1,1
+C100982,Mid-Market,45-54,3.9,NCR,C1,Salary,1,High,1,10,1,1
+C100983,Mid-Market,18-24,3.5,NCR,B2,Business,1,Very High,1,10,1,1
+C100984,Mass,35-44,3.1,NCR,D,Salary,1,Very High,0,5,1,0
+C100985,Affluent-Gold,35-44,9.5,Visayas,B1,Mixed,1,High,0,10,1,1
+C100986,Mass,25-34,18.8,NCR,C2,Salary,1,Ultra High,1,5,1,1
+C100987,Mass,55+,9.8,Mindanao,C1,Salary,0,Low,1,4,1,1
+C100988,Mass,25-34,3.7,Visayas,C1,Salary,1,Ultra High,0,6,1,1
+C100989,Affluent-Preferred,55+,9.2,Luzon,C1,Salary,1,Ultra High,1,8,0,1
+C100990,Mid-Market,45-54,1.6,NCR,C1,Salary,1,High,1,9,1,0
+C100991,Affluent-Preferred,25-34,4.6,Mindanao,B1,Business,1,Ultra High,1,10,0,1
+C100992,Affluent-Preferred,25-34,1.1,Visayas,B2,Salary,1,Ultra High,1,6,1,0
+C100993,Mass,25-34,3.9,Visayas,D,Salary,1,Ultra High,0,2,0,1
+C100994,Affluent-Gold,25-34,6.1,NCR,B2,Salary,1,Very High,1,4,1,1
+C100995,Mid-Market,25-34,21.0,Visayas,C1,Salary,1,High,0,10,0,1
+C100996,Mid-Market,55+,11.5,Visayas,B2,Mixed,1,High,0,2,1,1
+C100997,Mass,25-34,1.2,Mindanao,D,Salary,0,High,1,7,1,1
+C100998,Affluent-Gold,45-54,1.3,Luzon,B2,Business,1,High,0,6,1,1
+C100999,Mass,25-34,3.0,Luzon,D,Salary,1,Very High,1,6,1,1
+C101000,Mass,55+,16.2,NCR,C2,Salary,0,Medium,0,2,1,1
+C101001,Mid-Market,25-34,1.2,Visayas,C2,Business,1,High,0,4,1,1
+C101002,Mass,35-44,3.1,Mindanao,D,Salary,0,Medium,0,1,1,1
+C101003,Mass,35-44,3.1,Luzon,C2,Mixed,1,Very High,0,8,0,1
+C101004,Mid-Market,25-34,7.1,NCR,B2,Salary,1,Very High,0,6,1,1
+C101005,Mass,45-54,9.4,NCR,D,Salary,0,Medium,0,1,1,1
+C101006,Affluent-Gold,25-34,8.1,Luzon,B1,Mixed,1,Ultra High,0,6,1,1
+C101007,Mass,35-44,6.5,Visayas,C2,Salary,1,High,1,8,1,1
+C101008,Mid-Market,35-44,1.5,NCR,B2,Mixed,1,Ultra High,1,4,1,1
+C101009,Mid-Market,35-44,5.8,NCR,B2,Mixed,1,High,1,9,1,1
+C101010,Mid-Market,18-24,12.6,Mindanao,B2,Salary,1,Ultra High,1,10,0,1
+C101011,Mid-Market,25-34,15.4,Luzon,C2,Salary,1,Ultra High,0,2,0,1
+C101012,Mid-Market,25-34,7.0,NCR,B2,Business,1,Very High,0,7,1,1
+C101013,Affluent-Gold,25-34,1.2,NCR,B2,Salary,0,Medium,1,4,1,1
+C101014,Mass,25-34,7.1,NCR,C1,Business,1,Very High,0,7,0,1
+C101015,Mass,55+,4.8,NCR,D,Salary,1,Very High,0,3,1,1
+C101016,Mid-Market,35-44,1.4,Luzon,C2,Salary,1,High,0,6,1,1
+C101017,Affluent-Preferred,35-44,2.2,Luzon,C1,Remittance,0,Low,0,4,1,1
+C101018,Mass,25-34,2.6,Luzon,D,Business,1,Ultra High,0,9,1,1
+C101019,Mid-Market,25-34,8.6,Luzon,C1,Business,1,Very High,0,3,1,1
+C101020,Affluent-Preferred,35-44,15.0,NCR,B2,Remittance,0,High,1,7,1,1
+C101021,Mid-Market,25-34,7.7,NCR,B2,Salary,1,Ultra High,1,8,0,0
+C101022,Affluent-Gold,25-34,8.8,NCR,B2,Salary,1,Very High,0,9,0,1
+C101023,Mid-Market,35-44,5.1,NCR,C2,Salary,0,High,1,10,1,1
+C101024,Mid-Market,35-44,3.4,Visayas,C2,Salary,1,Very High,1,3,1,1
+C101025,Mass,55+,7.9,NCR,D,Salary,0,Low,1,5,0,0
+C101026,Affluent-Gold,25-34,6.5,Luzon,A,Remittance,1,Very High,0,4,1,1
+C101027,Mass,35-44,2.8,NCR,C2,Salary,1,Medium,0,1,1,1
+C101028,Mid-Market,25-34,6.2,NCR,C2,Salary,1,High,0,8,1,1
+C101029,Mid-Market,25-34,5.3,NCR,C2,Business,1,Very High,0,5,1,0
+C101030,Mid-Market,45-54,4.2,Luzon,B2,Salary,1,Ultra High,0,4,0,1
+C101031,Mid-Market,25-34,3.4,Luzon,C1,Mixed,1,Ultra High,0,1,1,1
+C101032,Mid-Market,35-44,7.0,Visayas,C2,Salary,1,High,0,7,1,1
+C101033,Affluent-Preferred,35-44,3.5,NCR,B1,Salary,0,Low,1,5,1,1
+C101034,Mid-Market,18-24,18.8,Luzon,C2,Mixed,0,Medium,1,8,0,1
+C101035,Mid-Market,55+,7.5,Visayas,C2,Remittance,1,High,0,3,1,1
+C101036,Mass,35-44,7.1,NCR,C1,Business,1,Very High,0,7,1,1
+C101037,Mid-Market,45-54,4.7,NCR,C1,Salary,0,Medium,0,4,1,1
+C101038,Mid-Market,35-44,3.9,NCR,C2,Salary,1,Ultra High,0,7,1,1
+C101039,Mass,55+,0.9,NCR,C1,Business,1,Very High,0,1,0,1
+C101040,Mass,25-34,2.9,Mindanao,D,Salary,1,Ultra High,1,8,0,1
+C101041,Mid-Market,35-44,1.1,NCR,B2,Remittance,1,Ultra High,0,8,0,1
+C101042,Mid-Market,45-54,1.1,Luzon,C1,Salary,1,High,0,2,1,1
+C101043,Mid-Market,25-34,1.9,Visayas,B2,Salary,1,Ultra High,0,5,1,1
+C101044,Mass,25-34,11.8,NCR,C1,Salary,1,High,1,7,1,1
+C101045,Mass,55+,11.8,Luzon,C1,Business,0,Low,1,2,1,0
+C101046,Mass,35-44,3.0,NCR,C1,Salary,0,Medium,0,3,1,0
+C101047,Affluent-Preferred,45-54,1.5,Luzon,B2,Mixed,1,Ultra High,1,9,1,1
+C101048,Affluent-Preferred,35-44,3.8,NCR,C1,Salary,1,Very High,1,10,1,1
+C101049,Mass,45-54,8.5,NCR,C2,Salary,0,Medium,0,1,1,1
+C101050,Mid-Market,45-54,10.3,NCR,C1,Salary,0,Medium,0,10,1,1
+C101051,Mass,35-44,6.2,Visayas,C1,Business,1,Very High,1,5,1,1
+C101052,Mass,25-34,6.9,Luzon,D,Business,1,Very High,0,3,1,1
+C101053,Mass,18-24,6.5,Visayas,C1,Salary,1,High,1,10,1,1
+C101054,Mass,35-44,1.2,NCR,C2,Salary,1,High,0,10,1,0
+C101055,Mid-Market,45-54,1.6,Mindanao,B2,Business,1,High,0,7,0,1
+C101056,Affluent-Preferred,35-44,15.4,NCR,B2,Salary,1,High,0,9,1,0
+C101057,Mass,25-34,6.1,Visayas,C2,Remittance,1,High,1,4,0,0
+C101058,Mid-Market,25-34,0.7,Visayas,C2,Business,1,High,0,3,1,1
+C101059,Mid-Market,35-44,7.2,Luzon,B2,Salary,0,Low,0,1,0,1
+C101060,Affluent-Gold,45-54,2.5,NCR,B2,Business,1,Ultra High,0,4,1,1
+C101061,Mid-Market,25-34,10.8,Visayas,C2,Business,1,Ultra High,0,5,0,1
+C101062,Mass,35-44,10.1,Visayas,C2,Salary,1,High,1,6,0,1
+C101063,Mid-Market,45-54,8.2,NCR,C2,Salary,1,High,1,10,1,1
+C101064,Mass,55+,6.1,Visayas,C1,Salary,1,High,0,9,1,1
+C101065,Affluent-Gold,25-34,12.5,NCR,B1,Business,1,Ultra High,0,5,1,1
+C101066,Mass,55+,13.4,Luzon,D,Remittance,1,Ultra High,1,6,1,1
+C101067,Mid-Market,35-44,2.5,Luzon,C2,Salary,1,Very High,1,10,0,1
+C101068,Mass,45-54,8.1,Visayas,D,Salary,1,Ultra High,1,9,0,0
+C101069,Mid-Market,18-24,3.4,Luzon,C1,Salary,1,Very High,1,8,1,1
+C101070,Affluent-Preferred,35-44,2.2,NCR,B2,Salary,1,Very High,1,10,1,0
+C101071,Mid-Market,35-44,13.4,Luzon,C2,Salary,1,Very High,0,6,1,1
+C101072,Mid-Market,25-34,9.0,NCR,B2,Salary,1,High,1,2,1,0
+C101073,Affluent-Gold,35-44,6.4,Luzon,B1,Salary,0,Medium,0,3,1,1
+C101074,Affluent-Preferred,35-44,2.7,Luzon,B2,Remittance,0,Low,1,8,1,1
+C101075,Mass,35-44,13.6,Visayas,C2,Remittance,1,High,1,5,0,1
+C101076,Mid-Market,18-24,2.4,NCR,C1,Salary,1,Medium,0,8,1,1
+C101077,Mid-Market,35-44,2.0,NCR,C2,Remittance,0,Low,1,5,1,1
+C101078,Mid-Market,25-34,5.3,Luzon,B2,Salary,1,Ultra High,1,1,1,1
+C101079,Mass,55+,8.5,NCR,D,Salary,1,High,0,1,1,1
+C101080,Mass,55+,4.1,NCR,D,Mixed,1,Very High,1,8,1,1
+C101081,Affluent-Preferred,25-34,40.0,NCR,B2,Remittance,1,Ultra High,1,3,1,1
+C101082,Affluent-Gold,25-34,6.0,Luzon,A,Salary,1,Very High,0,2,1,0
+C101083,Affluent-Preferred,25-34,3.4,NCR,B1,Salary,1,High,0,4,0,1
+C101084,Affluent-Gold,35-44,3.7,Luzon,B2,Business,1,High,0,2,1,1
+C101085,Mid-Market,45-54,16.5,Mindanao,C1,Salary,1,Medium,1,2,1,1
+C101086,Affluent-Preferred,35-44,5.0,Luzon,B2,Mixed,1,High,1,10,1,1
+C101087,Affluent-Preferred,18-24,13.1,NCR,C1,Salary,1,High,0,4,1,1
+C101088,Mid-Market,18-24,1.1,NCR,B2,Salary,1,Very High,0,10,1,1
+C101089,Mid-Market,25-34,10.9,NCR,C2,Remittance,1,High,1,9,1,1
+C101090,Mass,45-54,2.9,Luzon,D,Business,1,Very High,0,6,1,1
+C101091,Mid-Market,35-44,9.2,Luzon,C2,Salary,1,Medium,0,8,0,1
+C101092,Mass,35-44,2.8,NCR,C1,Mixed,1,Ultra High,0,3,1,1
+C101093,Mass,25-34,3.9,NCR,D,Mixed,1,Ultra High,0,7,1,1
+C101094,Mid-Market,55+,2.2,NCR,B2,Salary,1,High,0,10,1,1
+C101095,Mid-Market,25-34,9.3,NCR,B2,Salary,1,High,0,9,1,1
+C101096,Mass,45-54,10.3,Mindanao,D,Salary,0,Low,1,1,1,1
+C101097,Affluent-Preferred,55+,2.9,NCR,C1,Remittance,0,High,0,4,1,1
+C101098,Affluent-Preferred,35-44,1.4,NCR,B1,Remittance,0,Low,0,1,0,1
+C101099,Mass,55+,12.9,NCR,D,Salary,0,Low,0,9,1,1
+C101100,Mass,25-34,3.2,NCR,C2,Mixed,1,Medium,0,1,1,1
+C101101,Mass,35-44,4.8,NCR,C1,Salary,1,Very High,1,5,1,1
+C101102,Affluent-Preferred,18-24,2.5,NCR,C1,Business,1,Ultra High,0,2,1,1
+C101103,Affluent-Preferred,35-44,8.7,NCR,B2,Business,0,Medium,0,6,0,1
+C101104,Mass,25-34,8.9,NCR,C2,Salary,1,Very High,0,2,1,1
+C101105,Affluent-Preferred,18-24,14.3,Luzon,B2,Salary,0,Medium,0,10,0,1
+C101106,Mass,18-24,11.2,Luzon,C1,Salary,1,Very High,1,8,1,1
+C101107,Mass,25-34,10.7,NCR,C2,Mixed,1,Ultra High,0,1,1,0
+C101108,Affluent-Gold,35-44,5.1,Visayas,B2,Salary,1,High,0,1,1,1
+C101109,Mass,35-44,4.7,NCR,C1,Business,0,Low,0,1,1,1
+C101110,Mass,25-34,8.6,Mindanao,C2,Salary,1,Very High,1,4,1,1
+C101111,Mid-Market,55+,4.9,Mindanao,C2,Salary,1,Ultra High,0,4,0,1
+C101112,Mid-Market,55+,11.4,NCR,C1,Mixed,1,Very High,1,9,1,1
+C101113,Affluent-Gold,25-34,2.4,NCR,B2,Salary,0,Medium,0,5,1,1
+C101114,Affluent-Gold,35-44,1.1,Visayas,B1,Business,1,Ultra High,1,4,1,0
+C101115,Mass,35-44,7.9,NCR,C1,Salary,0,Low,0,1,1,1
+C101116,Mass,45-54,3.6,NCR,D,Salary,1,Medium,1,4,1,1
+C101117,Affluent-Preferred,25-34,2.1,Luzon,B1,Salary,1,Medium,1,3,1,1
+C101118,Mass,45-54,20.2,Luzon,C1,Salary,0,Low,1,7,1,1
+C101119,Affluent-Preferred,25-34,5.5,Visayas,B1,Business,1,Ultra High,0,10,1,1
+C101120,Mid-Market,25-34,1.7,Visayas,C1,Salary,1,High,0,4,1,1
+C101121,Mass,45-54,3.2,Mindanao,D,Salary,1,Ultra High,0,2,1,1
+C101122,Affluent-Preferred,35-44,4.4,Visayas,C1,Salary,0,Medium,0,1,1,1
+C101123,Mass,45-54,7.8,Luzon,C1,Remittance,0,Medium,0,1,1,1
+C101124,Mid-Market,18-24,3.2,Luzon,C1,Business,1,High,1,8,1,1
+C101125,Mid-Market,25-34,4.8,Mindanao,C1,Remittance,1,Very High,1,9,0,1
+C101126,Mid-Market,18-24,6.6,Mindanao,B2,Mixed,1,Ultra High,0,4,0,1
+C101127,Mid-Market,25-34,7.5,Visayas,B2,Salary,1,Ultra High,0,10,0,1
+C101128,Mid-Market,18-24,5.1,Visayas,B2,Salary,1,Very High,1,1,1,1
+C101129,Affluent-Gold,35-44,16.3,Luzon,A,Remittance,1,Medium,0,7,1,1
+C101130,Affluent-Gold,35-44,8.8,NCR,A,Salary,1,Medium,0,9,0,0
+C101131,Mid-Market,35-44,8.4,Mindanao,C2,Business,1,Ultra High,0,6,1,1
+C101132,Mass,25-34,8.2,NCR,D,Business,1,Ultra High,1,1,1,1
+C101133,Mid-Market,18-24,11.5,NCR,C2,Salary,1,Very High,0,3,1,1
+C101134,Affluent-Gold,35-44,6.3,NCR,B1,Mixed,1,High,0,7,1,1
+C101135,Mass,18-24,2.3,Luzon,C2,Salary,1,High,0,6,1,0
+C101136,Mid-Market,45-54,7.2,Luzon,B2,Business,0,Medium,0,6,1,1
+C101137,Mid-Market,18-24,7.9,NCR,B2,Salary,1,Very High,1,6,1,1
+C101138,Mass,35-44,12.7,NCR,C1,Business,1,Very High,0,6,1,1
+C101139,Mid-Market,55+,2.1,NCR,C2,Salary,0,Medium,0,5,0,1
+C101140,Mass,35-44,2.6,NCR,C1,Mixed,1,High,0,4,1,1
+C101141,Affluent-Preferred,35-44,5.6,NCR,B1,Mixed,1,High,0,3,0,1
+C101142,Affluent-Preferred,45-54,8.4,Luzon,B1,Remittance,0,Medium,0,5,1,0
+C101143,Affluent-Preferred,25-34,1.8,NCR,B2,Remittance,1,Ultra High,1,2,0,1
+C101144,Mid-Market,35-44,2.2,NCR,B2,Remittance,1,High,1,8,1,1
+C101145,Mass,55+,9.8,NCR,C2,Remittance,1,Ultra High,0,1,0,1
+C101146,Mid-Market,55+,1.9,Luzon,C2,Remittance,1,Very High,0,8,0,1
+C101147,Affluent-Preferred,35-44,2.7,Visayas,B2,Remittance,1,High,0,8,1,1
+C101148,Mid-Market,25-34,10.2,NCR,C2,Mixed,1,High,0,2,1,1
+C101149,Affluent-Preferred,45-54,8.3,NCR,B1,Remittance,1,High,0,9,1,0
+C101150,Mass,35-44,3.3,Luzon,D,Salary,1,High,0,3,1,1
+C101151,Affluent-Preferred,25-34,7.7,NCR,C1,Mixed,1,Very High,0,2,1,1
+C101152,Mass,25-34,6.7,Visayas,C2,Salary,1,High,0,7,1,1
+C101153,Mass,25-34,5.0,Mindanao,C2,Salary,1,Ultra High,1,9,1,1
+C101154,Mid-Market,35-44,4.0,Luzon,C1,Mixed,1,Very High,0,3,1,1
+C101155,Mass,25-34,7.5,Mindanao,D,Salary,1,High,0,4,0,1
+C101156,Mass,18-24,2.0,NCR,C2,Salary,1,Ultra High,0,2,1,1
+C101157,Mass,18-24,7.4,NCR,C1,Remittance,1,Ultra High,0,1,0,1
+C101158,Mid-Market,55+,6.2,NCR,C2,Business,0,Medium,1,8,1,1
+C101159,Affluent-Preferred,18-24,6.6,NCR,B1,Salary,1,Very High,0,8,1,1
+C101160,Mass,18-24,2.6,NCR,D,Salary,1,Ultra High,1,7,1,1
+C101161,Mid-Market,35-44,12.9,Luzon,C2,Salary,0,Medium,1,6,0,0
+C101162,Affluent-Preferred,25-34,3.3,Luzon,B1,Salary,0,Medium,0,9,1,1
+C101163,Mass,55+,3.7,NCR,D,Salary,0,High,0,1,1,0
+C101164,Mass,55+,4.8,Luzon,C2,Salary,1,High,0,9,1,0
+C101165,Affluent-Preferred,35-44,8.3,NCR,B2,Mixed,0,Low,0,3,1,1
+C101166,Affluent-Preferred,35-44,6.4,NCR,B2,Remittance,0,Low,1,5,1,1
+C101167,Mid-Market,25-34,1.3,NCR,C1,Business,1,Ultra High,0,6,1,1
+C101168,Affluent-Preferred,18-24,5.4,Luzon,B2,Mixed,1,High,1,3,1,1
+C101169,Mass,25-34,5.7,Luzon,C1,Mixed,1,Very High,0,1,0,1
+C101170,Mass,25-34,13.1,Visayas,C2,Business,1,High,0,2,1,1
+C101171,Mid-Market,25-34,4.3,NCR,C1,Salary,0,Medium,0,4,1,1
+C101172,Mass,35-44,7.8,NCR,C1,Business,1,High,0,1,1,1
+C101173,Affluent-Preferred,18-24,26.2,Mindanao,B2,Remittance,1,High,0,9,0,1
+C101174,Mid-Market,25-34,11.6,NCR,B2,Salary,1,High,0,3,1,1
+C101175,Affluent-Preferred,35-44,2.4,NCR,B1,Salary,1,High,0,9,1,1
+C101176,Mid-Market,35-44,9.1,NCR,B2,Salary,1,Medium,0,7,1,1
+C101177,Mass,25-34,7.4,NCR,C2,Salary,1,High,0,5,0,1
+C101178,Mass,18-24,4.2,Luzon,C2,Business,0,Medium,1,3,1,1
+C101179,Mass,25-34,9.1,NCR,D,Salary,1,Very High,0,6,1,1
+C101180,Affluent-Preferred,25-34,2.4,Luzon,C1,Salary,1,Very High,0,3,0,1
+C101181,Mass,45-54,3.3,Mindanao,D,Salary,0,Medium,1,5,1,0
+C101182,Mass,55+,4.8,NCR,C2,Mixed,0,Medium,0,4,1,1
+C101183,Mass,35-44,4.1,NCR,D,Salary,1,High,1,10,1,1
+C101184,Mass,35-44,8.5,Visayas,D,Salary,1,High,0,2,1,1
+C101185,Affluent-Preferred,45-54,5.3,Luzon,B2,Business,1,High,0,1,1,1
+C101186,Mass,35-44,3.7,Mindanao,C2,Business,1,High,1,4,1,1
+C101187,Affluent-Gold,25-34,11.5,NCR,B2,Remittance,1,Very High,0,2,1,1
+C101188,Mass,25-34,8.3,Luzon,C2,Remittance,1,Very High,0,2,1,1
+C101189,Mid-Market,35-44,1.6,Mindanao,C1,Salary,1,High,0,2,1,1
+C101190,Mid-Market,35-44,1.6,NCR,C2,Mixed,1,Medium,0,2,1,1
+C101191,Mass,25-34,3.8,Visayas,D,Remittance,1,Ultra High,0,2,1,1
+C101192,Affluent-Preferred,25-34,1.8,Luzon,C1,Business,1,Ultra High,0,7,1,1
+C101193,Affluent-Gold,25-34,10.3,Visayas,A,Salary,1,High,0,5,1,1
+C101194,Affluent-Preferred,25-34,3.5,NCR,C1,Remittance,1,Very High,0,8,0,0
+C101195,Mass,35-44,7.8,NCR,D,Salary,1,Very High,1,7,1,1
+C101196,Mass,35-44,9.0,NCR,D,Salary,1,High,1,10,1,1
+C101197,Mid-Market,35-44,0.9,Mindanao,C1,Business,0,Medium,0,3,0,1
+C101198,Mass,25-34,3.6,NCR,C1,Business,0,Medium,0,9,1,1
+C101199,Mid-Market,25-34,4.7,NCR,C2,Salary,0,Low,0,7,1,1
+C101200,Mid-Market,45-54,6.6,Mindanao,B2,Mixed,1,Ultra High,0,4,1,1
+C101201,Mid-Market,35-44,9.9,NCR,C2,Salary,1,Very High,1,9,1,1
+C101202,Affluent-Preferred,18-24,20.8,Luzon,B2,Remittance,1,Very High,0,5,1,0
+C101203,Mid-Market,25-34,15.3,NCR,C2,Salary,1,Ultra High,0,5,1,1
+C101204,Mass,45-54,5.3,Luzon,D,Salary,0,Medium,1,5,1,1
+C101205,Mass,45-54,5.2,NCR,C2,Mixed,0,Medium,0,9,1,1
+C101206,Mid-Market,45-54,14.3,Luzon,C1,Salary,0,Medium,0,1,1,1
+C101207,Mid-Market,35-44,5.5,Luzon,B2,Mixed,0,Low,0,5,1,1
+C101208,Mass,35-44,3.5,NCR,C2,Salary,0,Low,1,8,0,1
+C101209,Mid-Market,35-44,10.4,NCR,C2,Business,0,Low,0,7,1,1
+C101210,Affluent-Preferred,25-34,6.9,NCR,B2,Salary,1,Ultra High,0,2,1,1
+C101211,Affluent-Preferred,35-44,1.6,Visayas,B1,Remittance,0,Medium,0,2,1,1
+C101212,Mid-Market,35-44,4.3,NCR,C1,Mixed,1,Very High,1,8,1,1
+C101213,Mass,25-34,1.8,NCR,C2,Remittance,1,Very High,1,3,1,1
+C101214,Mass,55+,0.4,NCR,C2,Salary,1,High,0,9,1,1
+C101215,Mid-Market,25-34,16.7,Luzon,C1,Business,1,High,1,8,1,1
+C101216,Mass,18-24,6.0,Visayas,C1,Business,1,Ultra High,1,2,1,1
+C101217,Mid-Market,25-34,4.5,NCR,C1,Salary,1,Very High,0,1,1,0
+C101218,Mid-Market,45-54,3.7,Mindanao,C1,Business,1,Ultra High,0,3,1,1
+C101219,Mass,55+,5.5,Luzon,C2,Business,1,Very High,0,5,1,0
+C101220,Mass,35-44,3.7,Visayas,C2,Business,1,Ultra High,1,8,1,1
+C101221,Mass,55+,2.5,Visayas,C1,Salary,0,Low,0,2,0,1
+C101222,Affluent-Preferred,45-54,3.9,NCR,B1,Salary,0,High,0,8,1,1
+C101223,Mid-Market,45-54,13.4,Mindanao,B2,Mixed,1,High,1,5,1,1
+C101224,Mass,45-54,10.3,Visayas,C2,Remittance,1,High,1,8,1,1
+C101225,Affluent-Preferred,25-34,3.9,Luzon,B1,Remittance,0,Low,1,8,0,1
+C101226,Mid-Market,45-54,17.8,NCR,C2,Mixed,0,Low,0,9,1,1
+C101227,Mid-Market,35-44,5.2,NCR,C2,Salary,1,Ultra High,1,10,1,1
+C101228,Affluent-Gold,45-54,3.0,Luzon,B2,Salary,0,Medium,0,7,1,1
+C101229,Mass,25-34,7.1,NCR,C2,Business,0,Medium,1,4,1,1
+C101230,Mass,45-54,14.8,Luzon,C1,Business,0,Medium,1,1,1,0
+C101231,Mid-Market,55+,13.0,NCR,C2,Mixed,1,Very High,0,6,1,1
+C101232,Mass,25-34,3.1,Luzon,D,Business,1,High,0,6,1,1
+C101233,Mid-Market,55+,2.1,NCR,C1,Salary,1,High,0,2,1,1
+C101234,Mass,25-34,4.2,NCR,C1,Salary,1,High,0,1,1,1
+C101235,Mass,25-34,7.9,NCR,D,Salary,0,High,1,7,0,1
+C101236,Mass,25-34,9.4,Visayas,C1,Mixed,1,Ultra High,0,4,1,1
+C101237,Mid-Market,45-54,11.8,Luzon,C2,Salary,1,High,1,7,1,0
+C101238,Mass,35-44,6.2,Mindanao,D,Remittance,0,Very High,0,1,1,1
+C101239,Mass,25-34,6.4,Visayas,C2,Salary,1,Very High,0,1,1,1
+C101240,Affluent-Preferred,35-44,6.1,Visayas,B1,Salary,1,Ultra High,0,9,1,1
+C101241,Mass,25-34,10.8,Luzon,C1,Salary,1,Ultra High,1,4,1,1
+C101242,Mass,35-44,9.5,Visayas,D,Remittance,1,Ultra High,0,4,1,1
+C101243,Mass,45-54,3.0,Mindanao,D,Salary,0,High,0,1,1,1
+C101244,Mass,35-44,8.7,Visayas,C2,Mixed,1,Medium,0,1,1,1
+C101245,Mass,45-54,10.4,NCR,C2,Mixed,1,Very High,1,5,1,1
+C101246,Mid-Market,35-44,10.9,Luzon,C2,Salary,0,Medium,0,4,1,1
+C101247,Mass,55+,6.9,NCR,C2,Mixed,1,High,1,2,1,0
+C101248,Affluent-Preferred,25-34,6.6,NCR,C1,Salary,1,High,0,3,0,1
+C101249,Affluent-Gold,25-34,5.4,Luzon,A,Salary,1,High,0,10,1,1
+C101250,Mass,18-24,5.8,Visayas,D,Salary,0,Low,0,3,1,1
+C101251,Mass,35-44,16.1,NCR,C2,Business,1,Very High,0,7,1,1
+C101252,Mass,35-44,5.9,NCR,C2,Business,1,High,0,4,1,1
+C101253,Mid-Market,45-54,3.2,Mindanao,C2,Salary,1,Low,1,7,0,1
+C101254,Mass,25-34,7.0,NCR,C2,Business,1,Very High,1,7,1,1
+C101255,Affluent-Preferred,18-24,9.3,NCR,C1,Business,1,Very High,0,8,1,1
+C101256,Affluent-Preferred,35-44,10.6,Visayas,B2,Business,0,Medium,0,6,1,1
+C101257,Affluent-Preferred,55+,2.5,Visayas,B2,Remittance,1,Very High,0,7,1,1
+C101258,Mid-Market,25-34,14.0,Luzon,C2,Business,1,Ultra High,1,6,1,1
+C101259,Affluent-Gold,25-34,9.0,Luzon,B2,Remittance,1,High,0,10,1,1
+C101260,Mass,25-34,13.5,NCR,D,Salary,1,High,0,1,1,1
+C101261,Mid-Market,35-44,1.7,NCR,B2,Business,1,Medium,0,6,1,1
+C101262,Mass,25-34,11.2,Visayas,D,Salary,1,High,0,7,0,1
+C101263,Affluent-Gold,25-34,2.4,Visayas,A,Business,1,Very High,0,4,1,0
+C101264,Mid-Market,35-44,4.5,NCR,C1,Business,1,High,1,5,1,1
+C101265,Affluent-Preferred,25-34,9.2,NCR,B1,Salary,1,Very High,0,8,1,1
+C101266,Mass,25-34,2.2,NCR,C1,Salary,1,High,0,1,1,0
+C101267,Affluent-Gold,18-24,3.7,NCR,B2,Business,1,Ultra High,0,10,1,1
+C101268,Mid-Market,55+,1.7,NCR,C1,Business,0,Medium,1,10,1,0
+C101269,Mid-Market,35-44,9.1,NCR,B2,Business,0,Medium,0,8,1,1
+C101270,Affluent-Gold,25-34,3.0,Visayas,B2,Remittance,1,Ultra High,1,8,1,1
+C101271,Mass,18-24,5.7,NCR,C2,Salary,1,Ultra High,0,5,0,1
+C101272,Mass,35-44,7.4,Luzon,C2,Salary,0,Low,0,10,1,0
+C101273,Mid-Market,45-54,6.9,Luzon,C2,Business,1,Medium,1,7,0,1
+C101274,Mass,18-24,6.5,Visayas,C1,Salary,1,Ultra High,0,10,1,1
+C101275,Mass,25-34,6.5,Mindanao,D,Business,1,Medium,0,7,1,1
+C101276,Mass,25-34,1.8,NCR,C1,Salary,1,High,0,10,1,1
+C101277,Mass,35-44,4.7,NCR,D,Salary,0,Low,0,2,1,1
+C101278,Affluent-Preferred,55+,6.4,Visayas,B2,Remittance,0,Low,0,1,1,1
+C101279,Mid-Market,35-44,6.0,NCR,C1,Remittance,0,Low,1,5,1,1
+C101280,Mass,25-34,5.1,NCR,C1,Remittance,1,Very High,0,2,1,1
+C101281,Mid-Market,45-54,3.3,NCR,B2,Salary,0,Low,0,1,1,1
+C101282,Mid-Market,45-54,6.8,Mindanao,B2,Business,0,Medium,0,5,0,1
+C101283,Mid-Market,25-34,7.7,NCR,B2,Salary,0,Medium,0,6,1,1
+C101284,Affluent-Gold,25-34,4.1,Luzon,A,Business,1,Ultra High,0,8,1,1
+C101285,Affluent-Gold,25-34,10.7,NCR,B2,Remittance,1,Very High,1,9,1,1
+C101286,Mass,45-54,14.2,Luzon,C1,Salary,1,Medium,0,1,1,0
+C101287,Mass,45-54,5.7,NCR,C2,Business,1,Medium,0,1,1,1
+C101288,Mid-Market,35-44,3.0,Mindanao,C1,Remittance,1,Ultra High,0,5,1,1
+C101289,Mid-Market,45-54,2.1,Visayas,C2,Remittance,1,High,1,8,1,1
+C101290,Mid-Market,25-34,4.5,NCR,B2,Remittance,1,Very High,1,9,1,1
+C101291,Mid-Market,25-34,5.4,NCR,C2,Salary,1,Ultra High,0,6,0,1
+C101292,Mid-Market,18-24,2.0,Visayas,C1,Mixed,1,Very High,1,9,1,1
+C101293,Mass,45-54,4.4,Visayas,D,Salary,1,High,0,2,0,1
+C101294,Mass,35-44,10.3,NCR,C2,Salary,1,High,1,10,1,1
+C101295,Mass,25-34,0.8,NCR,C2,Business,1,High,0,7,0,1
+C101296,Mass,18-24,6.0,NCR,C2,Salary,1,Very High,1,5,0,1
+C101297,Mass,45-54,3.7,NCR,C2,Mixed,0,High,1,8,0,1
+C101298,Mid-Market,45-54,5.6,NCR,B2,Salary,1,Very High,0,8,1,1
+C101299,Mass,35-44,14.7,NCR,C1,Salary,0,Medium,1,3,1,0
+C101300,Mass,25-34,5.4,NCR,C2,Salary,1,Ultra High,1,4,0,1
+C101301,Mid-Market,55+,4.8,Visayas,B2,Salary,1,Very High,0,9,1,1
+C101302,Affluent-Preferred,45-54,8.7,Visayas,B1,Salary,0,Medium,1,7,1,1
+C101303,Mass,35-44,6.9,Visayas,D,Salary,1,High,1,3,1,1
+C101304,Affluent-Preferred,35-44,6.0,Luzon,B2,Salary,0,Medium,0,10,1,1
+C101305,Affluent-Gold,55+,7.0,Luzon,A,Salary,1,High,0,4,1,1
+C101306,Mid-Market,55+,12.2,NCR,C1,Salary,0,High,0,1,1,1
+C101307,Mid-Market,35-44,9.9,Luzon,C2,Salary,1,High,0,8,1,0
+C101308,Mass,35-44,4.6,NCR,C2,Salary,1,Very High,0,2,1,1
+C101309,Affluent-Gold,25-34,14.2,Luzon,B1,Salary,1,Ultra High,0,7,1,1
+C101310,Mass,45-54,3.8,Mindanao,C1,Salary,0,Low,0,10,1,1
+C101311,Affluent-Gold,35-44,6.0,Mindanao,B1,Salary,0,Medium,0,1,0,1
+C101312,Mid-Market,18-24,6.5,NCR,C2,Salary,1,Very High,0,4,1,1
+C101313,Mass,25-34,4.4,Visayas,D,Salary,1,Ultra High,0,7,1,1
+C101314,Mass,55+,13.2,NCR,D,Mixed,0,Medium,0,7,1,1
+C101315,Mid-Market,55+,4.3,NCR,C2,Salary,1,Ultra High,0,6,1,1
+C101316,Mid-Market,55+,5.1,NCR,B2,Salary,1,High,1,10,1,1
+C101317,Mass,35-44,10.8,NCR,D,Business,0,Medium,0,5,1,1
+C101318,Mid-Market,45-54,4.0,Luzon,C1,Salary,0,Medium,0,8,1,1
+C101319,Affluent-Preferred,45-54,2.0,NCR,C1,Salary,1,Very High,0,10,1,1
+C101320,Mid-Market,25-34,6.1,NCR,C1,Business,1,High,0,10,1,1
+C101321,Mid-Market,25-34,2.5,Mindanao,B2,Business,1,Ultra High,1,7,0,1
+C101322,Mass,55+,2.3,Luzon,C2,Mixed,1,Very High,1,4,1,1
+C101323,Affluent-Preferred,18-24,0.8,NCR,C1,Mixed,1,High,0,7,1,1
+C101324,Mass,35-44,0.9,Luzon,C1,Remittance,1,High,0,5,1,1
+C101325,Affluent-Preferred,35-44,1.0,Luzon,B2,Business,1,Very High,0,3,1,1
+C101326,Mass,45-54,15.4,Luzon,D,Salary,1,High,1,6,1,1
+C101327,Mid-Market,25-34,1.0,Luzon,B2,Mixed,1,High,1,5,0,1
+C101328,Mass,45-54,2.4,Mindanao,C1,Remittance,1,High,1,10,1,0
+C101329,Mass,25-34,5.1,NCR,C2,Salary,1,Ultra High,1,4,1,1
+C101330,Affluent-Preferred,45-54,8.4,Luzon,C1,Salary,0,Medium,0,5,1,1
+C101331,Mid-Market,25-34,9.0,NCR,C1,Remittance,1,Very High,0,1,1,1
+C101332,Mid-Market,45-54,3.0,Visayas,C1,Remittance,1,Medium,0,6,1,1
+C101333,Affluent-Gold,45-54,5.9,NCR,A,Business,0,High,0,5,1,1
+C101334,Affluent-Gold,25-34,5.0,NCR,A,Salary,0,Medium,1,9,1,1
+C101335,Affluent-Preferred,25-34,5.7,Mindanao,C1,Business,1,Ultra High,0,2,1,1
+C101336,Mass,45-54,6.2,Luzon,C2,Salary,1,High,0,2,1,1
+C101337,Mid-Market,18-24,7.4,NCR,C2,Remittance,0,Low,0,7,1,1
+C101338,Affluent-Preferred,25-34,3.6,NCR,B2,Salary,1,Very High,0,8,1,1
+C101339,Mass,35-44,11.8,NCR,C2,Salary,1,Medium,1,1,1,1
+C101340,Mass,55+,4.3,Mindanao,C2,Salary,1,High,1,2,1,1
+C101341,Affluent-Preferred,35-44,20.2,NCR,B2,Salary,0,Low,0,6,1,1
+C101342,Mid-Market,25-34,3.8,NCR,C1,Salary,0,High,0,2,1,1
+C101343,Mid-Market,55+,6.0,Luzon,B2,Business,1,High,0,1,1,1
+C101344,Affluent-Gold,35-44,5.1,NCR,B1,Salary,0,Medium,1,10,1,1
+C101345,Mid-Market,35-44,5.8,NCR,C2,Business,1,Medium,0,10,0,1
+C101346,Mid-Market,35-44,11.0,Visayas,B2,Business,0,Medium,1,7,1,1
+C101347,Mass,25-34,4.9,NCR,C2,Salary,1,Ultra High,0,7,1,1
+C101348,Mid-Market,25-34,2.2,Mindanao,B2,Mixed,1,Very High,1,4,1,1
+C101349,Mass,45-54,3.6,Visayas,C1,Business,1,Ultra High,0,1,1,1
+C101350,Affluent-Preferred,18-24,4.9,NCR,C1,Business,0,Low,1,10,1,1
+C101351,Affluent-Preferred,45-54,6.4,Visayas,B1,Business,1,Very High,1,8,1,1
+C101352,Mass,25-34,3.1,Visayas,C1,Remittance,0,Low,1,1,1,1
+C101353,Mass,25-34,3.3,Luzon,D,Mixed,1,Very High,0,3,0,1
+C101354,Affluent-Preferred,25-34,6.5,Luzon,C1,Salary,0,Low,0,8,0,1
+C101355,Mass,35-44,6.7,NCR,D,Salary,1,Ultra High,0,4,1,1
+C101356,Mid-Market,45-54,10.0,NCR,B2,Business,0,Medium,0,10,1,1
+C101357,Mid-Market,25-34,3.5,Visayas,B2,Salary,1,Ultra High,0,10,0,1
+C101358,Mid-Market,25-34,7.9,NCR,C2,Remittance,1,Ultra High,0,4,1,1
+C101359,Mass,25-34,5.1,NCR,C2,Salary,1,High,1,6,0,0
+C101360,Mid-Market,45-54,3.9,Luzon,C2,Salary,0,Very High,0,4,1,1
+C101361,Mass,25-34,5.2,NCR,D,Mixed,1,High,0,3,1,1
+C101362,Mid-Market,45-54,5.7,Visayas,C2,Salary,1,Very High,0,1,1,1
+C101363,Mass,25-34,2.0,Visayas,D,Salary,1,High,1,5,1,0
+C101364,Mid-Market,25-34,2.1,Visayas,B2,Business,1,High,1,10,0,0
+C101365,Mid-Market,45-54,8.6,NCR,B2,Business,1,Very High,0,10,1,1
+C101366,Mass,35-44,4.2,NCR,D,Business,0,Medium,0,7,1,1
+C101367,Mass,18-24,6.4,Visayas,C2,Salary,1,Very High,0,1,1,1
+C101368,Mass,55+,8.5,NCR,D,Mixed,1,Very High,0,1,0,1
+C101369,Mass,25-34,5.2,Luzon,C2,Remittance,1,Very High,0,7,1,1
+C101370,Mass,25-34,8.0,Luzon,C1,Business,1,High,0,8,1,1
+C101371,Affluent-Gold,25-34,5.7,NCR,A,Salary,1,Ultra High,1,10,1,1
+C101372,Mid-Market,35-44,5.9,NCR,B2,Salary,1,High,1,8,1,1
+C101373,Affluent-Preferred,45-54,11.6,Luzon,C1,Remittance,0,Medium,0,9,0,1
+C101374,Affluent-Gold,18-24,4.8,NCR,B2,Remittance,1,Ultra High,1,9,1,1
+C101375,Mass,55+,8.7,Visayas,D,Salary,1,High,1,9,1,1
+C101376,Mid-Market,35-44,1.7,Luzon,C2,Remittance,0,Low,0,1,0,1
+C101377,Affluent-Preferred,55+,6.3,NCR,B2,Business,1,High,1,4,1,1
+C101378,Mid-Market,45-54,13.5,Visayas,C1,Salary,1,High,0,10,1,1
+C101379,Mid-Market,55+,21.1,NCR,B2,Remittance,0,Low,0,7,0,1
+C101380,Mid-Market,35-44,1.8,NCR,C2,Salary,1,Ultra High,0,6,1,1
+C101381,Mass,25-34,4.2,Mindanao,D,Mixed,1,Ultra High,0,1,0,1
+C101382,Mid-Market,35-44,2.5,Visayas,B2,Remittance,0,Medium,1,9,1,1
+C101383,Affluent-Gold,35-44,5.0,Luzon,A,Remittance,0,Medium,0,9,1,1
+C101384,Affluent-Gold,35-44,9.6,Visayas,B1,Mixed,1,Very High,0,4,1,1
+C101385,Mass,45-54,11.9,Luzon,D,Business,0,Medium,1,2,1,1
+C101386,Mid-Market,18-24,12.1,NCR,C1,Salary,1,Ultra High,0,4,1,1
+C101387,Mass,45-54,1.6,NCR,D,Remittance,0,Medium,1,4,1,0
+C101388,Affluent-Preferred,25-34,5.6,NCR,B2,Mixed,1,Ultra High,0,2,1,1
+C101389,Mass,55+,3.5,NCR,C1,Salary,0,Medium,0,7,1,1
+C101390,Affluent-Gold,25-34,4.8,Luzon,B2,Remittance,1,Very High,0,5,1,1
+C101391,Affluent-Preferred,25-34,3.9,Visayas,C1,Salary,1,Very High,0,8,1,1
+C101392,Mass,45-54,1.7,NCR,C1,Business,0,Medium,0,1,1,1
+C101393,Mass,45-54,11.9,Luzon,D,Remittance,1,Very High,1,9,1,0
+C101394,Affluent-Preferred,45-54,3.1,Visayas,B1,Mixed,1,Ultra High,0,8,1,1
+C101395,Mass,55+,3.5,Mindanao,C1,Business,0,Medium,0,5,1,1
+C101396,Mid-Market,25-34,13.5,NCR,C1,Salary,0,High,0,5,1,1
+C101397,Affluent-Preferred,45-54,1.4,Mindanao,B2,Remittance,0,Medium,0,8,1,1
+C101398,Mid-Market,25-34,7.3,Visayas,C1,Mixed,1,High,1,10,1,1
+C101399,Mass,35-44,10.5,NCR,C2,Salary,1,High,1,7,0,1
+C101400,Mid-Market,35-44,12.9,NCR,B2,Salary,1,Ultra High,0,10,1,1
+C101401,Mass,18-24,7.0,NCR,C1,Business,1,Very High,1,10,0,1
+C101402,Affluent-Gold,35-44,8.8,Luzon,B2,Remittance,0,Low,0,8,1,1
+C101403,Mass,45-54,10.5,Luzon,D,Salary,0,Low,0,2,1,1
+C101404,Mass,25-34,5.0,Luzon,C2,Salary,1,Ultra High,0,8,1,1
+C101405,Mass,55+,2.7,Visayas,C2,Salary,1,Medium,1,5,1,1
+C101406,Affluent-Gold,35-44,14.2,NCR,A,Business,1,High,1,5,1,1
+C101407,Mass,25-34,8.2,NCR,D,Salary,1,Very High,0,4,1,1
+C101408,Affluent-Preferred,35-44,5.6,Visayas,B2,Salary,0,Low,0,7,1,1
+C101409,Mid-Market,25-34,1.8,Mindanao,C2,Business,1,High,0,10,1,1
+C101410,Affluent-Preferred,18-24,0.6,Visayas,B2,Salary,1,Ultra High,0,2,1,0
+C101411,Affluent-Gold,45-54,7.2,NCR,A,Business,1,Very High,0,10,1,0
+C101412,Affluent-Preferred,25-34,0.6,NCR,C1,Salary,1,High,0,3,1,1
+C101413,Affluent-Gold,25-34,5.6,NCR,B2,Salary,0,Medium,0,10,0,1
+C101414,Mass,45-54,3.2,NCR,C2,Remittance,0,Medium,0,4,1,1
+C101415,Affluent-Preferred,18-24,3.9,NCR,B1,Business,1,High,0,2,1,1
+C101416,Mid-Market,45-54,12.2,Mindanao,C1,Mixed,1,Ultra High,0,10,1,1
+C101417,Mid-Market,45-54,3.2,Luzon,B2,Salary,1,High,0,1,1,1
+C101418,Affluent-Preferred,25-34,5.8,NCR,C1,Salary,1,Medium,0,4,1,1
+C101419,Affluent-Gold,35-44,3.2,NCR,A,Salary,1,Medium,0,3,0,1
+C101420,Mid-Market,18-24,6.8,NCR,C2,Remittance,1,Very High,0,10,1,1
+C101421,Mid-Market,35-44,6.2,Luzon,C2,Salary,0,Medium,1,8,1,1
+C101422,Mid-Market,18-24,5.6,Visayas,C1,Mixed,1,Ultra High,0,6,1,1
+C101423,Mass,55+,10.5,NCR,D,Business,1,Very High,0,3,1,1
+C101424,Mass,25-34,1.4,Visayas,C1,Salary,1,High,0,6,1,1
+C101425,Mass,45-54,1.1,NCR,C1,Salary,0,Medium,0,5,0,0
+C101426,Mass,25-34,2.1,NCR,C2,Salary,1,High,0,6,1,1
+C101427,Mass,25-34,6.2,Mindanao,C2,Remittance,0,Low,0,2,1,1
+C101428,Affluent-Preferred,35-44,7.6,NCR,B1,Remittance,1,High,0,8,1,1
+C101429,Mid-Market,35-44,0.2,NCR,B2,Mixed,1,Very High,1,4,1,1
+C101430,Affluent-Gold,55+,7.5,Luzon,B1,Remittance,0,Medium,0,3,1,1
+C101431,Mid-Market,18-24,4.3,NCR,B2,Salary,1,Ultra High,0,1,1,1
+C101432,Mass,18-24,14.4,NCR,D,Salary,1,Very High,0,5,1,1
+C101433,Mass,25-34,7.2,NCR,D,Salary,0,Medium,1,3,1,1
+C101434,Mass,25-34,13.4,NCR,D,Mixed,0,Low,1,5,1,1
+C101435,Affluent-Gold,55+,11.8,Luzon,B2,Business,0,Low,0,7,1,1
+C101436,Mass,55+,4.3,NCR,D,Business,1,Very High,1,5,1,1
+C101437,Mid-Market,55+,9.7,Visayas,C1,Business,1,Ultra High,1,1,1,1
+C101438,Affluent-Gold,25-34,4.3,Visayas,A,Salary,1,Ultra High,0,5,0,1
+C101439,Affluent-Gold,35-44,15.6,NCR,B1,Business,1,High,0,3,1,1
+C101440,Mass,45-54,4.6,NCR,C2,Business,1,Medium,0,3,1,1
+C101441,Mass,25-34,7.8,NCR,D,Salary,0,Medium,0,6,0,1
+C101442,Mass,35-44,17.4,NCR,D,Salary,1,High,0,7,1,1
+C101443,Mass,25-34,8.1,NCR,C2,Business,1,Very High,0,2,1,1
+C101444,Mass,25-34,4.0,Visayas,D,Mixed,1,Ultra High,0,3,1,1
+C101445,Mid-Market,45-54,1.9,NCR,B2,Salary,1,Ultra High,1,3,0,1
+C101446,Affluent-Preferred,25-34,1.4,Luzon,B2,Mixed,1,Very High,0,9,1,1
+C101447,Mid-Market,55+,7.5,Luzon,C1,Mixed,1,Very High,0,9,1,1
+C101448,Mid-Market,25-34,5.2,Visayas,C2,Mixed,0,Medium,1,10,0,1
+C101449,Mass,18-24,2.1,NCR,D,Salary,1,Ultra High,0,1,1,1
+C101450,Affluent-Preferred,25-34,9.0,NCR,C1,Salary,1,Very High,0,4,1,1
+C101451,Mid-Market,25-34,8.9,Mindanao,B2,Business,1,Ultra High,0,9,1,1
+C101452,Affluent-Preferred,35-44,5.1,NCR,B2,Salary,1,Very High,0,6,1,1
+C101453,Affluent-Gold,25-34,13.8,Luzon,A,Salary,1,High,1,9,1,1
+C101454,Mass,35-44,1.2,Luzon,C2,Business,1,Very High,0,10,1,1
+C101455,Mass,45-54,4.1,Luzon,C1,Salary,1,Very High,0,1,1,1
+C101456,Mass,25-34,8.0,NCR,C1,Salary,1,High,1,4,0,1
+C101457,Mid-Market,25-34,2.3,NCR,C2,Mixed,1,Very High,1,7,1,1
+C101458,Affluent-Gold,35-44,9.6,Luzon,B2,Salary,1,High,1,2,0,1
+C101459,Mass,45-54,11.4,Luzon,C1,Mixed,1,High,0,1,1,1
+C101460,Affluent-Preferred,35-44,0.4,Visayas,C1,Salary,1,Ultra High,1,4,1,1
+C101461,Mid-Market,25-34,14.0,Visayas,B2,Salary,1,Ultra High,1,5,1,1
+C101462,Mass,35-44,7.7,Mindanao,C2,Salary,1,High,0,3,1,1
+C101463,Mass,35-44,3.7,Mindanao,C1,Salary,1,Ultra High,0,4,1,1
+C101464,Mid-Market,25-34,1.6,Visayas,C2,Salary,0,Medium,0,10,0,1
+C101465,Mid-Market,25-34,10.4,NCR,C2,Business,1,High,0,1,1,1
+C101466,Mid-Market,55+,2.0,NCR,C1,Mixed,1,High,1,9,1,1
+C101467,Mass,25-34,7.7,Luzon,D,Salary,1,Ultra High,0,6,1,1
+C101468,Mid-Market,25-34,2.1,Luzon,C2,Salary,1,High,0,6,1,1
+C101469,Mass,25-34,5.5,NCR,C2,Remittance,1,Ultra High,1,1,1,1
+C101470,Affluent-Gold,35-44,10.1,Luzon,B2,Salary,1,Ultra High,0,8,1,1
+C101471,Mass,35-44,3.7,NCR,D,Salary,0,Medium,0,1,0,1
+C101472,Mass,25-34,14.0,NCR,C1,Salary,1,Very High,1,6,1,1
+C101473,Mid-Market,35-44,8.2,Visayas,C2,Salary,1,Very High,1,10,1,1
+C101474,Mid-Market,35-44,2.3,NCR,B2,Remittance,0,Medium,1,2,1,1
+C101475,Mid-Market,25-34,1.7,Luzon,B2,Salary,1,Very High,0,9,0,0
+C101476,Mid-Market,55+,2.9,Luzon,B2,Business,0,Low,1,4,0,1
+C101477,Affluent-Gold,25-34,5.3,Luzon,B2,Salary,1,Ultra High,0,2,1,1
+C101478,Mid-Market,25-34,14.8,NCR,C2,Salary,1,Ultra High,1,2,1,1
+C101479,Mid-Market,55+,16.6,Luzon,B2,Remittance,0,Medium,0,9,1,1
+C101480,Mid-Market,45-54,3.6,NCR,C2,Salary,0,Medium,0,10,0,1
+C101481,Mass,25-34,3.5,Luzon,C2,Mixed,1,Very High,1,2,0,0
+C101482,Mid-Market,45-54,9.1,NCR,C1,Business,1,Ultra High,1,7,1,1
+C101483,Mass,35-44,9.1,Mindanao,C1,Mixed,0,Medium,0,6,1,1
+C101484,Mid-Market,25-34,12.6,Visayas,B2,Salary,1,Medium,1,9,1,0
+C101485,Mass,45-54,12.8,NCR,D,Salary,1,High,1,5,1,1
+C101486,Affluent-Gold,45-54,2.8,NCR,B1,Salary,1,High,0,7,1,1
+C101487,Mid-Market,25-34,1.4,NCR,C1,Remittance,1,Ultra High,0,10,1,1
+C101488,Affluent-Preferred,35-44,8.3,Visayas,B1,Remittance,1,Ultra High,0,7,1,1
+C101489,Mid-Market,25-34,6.4,Luzon,C1,Salary,1,Ultra High,0,10,1,1
+C101490,Mass,18-24,0.8,Visayas,D,Salary,1,Ultra High,0,3,1,1
+C101491,Affluent-Preferred,55+,1.4,Mindanao,B1,Salary,0,Medium,0,4,1,0
+C101492,Mid-Market,35-44,8.0,Luzon,C1,Salary,1,Very High,1,8,1,1
+C101493,Affluent-Preferred,35-44,5.0,Luzon,C1,Salary,0,Medium,0,4,1,1
+C101494,Mid-Market,35-44,8.1,NCR,C2,Remittance,0,High,0,6,1,1
+C101495,Mid-Market,35-44,2.2,Luzon,C2,Mixed,0,Low,0,1,1,1
+C101496,Affluent-Preferred,25-34,8.5,Luzon,B1,Salary,1,Very High,0,1,0,1
+C101497,Mid-Market,55+,7.0,Visayas,B2,Salary,1,Very High,0,4,1,1
+C101498,Mass,35-44,8.9,NCR,C2,Salary,1,High,0,4,1,1
+C101499,Mid-Market,35-44,3.8,NCR,C2,Salary,0,Medium,0,8,1,1
+C101500,Mid-Market,35-44,3.2,NCR,B2,Business,0,Low,1,9,1,1
+C101501,Affluent-Gold,25-34,1.6,Mindanao,B1,Salary,1,Ultra High,1,6,1,1
+C101502,Mass,18-24,4.4,Luzon,C2,Mixed,1,Very High,0,4,1,1
+C101503,Mid-Market,25-34,11.1,NCR,C2,Mixed,1,High,0,9,1,1
+C101504,Affluent-Preferred,25-34,13.2,NCR,B1,Salary,1,Very High,0,3,1,1
+C101505,Mid-Market,35-44,2.0,Luzon,C2,Mixed,1,Ultra High,0,9,0,1
+C101506,Mid-Market,45-54,5.3,Visayas,C1,Remittance,1,Very High,0,3,1,0
+C101507,Mid-Market,25-34,15.0,Mindanao,C1,Mixed,0,Low,0,2,1,1
+C101508,Mass,25-34,16.3,Visayas,C2,Salary,1,Ultra High,1,8,1,0
+C101509,Mid-Market,35-44,4.2,Visayas,C1,Mixed,0,Medium,0,2,1,1
+C101510,Mass,25-34,11.8,NCR,C2,Salary,1,Very High,0,2,0,1
+C101511,Mass,55+,10.5,NCR,C2,Salary,0,Low,1,2,1,1
+C101512,Mid-Market,25-34,9.9,Luzon,C1,Mixed,1,High,0,1,1,1
+C101513,Mid-Market,25-34,1.2,Luzon,C1,Salary,1,Ultra High,1,10,1,1
+C101514,Affluent-Preferred,25-34,3.5,NCR,B1,Salary,0,Medium,1,10,1,1
+C101515,Mass,55+,4.9,Visayas,C1,Salary,1,Medium,0,1,1,1
+C101516,Mass,25-34,4.8,NCR,D,Salary,1,Ultra High,0,1,1,1
+C101517,Affluent-Gold,35-44,5.3,NCR,A,Salary,0,Medium,0,6,0,1
+C101518,Mass,25-34,17.4,NCR,D,Salary,0,Low,1,6,1,1
+C101519,Mass,25-34,4.3,Visayas,D,Remittance,1,Very High,0,10,1,0
+C101520,Mass,45-54,7.2,Visayas,C2,Business,0,High,0,10,0,1
+C101521,Mid-Market,25-34,7.0,Luzon,C2,Salary,1,Very High,0,3,0,1
+C101522,Affluent-Preferred,18-24,5.3,Visayas,B2,Business,1,High,1,9,1,1
+C101523,Affluent-Preferred,35-44,2.2,Visayas,C1,Remittance,1,High,1,10,1,1
+C101524,Mid-Market,45-54,5.8,NCR,C1,Business,1,High,0,4,0,0
+C101525,Mass,25-34,0.7,Visayas,C1,Business,1,Medium,0,5,1,1
+C101526,Mass,25-34,7.7,NCR,C1,Mixed,1,High,1,4,1,0
+C101527,Mid-Market,55+,0.6,Luzon,C1,Salary,1,High,1,5,1,1
+C101528,Mass,35-44,7.2,NCR,D,Remittance,0,Medium,0,5,0,1
+C101529,Mass,45-54,3.3,NCR,C1,Mixed,1,High,0,8,1,1
+C101530,Mass,45-54,2.4,Luzon,D,Business,1,Ultra High,0,1,1,1
+C101531,Mass,45-54,9.2,NCR,C2,Salary,1,Medium,0,1,1,1
+C101532,Mid-Market,25-34,4.0,Luzon,C2,Remittance,0,Medium,0,2,1,1
+C101533,Mid-Market,25-34,5.6,Luzon,C1,Business,1,Very High,0,8,1,0
+C101534,Mass,45-54,1.2,Luzon,D,Salary,1,High,0,1,1,1
+C101535,Mid-Market,45-54,13.8,NCR,B2,Remittance,1,Very High,1,8,1,1
+C101536,Affluent-Preferred,55+,6.0,NCR,C1,Business,1,High,0,4,1,1
+C101537,Mid-Market,35-44,6.0,NCR,C1,Remittance,1,High,0,4,0,1
+C101538,Affluent-Preferred,25-34,7.8,Visayas,B2,Salary,1,High,0,8,1,0
+C101539,Mid-Market,35-44,0.3,Visayas,C1,Remittance,1,Medium,1,9,1,1
+C101540,Affluent-Preferred,35-44,14.7,NCR,B2,Remittance,1,Ultra High,0,5,1,1
+C101541,Mass,35-44,4.2,Visayas,D,Salary,1,Ultra High,0,2,1,1
+C101542,Mass,45-54,14.1,Luzon,C1,Business,1,Ultra High,0,7,1,1
+C101543,Mass,35-44,4.1,Mindanao,C2,Salary,1,High,0,3,1,0
+C101544,Mid-Market,18-24,3.4,NCR,C2,Mixed,1,High,0,8,1,1
+C101545,Mass,35-44,7.5,Luzon,D,Business,1,Ultra High,1,10,1,1
+C101546,Mass,35-44,19.7,Luzon,C2,Business,1,High,1,4,1,1
+C101547,Affluent-Preferred,55+,11.8,NCR,B1,Remittance,0,Medium,0,9,1,1
+C101548,Mass,35-44,8.0,NCR,C1,Salary,1,Medium,1,3,0,1
+C101549,Mass,35-44,7.4,NCR,C2,Business,0,Low,0,10,1,1
+C101550,Mass,35-44,5.8,Luzon,C2,Salary,1,Very High,0,8,0,1
+C101551,Mid-Market,35-44,13.7,Luzon,C2,Remittance,1,High,0,7,1,1
+C101552,Mass,18-24,9.4,Visayas,C2,Salary,1,Very High,0,2,1,1
+C101553,Mass,55+,1.5,NCR,D,Remittance,1,High,0,5,1,1
+C101554,Mass,55+,2.4,Visayas,C1,Business,0,Medium,0,1,1,1
+C101555,Affluent-Preferred,35-44,8.2,NCR,B2,Salary,0,Low,1,10,0,1
+C101556,Affluent-Gold,35-44,2.1,Mindanao,B2,Salary,0,Low,1,7,1,1
+C101557,Mid-Market,18-24,6.0,NCR,B2,Salary,1,High,0,4,1,1
+C101558,Mid-Market,35-44,9.9,Visayas,B2,Salary,0,Medium,0,10,1,1
+C101559,Affluent-Preferred,35-44,7.5,Mindanao,C1,Salary,1,Very High,0,5,1,1
+C101560,Affluent-Gold,45-54,1.8,Visayas,B2,Mixed,1,High,0,2,1,1
+C101561,Mid-Market,18-24,2.6,Visayas,C2,Mixed,1,Ultra High,0,4,1,1
+C101562,Affluent-Preferred,45-54,7.7,NCR,B2,Mixed,1,Very High,1,10,0,0
+C101563,Affluent-Preferred,25-34,18.3,Visayas,B2,Salary,1,High,1,10,1,1
+C101564,Affluent-Preferred,35-44,5.1,Luzon,B1,Salary,1,Medium,0,10,1,1
+C101565,Mid-Market,35-44,10.1,NCR,B2,Salary,1,High,0,6,1,1
+C101566,Mass,25-34,7.5,Mindanao,C1,Remittance,1,Ultra High,0,6,1,1
+C101567,Mass,35-44,3.3,NCR,C1,Business,1,High,0,1,1,1
+C101568,Mid-Market,45-54,10.2,NCR,C2,Business,1,High,0,4,1,0
+C101569,Mid-Market,35-44,1.2,Mindanao,C2,Salary,0,Low,0,6,1,1
+C101570,Mid-Market,18-24,9.7,NCR,B2,Remittance,1,High,1,2,1,1
+C101571,Mid-Market,35-44,7.9,NCR,C1,Mixed,1,Very High,1,4,0,1
+C101572,Mid-Market,25-34,3.6,NCR,C2,Salary,0,Low,1,9,1,1
+C101573,Affluent-Preferred,35-44,2.3,Visayas,B1,Business,1,Very High,1,8,1,1
+C101574,Mass,35-44,3.8,Visayas,D,Business,1,High,1,4,0,1
+C101575,Mass,18-24,3.1,NCR,C1,Salary,1,High,0,7,0,1
+C101576,Affluent-Preferred,35-44,4.5,Luzon,B1,Mixed,0,Medium,1,9,0,1
+C101577,Affluent-Preferred,45-54,4.1,Luzon,B2,Mixed,1,Ultra High,1,10,1,1
+C101578,Affluent-Gold,45-54,3.6,Luzon,B1,Business,1,Ultra High,1,10,1,1
+C101579,Affluent-Preferred,18-24,1.1,Luzon,B1,Salary,1,Very High,1,10,1,1
+C101580,Affluent-Preferred,25-34,2.0,Mindanao,B1,Salary,1,Very High,1,9,1,1
+C101581,Mass,35-44,11.3,NCR,C2,Business,0,Medium,1,2,1,1
+C101582,Mid-Market,25-34,3.6,NCR,C2,Salary,1,High,1,4,1,1
+C101583,Mass,35-44,4.6,Luzon,D,Salary,0,Medium,0,9,1,1
+C101584,Mid-Market,18-24,4.0,NCR,C1,Salary,1,Very High,1,5,0,1
+C101585,Affluent-Gold,25-34,13.9,Luzon,B2,Salary,1,Very High,1,10,1,1
+C101586,Mass,35-44,3.0,NCR,C1,Business,1,Medium,0,3,0,1
+C101587,Mid-Market,25-34,2.8,NCR,C1,Remittance,1,High,1,6,0,1
+C101588,Mass,45-54,8.0,Mindanao,C1,Salary,0,Low,0,2,1,0
+C101589,Mass,18-24,6.3,NCR,D,Remittance,1,Very High,0,1,0,1
+C101590,Mass,35-44,8.1,Luzon,D,Salary,0,High,0,4,1,1
+C101591,Mass,25-34,7.8,Visayas,C2,Salary,1,High,0,8,1,1
+C101592,Affluent-Gold,45-54,10.4,NCR,B2,Salary,0,Low,0,4,0,0
+C101593,Mid-Market,45-54,1.7,NCR,B2,Salary,1,High,1,10,1,1
+C101594,Affluent-Preferred,25-34,7.5,NCR,B2,Salary,1,Medium,0,5,1,1
+C101595,Mid-Market,35-44,2.9,Luzon,B2,Remittance,1,High,1,5,0,0
+C101596,Mass,25-34,0.8,NCR,C1,Salary,1,High,0,2,1,1
+C101597,Mass,35-44,7.8,Luzon,D,Remittance,1,Ultra High,1,9,1,1
+C101598,Affluent-Preferred,18-24,7.5,NCR,B1,Salary,1,Ultra High,0,6,1,1
+C101599,Mass,35-44,5.5,NCR,D,Business,1,Ultra High,1,6,1,1
+C101600,Affluent-Preferred,25-34,10.5,NCR,B1,Remittance,1,Ultra High,0,8,1,1
+C101601,Mass,55+,2.9,NCR,C1,Salary,1,Very High,1,9,1,1
+C101602,Mid-Market,35-44,8.6,NCR,B2,Business,1,Medium,0,1,0,1
+C101603,Affluent-Preferred,35-44,4.9,Mindanao,B2,Business,1,Very High,0,5,1,1
+C101604,Mass,25-34,5.2,NCR,D,Salary,1,Ultra High,0,8,1,1
+C101605,Mass,25-34,0.9,Luzon,D,Remittance,1,Ultra High,1,1,1,1
+C101606,Affluent-Gold,25-34,10.6,Luzon,B2,Business,1,Ultra High,1,9,1,1
+C101607,Mass,55+,7.3,Luzon,C1,Salary,0,High,0,8,1,1
+C101608,Mid-Market,45-54,8.4,Luzon,C1,Mixed,1,Very High,0,8,1,1
+C101609,Mid-Market,25-34,2.6,NCR,C2,Salary,1,Ultra High,0,6,1,1
+C101610,Mass,45-54,6.7,Luzon,D,Business,1,Very High,0,4,1,1
+C101611,Affluent-Preferred,35-44,4.9,NCR,C1,Mixed,0,Medium,0,9,1,0
+C101612,Affluent-Preferred,18-24,7.5,Visayas,C1,Mixed,1,High,0,4,1,1
+C101613,Mass,35-44,6.5,NCR,C1,Remittance,0,Medium,1,1,1,1
+C101614,Affluent-Preferred,25-34,15.7,Visayas,B1,Business,1,Very High,0,7,1,1
+C101615,Mass,25-34,12.7,Luzon,C2,Salary,1,High,0,8,1,1
+C101616,Mass,45-54,4.5,Luzon,C1,Salary,1,Very High,1,2,1,1
+C101617,Mid-Market,25-34,7.8,NCR,C1,Mixed,1,Ultra High,0,10,0,1
+C101618,Affluent-Gold,55+,4.2,Luzon,B2,Salary,0,High,1,7,1,1
+C101619,Mass,35-44,10.3,Visayas,C1,Business,1,Very High,1,3,1,1
+C101620,Mass,45-54,5.0,Luzon,D,Salary,0,Medium,0,6,1,1
+C101621,Mid-Market,35-44,3.8,NCR,B2,Salary,1,Ultra High,0,5,1,1
+C101622,Affluent-Preferred,45-54,6.6,NCR,B1,Salary,1,High,1,6,1,1
+C101623,Mass,25-34,12.0,NCR,D,Remittance,0,Low,0,5,1,1
+C101624,Mass,35-44,10.8,Visayas,D,Salary,1,Very High,1,10,1,1
+C101625,Mid-Market,35-44,3.9,NCR,C1,Salary,1,Ultra High,0,3,1,1
+C101626,Mass,55+,14.8,Visayas,C1,Mixed,0,Medium,0,8,1,1
+C101627,Mass,25-34,2.7,Visayas,D,Business,1,High,0,4,0,1
+C101628,Mass,35-44,3.4,Luzon,C1,Business,0,Low,0,8,1,1
+C101629,Mid-Market,45-54,10.0,Luzon,C1,Salary,1,Very High,0,6,1,1
+C101630,Mid-Market,25-34,0.8,Luzon,B2,Salary,1,High,0,10,0,1
+C101631,Affluent-Preferred,45-54,5.6,Luzon,B2,Business,0,Medium,1,10,1,1
+C101632,Mid-Market,25-34,4.5,NCR,C1,Salary,1,Ultra High,1,3,1,1
+C101633,Mid-Market,25-34,15.4,Visayas,C1,Salary,0,Medium,0,6,1,1
+C101634,Affluent-Gold,35-44,2.3,Mindanao,B2,Mixed,0,Medium,0,9,0,1
+C101635,Mid-Market,35-44,2.5,Luzon,C2,Salary,1,High,1,10,1,1
+C101636,Mid-Market,18-24,16.7,Mindanao,C2,Mixed,1,Very High,0,8,1,1
+C101637,Affluent-Gold,18-24,4.5,Mindanao,A,Salary,1,Ultra High,0,4,1,1
+C101638,Mass,25-34,11.7,Luzon,C2,Salary,1,Very High,0,9,1,1
+C101639,Mid-Market,45-54,4.0,Visayas,C1,Salary,0,Medium,0,2,1,1
+C101640,Affluent-Preferred,55+,3.3,Luzon,B1,Mixed,1,High,0,1,1,1
+C101641,Mass,35-44,12.1,NCR,C1,Remittance,0,Medium,0,2,1,1
+C101642,Mid-Market,25-34,19.3,NCR,C2,Business,1,High,0,9,1,1
+C101643,Mass,35-44,12.7,Luzon,C2,Salary,0,Medium,1,5,1,1
+C101644,Mass,45-54,3.8,Visayas,C2,Mixed,0,Medium,0,1,1,0
+C101645,Mid-Market,45-54,5.5,NCR,B2,Remittance,1,High,0,1,1,1
+C101646,Mass,25-34,2.6,Visayas,C1,Remittance,1,Ultra High,0,7,1,1
+C101647,Affluent-Preferred,25-34,3.0,Luzon,B2,Business,1,High,0,1,1,1
+C101648,Affluent-Preferred,55+,2.9,Luzon,C1,Business,0,Low,0,6,1,0
+C101649,Affluent-Preferred,45-54,4.0,NCR,B2,Business,1,High,0,5,1,1
+C101650,Mass,18-24,6.1,Luzon,D,Salary,1,Ultra High,1,2,1,1
+C101651,Mass,45-54,5.6,NCR,C1,Mixed,0,High,0,1,1,1
+C101652,Mass,18-24,9.1,NCR,C1,Salary,1,Very High,0,4,1,1
+C101653,Mass,18-24,6.3,NCR,C1,Mixed,1,Very High,1,3,1,1
+C101654,Affluent-Gold,45-54,8.5,NCR,B2,Salary,1,High,0,3,1,1
+C101655,Mid-Market,35-44,9.4,NCR,C1,Salary,0,High,0,7,1,1
+C101656,Mass,35-44,3.8,Luzon,C1,Salary,1,Very High,0,3,1,1
+C101657,Affluent-Preferred,55+,5.0,NCR,B2,Remittance,1,Very High,0,7,1,1
+C101658,Mass,45-54,32.1,NCR,C1,Salary,1,High,0,6,1,1
+C101659,Mass,18-24,3.6,Visayas,C2,Business,1,Very High,0,2,1,1
+C101660,Mass,35-44,8.8,Luzon,C2,Business,1,Very High,0,8,1,1
+C101661,Mid-Market,45-54,1.9,Mindanao,C1,Salary,1,Very High,0,8,1,1
+C101662,Affluent-Preferred,35-44,9.6,Luzon,C1,Remittance,1,Very High,1,8,1,0
+C101663,Mass,55+,3.1,NCR,C2,Business,1,Ultra High,1,6,0,1
+C101664,Affluent-Preferred,45-54,5.8,Mindanao,C1,Mixed,1,Ultra High,0,10,0,1
+C101665,Affluent-Preferred,25-34,1.6,Visayas,B1,Salary,1,High,0,1,0,1
+C101666,Affluent-Preferred,25-34,5.4,Luzon,B2,Mixed,1,Very High,0,7,0,1
+C101667,Mass,45-54,5.4,Luzon,C2,Salary,1,High,1,7,0,1
+C101668,Mass,55+,4.8,Luzon,C1,Business,1,Very High,1,3,1,1
+C101669,Affluent-Preferred,18-24,7.6,Luzon,B2,Business,1,Medium,0,6,1,1
+C101670,Mass,25-34,11.5,Visayas,C1,Salary,1,Very High,1,2,1,1
+C101671,Mid-Market,45-54,2.5,Luzon,C1,Salary,0,High,0,4,1,1
+C101672,Affluent-Preferred,18-24,4.9,NCR,B1,Business,1,Very High,1,8,1,1
+C101673,Mass,18-24,1.7,NCR,C1,Salary,1,Very High,0,3,0,1
+C101674,Affluent-Preferred,55+,1.0,NCR,C1,Salary,1,High,0,10,1,1
+C101675,Affluent-Gold,45-54,6.3,NCR,B2,Salary,0,Medium,1,4,1,1
+C101676,Mid-Market,55+,2.3,NCR,B2,Business,1,Ultra High,0,10,1,1
+C101677,Mid-Market,35-44,5.6,Mindanao,C2,Salary,1,High,1,8,1,1
+C101678,Affluent-Preferred,25-34,6.5,NCR,B1,Salary,1,Ultra High,0,6,1,1
+C101679,Mid-Market,55+,1.2,NCR,C2,Mixed,1,Ultra High,0,8,1,1
+C101680,Mid-Market,25-34,7.2,NCR,B2,Business,1,High,0,1,1,1
+C101681,Affluent-Preferred,25-34,11.1,Luzon,B1,Remittance,1,Ultra High,0,10,1,0
+C101682,Mid-Market,55+,8.3,Luzon,C1,Remittance,1,High,1,3,1,1
+C101683,Mass,45-54,2.6,Luzon,C2,Salary,1,Very High,1,1,1,1
+C101684,Mass,55+,5.3,Mindanao,C2,Salary,1,Ultra High,0,3,1,1
+C101685,Mass,25-34,5.8,Mindanao,C2,Salary,1,Very High,0,1,1,1
+C101686,Mid-Market,55+,5.0,Visayas,C1,Salary,0,Medium,0,2,1,0
+C101687,Mid-Market,35-44,1.8,Visayas,C2,Salary,1,Ultra High,0,7,1,1
+C101688,Mid-Market,35-44,2.9,NCR,C2,Remittance,0,Medium,0,7,0,1
+C101689,Mass,55+,4.7,Luzon,C1,Salary,0,Low,0,3,1,0
+C101690,Affluent-Preferred,25-34,6.4,NCR,B1,Salary,1,Ultra High,1,9,1,1
+C101691,Affluent-Preferred,45-54,3.6,Visayas,B2,Mixed,0,Low,0,9,1,1
+C101692,Mass,35-44,0.9,NCR,C1,Salary,0,Low,0,1,1,1
+C101693,Mid-Market,45-54,3.7,NCR,C1,Business,0,High,0,10,1,1
+C101694,Mid-Market,55+,15.7,NCR,C1,Salary,1,High,0,7,0,1
+C101695,Mid-Market,45-54,7.2,Luzon,C2,Remittance,1,Very High,0,9,1,1
+C101696,Mass,18-24,6.3,Luzon,C2,Salary,1,Ultra High,0,2,1,1
+C101697,Affluent-Preferred,25-34,2.9,NCR,C1,Salary,1,Very High,0,6,1,1
+C101698,Affluent-Gold,55+,3.9,Luzon,A,Business,0,Medium,0,4,0,0
+C101699,Mid-Market,55+,0.8,NCR,C2,Salary,1,Very High,0,5,0,1
+C101700,Affluent-Preferred,55+,2.7,Visayas,B2,Salary,1,Ultra High,0,4,1,1
+C101701,Affluent-Gold,18-24,6.9,NCR,B1,Salary,1,Very High,1,10,1,1
+C101702,Mass,25-34,6.3,NCR,D,Remittance,1,Ultra High,0,1,1,1
+C101703,Mid-Market,45-54,3.3,Luzon,C1,Salary,0,Low,1,8,1,1
+C101704,Mid-Market,45-54,5.0,Luzon,C2,Remittance,1,Ultra High,1,5,1,0
+C101705,Affluent-Gold,18-24,5.6,Visayas,B2,Remittance,1,Ultra High,0,5,1,1
+C101706,Mass,35-44,3.4,Luzon,C1,Remittance,1,High,1,5,1,1
+C101707,Mid-Market,25-34,7.5,Mindanao,C1,Business,1,High,0,7,1,1
+C101708,Affluent-Preferred,35-44,6.2,NCR,B2,Salary,1,Medium,0,1,1,1
+C101709,Mass,25-34,4.0,NCR,D,Mixed,1,Ultra High,0,4,1,1
+C101710,Affluent-Preferred,18-24,1.9,Mindanao,C1,Salary,1,High,0,2,1,1
+C101711,Mass,18-24,3.8,NCR,C2,Salary,1,Ultra High,0,2,0,1
+C101712,Affluent-Gold,55+,3.6,Visayas,A,Business,1,High,0,4,1,1
+C101713,Affluent-Preferred,45-54,3.3,NCR,C1,Remittance,1,Ultra High,1,7,1,1
+C101714,Mass,55+,1.3,Luzon,C1,Salary,1,High,0,2,0,0
+C101715,Affluent-Preferred,35-44,13.1,NCR,C1,Mixed,0,Low,0,8,1,0
+C101716,Mass,35-44,12.6,Luzon,C2,Mixed,0,Medium,0,10,1,1
+C101717,Mid-Market,25-34,4.9,Visayas,C2,Salary,1,High,0,4,1,1
+C101718,Mid-Market,35-44,6.4,NCR,B2,Remittance,1,High,0,2,1,1
+C101719,Affluent-Preferred,25-34,7.4,NCR,B1,Business,1,Ultra High,1,9,0,1
+C101720,Mass,45-54,4.9,NCR,C1,Mixed,1,Very High,1,5,0,1
+C101721,Mass,45-54,6.7,NCR,C1,Remittance,1,Very High,0,8,1,1
+C101722,Mid-Market,45-54,8.1,NCR,B2,Salary,1,Medium,0,4,1,1
+C101723,Mid-Market,25-34,6.1,Mindanao,C1,Business,0,High,0,2,0,1
+C101724,Mid-Market,35-44,9.1,NCR,B2,Salary,1,Very High,0,8,1,1
+C101725,Mass,25-34,3.2,NCR,D,Business,1,High,0,10,1,1
+C101726,Mass,18-24,5.3,Luzon,C2,Remittance,1,Ultra High,0,9,0,1
+C101727,Affluent-Preferred,45-54,25.3,NCR,B1,Remittance,0,Medium,1,5,1,1
+C101728,Mass,35-44,10.5,NCR,C2,Salary,1,High,0,5,1,1
+C101729,Mass,45-54,6.2,Visayas,C1,Salary,0,Low,1,2,1,1
+C101730,Affluent-Gold,18-24,2.5,Luzon,B1,Remittance,1,Very High,0,7,1,1
+C101731,Mass,55+,5.5,Visayas,C2,Salary,1,High,0,4,1,1
+C101732,Mid-Market,55+,10.1,NCR,C2,Salary,1,Very High,1,7,1,1
+C101733,Mass,35-44,8.7,Luzon,D,Salary,1,Medium,1,4,1,1
+C101734,Affluent-Preferred,45-54,1.0,Mindanao,B1,Mixed,1,High,0,7,1,0
+C101735,Mid-Market,25-34,1.3,Visayas,B2,Salary,1,High,0,3,1,1
+C101736,Affluent-Preferred,45-54,1.4,Mindanao,B2,Business,1,Very High,1,10,1,1
+C101737,Mass,45-54,7.5,NCR,C1,Remittance,1,Ultra High,0,5,1,1
+C101738,Mid-Market,45-54,1.4,Mindanao,C2,Business,1,Very High,0,3,1,1
+C101739,Affluent-Preferred,45-54,2.4,Visayas,B1,Remittance,0,Medium,0,2,1,1
+C101740,Mass,35-44,4.8,Visayas,C2,Salary,1,Medium,0,3,1,1
+C101741,Mass,45-54,11.2,Luzon,C2,Salary,1,High,0,2,1,1
+C101742,Mass,45-54,7.7,Mindanao,D,Salary,0,Medium,0,4,1,1
+C101743,Affluent-Gold,25-34,4.4,NCR,B1,Business,1,Medium,0,2,1,1
+C101744,Mid-Market,25-34,9.3,Visayas,B2,Business,1,High,0,6,0,1
+C101745,Mid-Market,45-54,18.6,Luzon,B2,Business,0,Medium,0,2,0,1
+C101746,Mid-Market,35-44,5.6,Visayas,C1,Business,0,Low,1,10,1,1
+C101747,Mid-Market,35-44,1.8,Visayas,C2,Business,1,Very High,0,5,1,1
+C101748,Mid-Market,55+,2.5,NCR,C2,Mixed,0,Medium,0,8,1,1
+C101749,Mid-Market,35-44,2.5,NCR,C2,Business,1,High,1,8,1,1
+C101750,Mid-Market,25-34,3.0,NCR,C2,Salary,1,High,0,2,0,1
+C101751,Mass,35-44,4.1,Visayas,C1,Salary,1,High,0,5,1,1
+C101752,Affluent-Preferred,35-44,6.5,Visayas,C1,Remittance,0,High,1,7,1,1
+C101753,Affluent-Preferred,45-54,1.5,Visayas,C1,Business,1,Very High,0,6,1,1
+C101754,Mass,35-44,1.8,Visayas,D,Remittance,1,High,0,5,1,1
+C101755,Mid-Market,35-44,8.1,Luzon,C1,Salary,1,Very High,0,3,1,1
+C101756,Mass,45-54,3.6,NCR,C2,Business,0,Low,0,7,1,1
+C101757,Affluent-Gold,45-54,2.7,Luzon,B2,Salary,1,Ultra High,1,6,0,1
+C101758,Affluent-Preferred,45-54,4.5,Mindanao,B2,Salary,0,Low,0,7,1,1
+C101759,Affluent-Gold,18-24,12.4,Luzon,B2,Business,0,Medium,0,8,0,0
+C101760,Mass,45-54,8.8,Mindanao,C1,Remittance,1,Ultra High,0,7,1,1
+C101761,Mass,35-44,8.4,Mindanao,D,Salary,1,Medium,0,3,1,1
+C101762,Mass,18-24,15.3,NCR,D,Salary,1,High,1,3,0,1
+C101763,Mass,35-44,6.7,Visayas,C2,Remittance,1,High,1,5,1,1
+C101764,Mass,45-54,16.2,Luzon,C1,Salary,1,High,0,10,1,1
+C101765,Mass,35-44,17.0,Luzon,C2,Salary,1,High,1,1,0,0
+C101766,Affluent-Gold,45-54,1.6,NCR,B2,Remittance,0,Medium,0,8,1,1
+C101767,Mass,25-34,1.2,NCR,C2,Business,1,Very High,0,3,0,1
+C101768,Mass,25-34,2.3,NCR,D,Salary,1,Very High,1,8,1,1
+C101769,Affluent-Preferred,25-34,11.7,Luzon,C1,Remittance,1,Ultra High,0,9,1,0
+C101770,Mid-Market,35-44,4.6,NCR,B2,Remittance,1,Ultra High,0,1,1,1
+C101771,Affluent-Preferred,45-54,4.2,NCR,B1,Salary,1,High,1,8,1,1
+C101772,Mid-Market,45-54,9.4,Luzon,C2,Salary,0,Low,0,9,1,1
+C101773,Affluent-Preferred,45-54,3.4,NCR,B2,Salary,1,Ultra High,1,6,0,1
+C101774,Mid-Market,25-34,6.2,Visayas,C1,Salary,1,High,0,1,1,1
+C101775,Mid-Market,25-34,8.1,NCR,B2,Business,1,Very High,0,10,1,0
+C101776,Mid-Market,25-34,2.5,NCR,B2,Salary,1,High,0,2,0,1
+C101777,Mid-Market,45-54,2.0,Mindanao,C1,Mixed,0,High,0,7,1,1
+C101778,Mass,25-34,5.5,Visayas,D,Salary,1,Ultra High,0,9,1,1
+C101779,Mid-Market,35-44,6.1,Luzon,C2,Business,1,High,0,9,1,1
+C101780,Mass,45-54,8.9,Visayas,D,Remittance,1,Very High,1,8,1,1
+C101781,Affluent-Preferred,35-44,2.3,NCR,B1,Business,0,Medium,1,5,1,1
+C101782,Mass,25-34,3.0,Visayas,C1,Mixed,1,Ultra High,1,7,1,0
+C101783,Mass,25-34,16.9,NCR,C1,Remittance,1,High,0,3,1,1
+C101784,Mass,35-44,10.4,Luzon,D,Salary,1,High,0,2,1,1
+C101785,Affluent-Preferred,35-44,4.9,NCR,C1,Mixed,1,Medium,1,6,0,1
+C101786,Mass,18-24,11.5,Visayas,D,Mixed,1,Ultra High,0,1,1,1
+C101787,Mid-Market,45-54,2.3,NCR,C1,Mixed,1,Medium,0,10,1,1
+C101788,Affluent-Preferred,35-44,4.5,NCR,C1,Salary,0,Low,1,1,1,1
+C101789,Mass,35-44,6.0,NCR,C2,Salary,1,Ultra High,1,8,0,1
+C101790,Affluent-Preferred,25-34,4.1,Visayas,B1,Salary,1,Ultra High,0,6,0,1
+C101791,Mass,25-34,4.2,NCR,D,Business,1,High,1,6,0,1
+C101792,Mass,25-34,8.6,Luzon,C1,Salary,1,High,0,1,1,1
+C101793,Mid-Market,25-34,10.5,NCR,C1,Salary,1,Very High,0,5,1,1
+C101794,Affluent-Preferred,35-44,3.8,Visayas,B1,Remittance,1,Ultra High,0,4,1,1
+C101795,Mass,35-44,1.7,NCR,D,Salary,1,High,0,7,1,1
+C101796,Mid-Market,55+,1.4,Mindanao,C2,Business,0,Low,1,6,1,1
+C101797,Mass,55+,0.7,NCR,D,Salary,1,High,0,2,1,1
+C101798,Mid-Market,25-34,15.1,NCR,B2,Business,1,Very High,0,8,1,1
+C101799,Mid-Market,25-34,8.7,NCR,B2,Salary,1,Very High,1,5,1,1
+C101800,Mid-Market,45-54,7.4,NCR,C2,Remittance,0,Low,0,4,0,1
+C101801,Mid-Market,55+,3.4,Luzon,C1,Remittance,0,Low,1,7,1,0
+C101802,Mass,45-54,3.4,NCR,C1,Salary,0,Low,0,9,1,1
+C101803,Mid-Market,18-24,10.7,Mindanao,B2,Salary,1,High,0,8,1,1
+C101804,Mid-Market,25-34,1.2,Luzon,B2,Business,1,Very High,0,8,1,1
+C101805,Mid-Market,18-24,3.9,NCR,B2,Remittance,0,Low,0,10,1,1
+C101806,Mass,45-54,11.7,Luzon,C1,Salary,1,High,0,4,1,1
+C101807,Mid-Market,35-44,3.9,NCR,B2,Business,1,High,0,3,1,1
+C101808,Mid-Market,35-44,8.4,NCR,B2,Salary,0,High,0,2,1,1
+C101809,Mass,35-44,5.0,NCR,C2,Salary,0,Medium,1,5,0,1
+C101810,Mass,25-34,0.3,NCR,C2,Salary,1,High,0,3,0,1
+C101811,Mid-Market,35-44,4.9,NCR,C1,Salary,1,Very High,0,6,1,1
+C101812,Mid-Market,18-24,5.6,Mindanao,B2,Salary,1,Ultra High,0,5,1,1
+C101813,Mass,35-44,4.6,Luzon,D,Salary,1,Very High,0,10,1,1
+C101814,Affluent-Preferred,45-54,2.0,Mindanao,B1,Salary,1,High,1,3,1,1
+C101815,Mid-Market,35-44,4.6,NCR,C1,Salary,1,Very High,0,8,1,1
+C101816,Affluent-Preferred,25-34,0.8,Visayas,C1,Remittance,1,Medium,1,8,1,1
+C101817,Mid-Market,45-54,3.9,NCR,C1,Business,1,Very High,1,8,1,1
+C101818,Mid-Market,45-54,8.8,NCR,C2,Salary,1,Ultra High,0,3,1,1
+C101819,Mid-Market,25-34,14.6,Visayas,B2,Salary,1,Ultra High,1,9,1,1
+C101820,Affluent-Gold,25-34,13.0,NCR,B1,Business,0,Medium,0,6,1,1
+C101821,Mid-Market,35-44,2.2,NCR,C1,Remittance,1,High,0,10,1,0
+C101822,Mid-Market,25-34,1.4,Visayas,C2,Business,1,Very High,0,10,1,1
+C101823,Mid-Market,25-34,6.0,Luzon,C2,Salary,1,Ultra High,1,8,1,1
+C101824,Mid-Market,25-34,5.4,Luzon,B2,Salary,1,Very High,1,6,1,1
+C101825,Mass,25-34,8.0,NCR,C1,Salary,1,Very High,0,3,1,1
+C101826,Mid-Market,35-44,3.2,NCR,C2,Remittance,1,High,1,5,1,1
+C101827,Mid-Market,35-44,5.5,Mindanao,B2,Salary,1,High,0,8,1,1
+C101828,Affluent-Gold,25-34,5.3,NCR,B1,Salary,1,High,0,9,1,1
+C101829,Mid-Market,45-54,4.0,NCR,C1,Salary,1,Very High,1,10,0,1
+C101830,Mid-Market,25-34,1.1,NCR,C1,Business,0,Medium,0,5,0,1
+C101831,Affluent-Gold,25-34,8.7,Mindanao,A,Salary,1,Ultra High,1,3,1,1
+C101832,Mid-Market,25-34,6.1,Visayas,B2,Business,1,Ultra High,1,10,1,1
+C101833,Mass,45-54,9.2,Luzon,C2,Salary,1,High,0,3,1,1
+C101834,Mass,55+,10.7,Mindanao,C2,Salary,1,Medium,1,10,0,1
+C101835,Mass,35-44,4.9,NCR,C1,Salary,0,Low,1,5,1,1
+C101836,Mass,18-24,8.8,Mindanao,C2,Mixed,1,Very High,0,6,1,1
+C101837,Mid-Market,25-34,14.8,NCR,C1,Salary,1,Ultra High,0,3,1,0
+C101838,Affluent-Preferred,25-34,18.0,NCR,B2,Salary,1,High,0,4,1,1
+C101839,Mid-Market,45-54,6.6,NCR,C1,Business,0,High,0,5,1,1
+C101840,Mass,18-24,7.0,Mindanao,D,Salary,1,Very High,0,3,1,1
+C101841,Mid-Market,55+,6.5,Mindanao,C2,Salary,0,High,0,9,1,1
+C101842,Mass,35-44,7.8,Luzon,C2,Salary,1,Medium,0,2,1,1
+C101843,Affluent-Gold,35-44,10.4,NCR,B2,Business,0,Low,1,8,1,1
+C101844,Mass,45-54,6.4,NCR,C2,Salary,1,Ultra High,0,8,0,1
+C101845,Mid-Market,18-24,17.3,NCR,B2,Business,1,High,0,10,1,0
+C101846,Mass,45-54,15.7,NCR,D,Business,0,Medium,1,2,1,1
+C101847,Mid-Market,25-34,5.6,NCR,C1,Remittance,0,Low,0,5,1,1
+C101848,Mid-Market,45-54,5.6,Luzon,B2,Salary,1,Ultra High,0,4,1,1
+C101849,Affluent-Preferred,35-44,3.7,Luzon,C1,Business,1,Very High,0,6,1,1
+C101850,Mass,18-24,8.1,Mindanao,C1,Mixed,1,Very High,1,9,1,1
+C101851,Affluent-Preferred,45-54,4.2,Luzon,C1,Business,1,Very High,0,8,1,1
+C101852,Mid-Market,18-24,3.6,NCR,B2,Salary,1,Very High,1,8,1,1
+C101853,Affluent-Preferred,25-34,7.9,Luzon,B2,Business,1,Very High,0,9,1,1
+C101854,Affluent-Preferred,45-54,2.1,NCR,C1,Business,1,Medium,0,3,1,1
+C101855,Affluent-Gold,35-44,10.5,Luzon,A,Mixed,0,High,0,7,1,1
+C101856,Mass,55+,8.2,Visayas,D,Salary,1,Very High,0,2,1,1
+C101857,Mass,35-44,15.2,NCR,C2,Business,1,Very High,0,4,1,1
+C101858,Mass,35-44,6.7,NCR,C2,Business,1,High,0,2,0,1
+C101859,Mass,25-34,9.0,Visayas,C1,Mixed,1,Ultra High,1,7,1,1
+C101860,Mid-Market,25-34,9.8,Luzon,C1,Business,1,Ultra High,1,8,1,1
+C101861,Affluent-Gold,55+,12.4,Luzon,A,Mixed,1,High,0,10,1,1
+C101862,Affluent-Gold,25-34,6.2,Visayas,B1,Salary,1,High,0,8,1,0
+C101863,Mid-Market,35-44,3.7,Luzon,C1,Salary,1,Ultra High,1,4,1,1
+C101864,Mid-Market,25-34,6.8,NCR,C1,Salary,1,Ultra High,0,9,1,1
+C101865,Affluent-Preferred,25-34,10.5,Visayas,B1,Business,1,High,0,1,0,1
+C101866,Affluent-Gold,35-44,11.4,Mindanao,B1,Salary,1,Ultra High,0,6,1,1
+C101867,Mass,45-54,1.1,NCR,D,Remittance,1,High,1,6,0,1
+C101868,Mid-Market,45-54,27.9,NCR,B2,Mixed,1,High,0,4,1,1
+C101869,Affluent-Preferred,45-54,3.6,Visayas,B2,Mixed,0,Low,1,9,0,1
+C101870,Mass,25-34,9.1,Luzon,C2,Business,1,Ultra High,1,3,1,1
+C101871,Mid-Market,35-44,13.3,NCR,C2,Business,0,Medium,0,7,1,1
+C101872,Affluent-Gold,18-24,5.2,Luzon,A,Salary,1,Ultra High,0,4,1,1
+C101873,Affluent-Gold,45-54,11.7,Visayas,B2,Salary,0,Low,1,3,1,1
+C101874,Affluent-Preferred,25-34,1.1,Luzon,B1,Remittance,1,Very High,1,8,1,0
+C101875,Affluent-Preferred,35-44,12.0,NCR,C1,Business,1,Ultra High,0,4,1,1
+C101876,Mass,25-34,11.1,NCR,C2,Salary,1,Ultra High,0,6,1,1
+C101877,Mass,45-54,7.4,NCR,D,Salary,0,Medium,1,8,1,1
+C101878,Mid-Market,45-54,10.5,Mindanao,C1,Business,1,Very High,1,10,1,1
+C101879,Mid-Market,45-54,16.0,Luzon,B2,Salary,0,Low,0,9,1,1
+C101880,Mid-Market,18-24,13.6,NCR,C1,Business,1,High,1,9,1,1
+C101881,Mid-Market,55+,5.5,Mindanao,C1,Salary,0,Medium,0,4,1,1
+C101882,Mid-Market,25-34,6.7,NCR,C2,Business,1,High,0,7,1,1
+C101883,Mid-Market,25-34,4.8,Luzon,B2,Remittance,1,Very High,0,7,1,1
+C101884,Mass,25-34,4.3,NCR,C2,Business,1,High,0,7,1,1
+C101885,Mass,25-34,9.8,Visayas,C2,Business,0,Medium,0,2,1,1
+C101886,Mass,35-44,4.8,Visayas,C1,Salary,0,High,1,6,1,1
+C101887,Mass,25-34,9.8,Visayas,C2,Salary,1,Ultra High,0,1,1,0
+C101888,Affluent-Preferred,25-34,5.2,NCR,B1,Mixed,1,Ultra High,1,10,1,1
+C101889,Mid-Market,35-44,5.8,NCR,C2,Salary,1,Very High,0,1,0,1
+C101890,Mass,45-54,2.9,NCR,C2,Business,1,Very High,1,3,1,1
+C101891,Affluent-Preferred,45-54,9.6,Mindanao,B2,Salary,0,Low,0,2,1,1
+C101892,Mid-Market,35-44,1.0,NCR,C2,Business,0,High,1,7,0,1
+C101893,Mass,25-34,12.3,Luzon,C2,Salary,1,Ultra High,0,6,0,1
+C101894,Mass,45-54,21.7,Visayas,C1,Remittance,1,High,0,10,1,1
+C101895,Mass,18-24,6.0,NCR,C1,Remittance,1,Medium,1,3,1,1
+C101896,Mid-Market,25-34,5.8,NCR,B2,Salary,1,Very High,0,7,1,1
+C101897,Mass,18-24,1.4,NCR,C1,Salary,1,Very High,1,3,0,1
+C101898,Mass,35-44,3.8,Luzon,C1,Mixed,0,Medium,0,7,1,1
+C101899,Mass,25-34,10.6,Mindanao,D,Business,1,High,1,1,1,1
+C101900,Mid-Market,35-44,11.6,NCR,B2,Mixed,1,High,0,10,1,1
+C101901,Mass,25-34,6.5,Mindanao,C2,Business,1,High,0,2,1,1
+C101902,Affluent-Preferred,35-44,10.2,NCR,B1,Remittance,0,High,0,2,1,0
+C101903,Mass,35-44,2.9,NCR,C2,Remittance,0,Medium,0,9,0,1
+C101904,Mid-Market,18-24,7.6,Mindanao,C2,Mixed,1,High,0,2,1,1
+C101905,Mid-Market,35-44,14.4,Mindanao,C1,Remittance,1,Ultra High,0,8,1,1
+C101906,Mid-Market,35-44,8.7,NCR,B2,Salary,1,High,1,9,1,1
+C101907,Mass,35-44,15.9,Luzon,D,Business,1,Ultra High,0,1,1,1
+C101908,Affluent-Preferred,18-24,16.2,Mindanao,B2,Mixed,1,Ultra High,1,10,1,1
+C101909,Affluent-Preferred,35-44,8.0,Visayas,B2,Salary,0,Medium,0,9,1,1
+C101910,Mass,25-34,0.2,Luzon,C2,Salary,0,Medium,1,6,1,1
+C101911,Mass,18-24,11.4,NCR,C1,Remittance,1,High,0,3,1,1
+C101912,Affluent-Preferred,25-34,1.9,NCR,C1,Business,1,Very High,0,6,0,1
+C101913,Mid-Market,35-44,0.3,Luzon,C1,Salary,0,Medium,0,10,1,1
+C101914,Mass,25-34,0.9,Luzon,C1,Business,1,Ultra High,1,1,1,1
+C101915,Mass,45-54,12.0,NCR,C2,Remittance,1,High,1,5,1,1
+C101916,Mid-Market,25-34,8.0,NCR,C2,Salary,1,Very High,0,8,1,1
+C101917,Mid-Market,45-54,6.7,NCR,C2,Remittance,0,Medium,0,7,1,1
+C101918,Mid-Market,25-34,8.6,Luzon,C1,Salary,1,Ultra High,0,6,0,1
+C101919,Affluent-Gold,35-44,0.9,NCR,A,Business,1,Ultra High,0,1,1,1
+C101920,Mid-Market,45-54,4.8,NCR,C2,Salary,1,Medium,1,10,1,1
+C101921,Mass,25-34,3.3,NCR,D,Business,1,Ultra High,0,2,0,1
+C101922,Mid-Market,18-24,6.3,Visayas,C1,Salary,1,Ultra High,0,1,0,0
+C101923,Mass,35-44,6.4,Luzon,D,Mixed,1,Medium,1,1,0,1
+C101924,Mass,55+,8.3,NCR,D,Business,1,Medium,0,3,1,1
+C101925,Mass,55+,9.2,NCR,D,Salary,0,Medium,1,10,1,0
+C101926,Mass,25-34,1.0,NCR,C2,Mixed,0,Medium,1,2,1,1
+C101927,Mid-Market,45-54,4.8,Luzon,B2,Salary,1,High,1,7,1,1
+C101928,Mass,25-34,5.7,Luzon,D,Remittance,1,High,0,5,1,1
+C101929,Mid-Market,25-34,1.9,Luzon,B2,Mixed,1,High,0,5,0,1
+C101930,Mid-Market,35-44,1.7,Luzon,B2,Mixed,1,Very High,1,8,1,1
+C101931,Mid-Market,35-44,0.9,NCR,C2,Business,0,Low,0,4,0,1
+C101932,Affluent-Preferred,35-44,1.5,NCR,B1,Mixed,1,Very High,0,2,0,1
+C101933,Affluent-Preferred,45-54,10.1,NCR,C1,Salary,1,Very High,0,7,1,1
+C101934,Mid-Market,25-34,1.2,Luzon,B2,Salary,1,High,1,9,1,1
+C101935,Mass,35-44,1.4,NCR,C1,Salary,1,High,1,7,0,1
+C101936,Mid-Market,25-34,6.1,Visayas,B2,Salary,1,High,1,6,1,1
+C101937,Mid-Market,18-24,7.6,NCR,C1,Remittance,1,Ultra High,0,5,1,1
+C101938,Mass,25-34,5.6,Luzon,C2,Salary,1,Very High,0,2,1,1
+C101939,Mass,55+,2.3,NCR,D,Remittance,1,Very High,1,6,1,0
+C101940,Mass,35-44,1.7,NCR,C2,Salary,1,High,0,4,1,1
+C101941,Mid-Market,25-34,6.0,Visayas,B2,Salary,1,Medium,1,2,1,1
+C101942,Mid-Market,45-54,5.1,NCR,C2,Business,0,Low,1,9,0,1
+C101943,Mass,55+,4.2,NCR,D,Salary,1,Very High,1,9,1,1
+C101944,Affluent-Preferred,55+,9.8,NCR,B1,Business,1,Very High,1,8,1,0
+C101945,Affluent-Gold,35-44,4.9,Visayas,B1,Business,0,Medium,1,1,1,1
+C101946,Mass,25-34,1.6,NCR,C2,Remittance,1,Very High,1,8,0,1
+C101947,Affluent-Gold,35-44,4.2,Mindanao,B2,Mixed,1,Ultra High,0,9,1,1
+C101948,Mass,45-54,8.2,Mindanao,D,Mixed,1,Very High,0,7,1,1
+C101949,Affluent-Gold,45-54,4.6,Visayas,A,Salary,0,Low,0,8,1,1
+C101950,Affluent-Gold,45-54,8.1,NCR,B1,Business,0,Medium,0,7,0,1
+C101951,Mass,35-44,9.3,Luzon,C1,Salary,0,Low,0,3,1,1
+C101952,Affluent-Preferred,25-34,4.9,NCR,B2,Salary,1,Very High,0,10,0,1
+C101953,Affluent-Gold,35-44,5.5,Mindanao,B1,Remittance,1,Very High,0,9,1,0
+C101954,Affluent-Preferred,25-34,4.4,Luzon,C1,Business,1,High,1,7,0,1
+C101955,Affluent-Gold,18-24,8.2,NCR,B1,Business,1,High,0,7,1,1
+C101956,Mid-Market,35-44,4.3,NCR,C2,Business,0,Medium,1,9,1,1
+C101957,Mass,35-44,7.7,Visayas,C1,Business,0,Medium,0,1,1,1
+C101958,Affluent-Preferred,45-54,6.5,Mindanao,B2,Remittance,1,Medium,0,6,1,1
+C101959,Mid-Market,45-54,0.9,Luzon,B2,Salary,0,Medium,0,7,0,1
+C101960,Mid-Market,45-54,8.0,Luzon,C1,Salary,1,Very High,0,9,1,1
+C101961,Mid-Market,45-54,6.1,Visayas,C1,Remittance,1,High,0,7,0,0
+C101962,Mid-Market,45-54,12.6,Visayas,C1,Business,1,Ultra High,1,6,1,1
+C101963,Mass,18-24,2.0,Visayas,C2,Salary,1,High,0,2,0,0
+C101964,Mid-Market,35-44,6.6,NCR,C1,Salary,1,Very High,1,6,1,0
+C101965,Mass,25-34,3.8,Luzon,C1,Salary,1,Ultra High,0,5,0,1
+C101966,Mid-Market,18-24,1.0,Visayas,B2,Remittance,1,Very High,0,3,1,1
+C101967,Affluent-Preferred,25-34,0.7,NCR,C1,Salary,1,High,0,4,1,1
+C101968,Mid-Market,45-54,14.3,NCR,C2,Salary,0,High,0,10,1,1
+C101969,Mid-Market,45-54,6.6,NCR,C2,Salary,0,Low,1,4,1,1
+C101970,Mass,55+,4.7,NCR,C1,Salary,1,Medium,1,7,1,1
+C101971,Affluent-Gold,55+,1.3,Visayas,B2,Remittance,1,High,0,4,0,1
+C101972,Mid-Market,55+,13.8,NCR,C1,Mixed,0,Low,1,9,0,1
+C101973,Mass,25-34,3.1,Luzon,C1,Salary,1,Ultra High,1,2,1,1
+C101974,Mass,45-54,6.8,NCR,D,Remittance,1,High,0,7,0,1
+C101975,Mass,45-54,5.9,Mindanao,D,Remittance,1,Very High,0,6,1,1
+C101976,Mid-Market,45-54,18.1,Visayas,C2,Remittance,0,High,1,1,1,1
+C101977,Affluent-Gold,25-34,5.4,Luzon,B2,Salary,1,High,1,8,1,0
+C101978,Mid-Market,25-34,3.6,Visayas,C2,Salary,1,High,0,8,1,1
+C101979,Mass,55+,6.7,NCR,C2,Mixed,1,Very High,0,2,1,1
+C101980,Affluent-Preferred,25-34,7.2,Visayas,B1,Mixed,1,High,0,6,1,0
+C101981,Mass,25-34,26.3,Visayas,D,Salary,1,Ultra High,1,4,1,1
+C101982,Affluent-Preferred,35-44,5.4,NCR,B2,Remittance,1,High,0,1,1,1
+C101983,Mass,25-34,1.9,Mindanao,D,Salary,1,Ultra High,1,6,0,1
+C101984,Mid-Market,18-24,4.2,NCR,C2,Salary,1,Very High,1,7,1,0
+C101985,Affluent-Gold,55+,6.7,Luzon,B1,Salary,1,High,0,3,0,1
+C101986,Mass,45-54,7.6,NCR,C1,Business,1,Medium,0,3,0,1
+C101987,Mid-Market,55+,1.2,Visayas,C2,Salary,1,Ultra High,1,8,1,1
+C101988,Affluent-Gold,25-34,3.8,NCR,A,Salary,1,Ultra High,0,6,1,1
+C101989,Mass,25-34,17.4,NCR,C1,Salary,1,Very High,0,1,1,1
+C101990,Mass,35-44,2.6,Luzon,D,Salary,1,Medium,1,5,0,1
+C101991,Mid-Market,35-44,10.0,Mindanao,C2,Salary,1,High,1,2,1,1
+C101992,Mass,18-24,4.3,NCR,D,Remittance,1,High,0,5,0,0
+C101993,Mass,45-54,5.6,Luzon,C1,Remittance,1,High,0,1,1,1
+C101994,Mid-Market,55+,1.4,Luzon,C2,Salary,0,High,0,3,1,1
+C101995,Affluent-Preferred,35-44,4.6,Visayas,B2,Salary,1,High,0,8,1,0
+C101996,Mass,25-34,6.6,NCR,C2,Business,1,Ultra High,0,2,1,1
+C101997,Mass,25-34,5.4,Luzon,D,Salary,1,Ultra High,1,7,1,1
+C101998,Affluent-Preferred,18-24,4.8,Mindanao,C1,Salary,1,High,0,4,1,1
+C101999,Mid-Market,25-34,8.3,NCR,C2,Mixed,1,Ultra High,1,8,1,1

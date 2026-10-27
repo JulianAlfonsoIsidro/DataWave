@@ -1,0 +1,4 @@
+channel,cost_php_per_message,source
+Email,0.053,Per email. From the sample CRM campaign proposal (Project FORWARD).
+SMS,0.264,Per 1-part SMS. From the sample CRM campaign proposal.
+In-app,1.17,Midpoint of the 0.57 to 1.77 range in the sample CRM campaign proposal.
