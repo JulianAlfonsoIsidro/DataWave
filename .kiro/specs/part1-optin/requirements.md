@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Part 1 Opt-In is a Python batch machine-learning pipeline that builds a promo opt-in propensity model. For each client who was messaged about a promo (a treated lead), the pipeline assembles a feature row from several client data sources, trains a calibrated XGBoost binary classifier to predict whether the client opts in (joins the promo), validates the model with leave-one-promo-out cross-validation, and explains each scored lead with its top SHAP feature drivers. The pipeline persists a trained model artifact and a scores file, and exposes a scoring function that can estimate join probabilities for a new, previously unseen promo.
+Part 1 Opt-In is a Python batch machine-learning pipeline that builds a promo opt-in propensity model. For each client who was messaged about a promo (a treated lead), the pipeline assembles a feature row from several client data sources, trains a calibrated XGBoost binary classifier to predict whether the client opts in (joins the promo), validates the model with two complementary schemes — a headline stratified group k-fold cross-validation (grouped by client and stratified on the opt-in label) that measures how well the model ranks leads for the known promos, and a leave-one-promo-out scheme relabeled as a cold-start stress test that measures generalization to an unseen promo type — and explains each scored lead with its top SHAP feature drivers. The pipeline persists a trained model artifact and a scores file, and exposes a scoring function that can estimate join probabilities for a new, previously unseen promo.
 
 The pipeline runs as a module (`python -m part1_optin.main` with `PYTHONPATH=src`) and follows the same conventions as the existing `part2_network` package: a `Config` dataclass holding input and output paths, a `main(argv)` entry point returning an integer exit code, and argparse-based overrides. A strict safety rule applies throughout: the pipeline must never read any answer-key file.
 
@@ -34,7 +34,11 @@ The pipeline runs as a module (`python -m part1_optin.main` with `PYTHONPATH=src
 - **Promo_Attributes**: For a lead, the `mechanic` and `threshold_php` values of that lead's promo, taken from the Promo_History_File by joining on `promo_id`.
 - **Answer_Key_File**: Any file whose name contains the substring `_answer_key` (for example `data/_answer_key_clients.csv` or `data/_answer_key_promos.csv`).
 - **Calibrated_Model**: An XGBoost binary classifier whose output scores have been mapped to calibrated probabilities using isotonic calibration.
-- **Leave_One_Promo_Out**: A cross-validation scheme over the promos P001, P002, and P003 in which the model is trained on the Treated_Leads of two promos and evaluated on the Treated_Leads of the third held-out promo, repeated so that each promo is held out exactly once.
+- **Leave_One_Promo_Out**: A cross-validation scheme over the promos P001, P002, and P003 in which the model is trained on the Treated_Leads of two promos and evaluated on the Treated_Leads of the third held-out promo, repeated so that each promo is held out exactly once. Because each held-out promo is a promo *type* the model never trained on, this scheme measures cold-start generalization to an unseen promo type and is reported under that label rather than as the model's headline quality.
+- **Stratified_Group_KFold_Validation**: The headline cross-validation scheme over all Treated_Leads using scikit-learn's `StratifiedGroupKFold` with 5 folds, grouping by `client_id` so that all leads of one client fall in the same fold, and stratifying on the Join_Label so that each fold preserves the opt-in rate. It measures how well the model ranks treated leads for the known promos.
+- **Overall_Stratified_AUC**: The ROC_AUC of the out-of-fold predicted join probabilities against the Join_Label, pooled across all Treated_Leads from the Stratified_Group_KFold_Validation.
+- **Per_Promo_Stratified_AUC**: For each promo P001/P002/P003, the ROC_AUC of the Stratified_Group_KFold_Validation out-of-fold predictions restricted to that promo's Treated_Leads, defined only when that promo's leads contain both a joiner and a non-joiner.
+- **Stratified_Capture_Rate_Top_Quintile**: The Capture_Rate_Top_Quintile computed on the Stratified_Group_KFold_Validation out-of-fold predictions, reported overall across all Treated_Leads and per promo for each promo that has at least one actual joiner.
 - **ROC_AUC**: The area under the receiver operating characteristic curve of predicted join probabilities against the Join_Label.
 - **Capture_Rate_Top_Quintile**: Within a held-out promo, the number of actual joiners among the leads in the top 20 percent of predicted join probability divided by the total number of actual joiners.
 - **Calibration_Table**: A table that bins leads by predicted join probability and reports, per bin, the mean predicted probability and the observed join rate.
@@ -94,9 +98,11 @@ The pipeline runs as a module (`python -m part1_optin.main` with `PYTHONPATH=src
 5. WHEN the Scorer produces a join probability, THE Scorer SHALL emit a calibrated probability in the inclusive range 0 to 1.
 6. IF the Join_Label of the Treated_Leads available for fitting the classifier or the isotonic calibrator contains only a single class, THEN THE Model_Trainer SHALL halt the Part1_Optin_Pipeline without producing a Calibrated_Model and raise an error indicating that calibration requires both opt-in and non-opt-in examples.
 
-### Requirement 4: Validate with leave-one-promo-out cross-validation
+### Requirement 4: Cold-start validation on an unseen promo type (leave-one-promo-out)
 
-**User Story:** As an analyst, I want the model evaluated on a promo it did not train on, so that I can judge how well it generalizes to each promo.
+**User Story:** As an analyst, I want the model evaluated on a promo type it never trained on, so that I can judge its cold-start generalization to an unseen promo separately from its headline ranking quality.
+
+The Leave_One_Promo_Out scheme in this requirement is a cold-start stress test: each fold holds out an entire promo type, so its metrics reflect generalization to an unseen promo rather than the model's primary ranking quality on known promos, which is covered by Requirement 8. The report SHALL label this section accordingly (see Requirement 8.6).
 
 #### Acceptance Criteria
 
@@ -146,3 +152,17 @@ The pipeline runs as a module (`python -m part1_optin.main` with `PYTHONPATH=src
 6. WHEN the pipeline is invoked as `python -m part1_optin.main` with `PYTHONPATH=src` and every step completes successfully, THE Part1_Optin_Pipeline SHALL load the Treated_Leads, assemble features, train and calibrate the model, run Leave_One_Promo_Out validation and report metrics, fit the final model on all Treated_Leads, score the leads, compute the top SHAP drivers, write the Model_Artifact and the Scores_File, and return the integer exit code 0.
 7. IF any pipeline step fails before completion, THEN THE Part1_Optin_Pipeline SHALL halt without writing the Model_Artifact or the Scores_File, surface an error indicating the failing step, and return a non-zero integer exit code.
 8. WHERE command-line arguments override input or output paths, THE Part1_Optin_Pipeline SHALL apply those overrides to the Config before loading inputs or writing outputs.
+
+### Requirement 8: Report headline ranking quality with stratified group k-fold validation
+
+**User Story:** As an analyst, I want a headline validation that measures how well the model ranks treated leads for the known promos, so that cold-start leave-one-promo-out numbers are not mistaken for the model's primary quality.
+
+#### Acceptance Criteria
+
+1. WHEN the Validator runs, THE Validator SHALL perform Stratified_Group_KFold_Validation across all Treated_Leads using `StratifiedGroupKFold` with 5 folds, grouping by `client_id` and stratifying on the Join_Label, producing one out-of-fold predicted join probability for every Treated_Lead.
+2. WHILE fitting each stratified fold, THE Validator SHALL fit the XGBoost classifier and its isotonic calibrator using only that fold's training Treated_Leads and SHALL NOT use any of that fold's held-out Treated_Leads to fit either the classifier or the calibrator.
+3. WHEN the Stratified_Group_KFold_Validation assigns folds, THE Validator SHALL place every Treated_Lead that shares a `client_id` in the same fold, so that no client appears in both the training and held-out partitions of any fold.
+4. WHEN the out-of-fold predictions are complete, THE Validator SHALL report the Overall_Stratified_AUC over all Treated_Leads as a value in the inclusive range 0 to 1, and SHALL report the Per_Promo_Stratified_AUC for each promo P001/P002/P003 whose held-out leads contain both a joiner and a non-joiner, each as a value in the inclusive range 0 to 1.
+5. WHEN the out-of-fold predictions are complete, THE Validator SHALL report the Stratified_Capture_Rate_Top_Quintile both overall across all Treated_Leads and per promo for each promo with at least one actual joiner, each as a value in the inclusive range 0 to 1, using the same top-20-percent cutoff and tie rule as the Capture_Rate_Top_Quintile.
+6. WHEN the Validator presents its report, THE Validator SHALL present the Stratified_Group_KFold_Validation metrics as the headline validation and SHALL label the Leave_One_Promo_Out section as a cold-start evaluation on an unseen promo type, so the two schemes are not conflated.
+7. IF a promo's held-out Treated_Leads in the Stratified_Group_KFold_Validation lack both classes or contain zero actual joiners, THEN THE Validator SHALL omit that promo's Per_Promo_Stratified_AUC or Stratified_Capture_Rate_Top_Quintile respectively and indicate it is undefined, without halting the remaining reporting.

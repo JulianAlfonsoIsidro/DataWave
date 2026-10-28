@@ -1,0 +1,1054 @@
+{
+  "pbtResults": {
+    "8.3 Write property test for LOPO leakage": {
+      "status": "passed",
+      "lastRunTimestamp": 1793153011772
+    },
+    "8.6 Write property test for calibration-table well-formedness": {
+      "status": "passed",
+      "lastRunTimestamp": 1793153257724
+    },
+    "10.5 Write property test for one row per treated lead": {
+      "status": "passed",
+      "lastRunTimestamp": 1793154045631
+    }
+  },
+  "executionHistory": {
+    "1.1 Create the `part1_optin` package skeleton and confirm imports": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148441997
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148459424
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148731307
+      }
+    ],
+    "1.2 Implement `config.py` with the Config dataclass and domain constants": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148442353
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148738333
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148823601
+      }
+    ],
+    "2.1 Implement `Lead_Loader.load` with ordered selection, labeling, and halt gates": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148442773
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148828389
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793149125312
+      }
+    ],
+    "2.2 Write property test for treated-lead selection": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148443032
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793149138590
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793149624218
+      }
+    ],
+    "2.3 Write example/edge unit tests for the Lead_Loader": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148443199
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793149139442
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793149626437
+      }
+    ],
+    "3.1 Implement the `FeatureSchema` dataclass and assembler skeleton with answer-key guard": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148443309
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148829786
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793149126691
+      }
+    ],
+    "3.2 Build the part1 Hypothesis strategies module": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148443411
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148830513
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793149130826
+      }
+    ],
+    "3.3 Write the answer-key-prohibition guard tests": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148443521
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793149140877
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793149626603
+      }
+    ],
+    "4.1 Implement the Customer_DNA block with deterministic encoding and missing flag": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148443624
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793149143600
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793149627443
+      }
+    ],
+    "4.2 Implement the Active_Product_Count block": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148443733
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793149647539
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793149815539
+      }
+    ],
+    "4.3 Implement the ADB block (Latest_ADB, ADB_Trend, missing flag)": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148443838
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793149820100
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793150047321
+      }
+    ],
+    "4.4 Write property test for feature determinism and stable encoding": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148443936
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793150619187
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793150957791
+      }
+    ],
+    "4.5 Write property test for active product counts": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148444051
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793150620581
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793150961746
+      }
+    ],
+    "4.6 Write property test for Latest_ADB and ADB_Trend": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148444164
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793150621522
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793150957568
+      }
+    ],
+    "4.7 Write edge unit test for single-month ADB and inactive-only product": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148444277
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793150622955
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793150961607
+      }
+    ],
+    "5.1 Implement the Contact_History and NDB blocks": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148444379
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793150051746
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793150203382
+      }
+    ],
+    "5.2 Implement the Part2-join block with missing flag": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148444481
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793150212557
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793150404840
+      }
+    ],
+    "5.3 Implement the Promo_Attributes block and finalize schema column order": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148444573
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793150414133
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793150604273
+      }
+    ],
+    "5.4 Write property test for missing-source flags and zero-fill": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148444675
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793151173526
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793151493055
+      }
+    ],
+    "5.5 Write property test for average contacts per month": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148444770
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793150623569
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793150959184
+      }
+    ],
+    "5.6 Write property test for NDB flag membership": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148444866
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793150990737
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793151167266
+      }
+    ],
+    "5.7 Write property test for promo attributes": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148444969
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793151174681
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793151492171
+      }
+    ],
+    "5.8 Write property test for schema stability at score time": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148445069
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793151175887
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793151490991
+      }
+    ],
+    "5.9 Write edge unit test for no-contact client": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148445162
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793150991760
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793151167882
+      }
+    ],
+    "6. Checkpoint - Ensure all lead and feature tests pass": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148445271
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793151506735
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793151695414
+      }
+    ],
+    "7.1 Implement `Model_Trainer.fit` with out-of-fold calibration and full-data booster": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148445441
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793151176623
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793151489640
+      }
+    ],
+    "7.2 Implement the `Calibrated_Model` wrapper (`predict_proba`, `save`)": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148445538
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793151713004
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793151980670
+      }
+    ],
+    "7.3 Write property test for calibrated-scoring determinism": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148445638
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793151991186
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793152186277
+      }
+    ],
+    "7.4 Write property test for calibrated-probability bounds": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148445741
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793151992209
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793152185573
+      }
+    ],
+    "7.5 Write example/edge unit tests for the trainer and artifact": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148445841
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793152194831
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153037155
+      }
+    ],
+    "8.1 Implement `Validator.run` LOPO folds with per-promo metrics": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148445937
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793151714069
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793151979553
+      }
+    ],
+    "8.2 Implement `Validator.print_report`": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148446048
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793152193862
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153033760
+      }
+    ],
+    "8.3 Write property test for LOPO leakage": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148446164
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793152196215
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153032687
+      }
+    ],
+    "8.4 Write property test for ROC_AUC bounds": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148446269
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793152196891
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153035044
+      }
+    ],
+    "8.5 Write property test for capture-rate definition and bounds": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148446370
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153055611
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153331342
+      }
+    ],
+    "8.6 Write property test for calibration-table well-formedness": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148446478
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153056857
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153330297
+      }
+    ],
+    "8.7 Write example/edge unit tests for the Validator": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148446584
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153350357
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153568183
+      }
+    ],
+    "9.1 Implement `Explainer.shap_values` and `top_drivers`": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148446728
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793152192654
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153036008
+      }
+    ],
+    "9.2 Write property test for SHAP matrix shape": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148446841
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153351312
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153566026
+      }
+    ],
+    "9.3 Write property test for top-3 driver selection, tie-break, and padding": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148446945
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153352720
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153565069
+      }
+    ],
+    "9.4 Write edge unit test for <3 non-zero SHAP contributions": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148447054
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153353666
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153563940
+      }
+    ],
+    "10.1 Implement `Scorer.score_leads` and `write_scores`": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148447162
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153349424
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153567402
+      }
+    ],
+    "10.2 Implement `score_promo(promo_dict, clients_df, model, config)`": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148447260
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153574058
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153880189
+      }
+    ],
+    "10.3 Write property test for written p_join bounds and rounding": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148447359
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153894555
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793154196251
+      }
+    ],
+    "10.4 Write property test for score ordering": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148447460
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153892795
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793154192215
+      }
+    ],
+    "10.5 Write property test for one row per treated lead": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148447559
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153891265
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793154194587
+      }
+    ],
+    "10.6 Write example/edge unit tests for scoring and score_promo": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148447653
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153894622
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793154196593
+      }
+    ],
+    "11.1 Implement `main.main(argv) -> int` with CLI overrides and orchestration": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148447755
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153890163
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793154193189
+      }
+    ],
+    "11.2 Write example/edge unit tests for the CLI": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148448136
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793154249463
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793154893651
+      }
+    ],
+    "12.1 Run `python -m part1_optin.main` end-to-end and assert outputs": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148448383
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793154248674
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793154893750
+      }
+    ],
+    "13. Final checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148448484
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793154913677
+      },
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793155082563
+      }
+    ],
+    "1. Set up package scaffolding and configuration": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793148823705
+      }
+    ],
+    "2. Implement the Lead_Loader halt gate": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793149626521
+      }
+    ],
+    "3. Build shared Feature_Assembler scaffolding, answer-key guard, and test strategy": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793149626692
+      }
+    ],
+    "5. Implement contact, NDB, part2-join, and promo-attribute feature blocks": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793151493170
+      }
+    ],
+    "7. Implement Model_Trainer and Calibrated_Model": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153037290
+      }
+    ],
+    "9. Implement the SHAP Explainer": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153566165
+      }
+    ],
+    "8. Implement the LOPO Validator": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793153568301
+      }
+    ],
+    "10. Implement the Scorer (batch and score_promo)": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793154196705
+      }
+    ],
+    "11. Wire the pipeline together in main": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793154893814
+      }
+    ],
+    "12. Integration/smoke test against the real data": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793154893882
+      }
+    ],
+    "4. Implement Customer_DNA, product-count, and ADB feature blocks": [
+      {
+        "executionId": "2c16ed0d-b7e6-42c5-92a4-567d8c787221",
+        "chatSessionId": "sess_6bef56f0-7fd3-4a3d-a883-7dc54a791173",
+        "timestamp": 1793155157963
+      }
+    ],
+    "8.8 Implement `Validator.run_stratified` headline StratifiedGroupKFold validation": [
+      {
+        "executionId": "72293761-6218-4bc6-87e0-7f020edfbdd3",
+        "chatSessionId": "sess_f2fc4898-7d5d-4dc6-a1f4-f048e8c26fa1",
+        "timestamp": 1793156784813
+      },
+      {
+        "executionId": "72293761-6218-4bc6-87e0-7f020edfbdd3",
+        "chatSessionId": "sess_f2fc4898-7d5d-4dc6-a1f4-f048e8c26fa1",
+        "timestamp": 1793156798104
+      },
+      {
+        "executionId": "72293761-6218-4bc6-87e0-7f020edfbdd3",
+        "chatSessionId": "sess_f2fc4898-7d5d-4dc6-a1f4-f048e8c26fa1",
+        "timestamp": 1793157393726
+      }
+    ],
+    "8.9 Update `Validator.print_report` to present headline stratified first and relabel LOPO": [
+      {
+        "executionId": "72293761-6218-4bc6-87e0-7f020edfbdd3",
+        "chatSessionId": "sess_f2fc4898-7d5d-4dc6-a1f4-f048e8c26fa1",
+        "timestamp": 1793156784919
+      },
+      {
+        "executionId": "72293761-6218-4bc6-87e0-7f020edfbdd3",
+        "chatSessionId": "sess_f2fc4898-7d5d-4dc6-a1f4-f048e8c26fa1",
+        "timestamp": 1793157398721
+      },
+      {
+        "executionId": "72293761-6218-4bc6-87e0-7f020edfbdd3",
+        "chatSessionId": "sess_f2fc4898-7d5d-4dc6-a1f4-f048e8c26fa1",
+        "timestamp": 1793157950084
+      }
+    ],
+    "8.10 Write property test for stratified group k-fold coverage and grouping": [
+      {
+        "executionId": "72293761-6218-4bc6-87e0-7f020edfbdd3",
+        "chatSessionId": "sess_f2fc4898-7d5d-4dc6-a1f4-f048e8c26fa1",
+        "timestamp": 1793156784998
+      },
+      {
+        "executionId": "72293761-6218-4bc6-87e0-7f020edfbdd3",
+        "chatSessionId": "sess_f2fc4898-7d5d-4dc6-a1f4-f048e8c26fa1",
+        "timestamp": 1793157399883
+      },
+      {
+        "executionId": "72293761-6218-4bc6-87e0-7f020edfbdd3",
+        "chatSessionId": "sess_f2fc4898-7d5d-4dc6-a1f4-f048e8c26fa1",
+        "timestamp": 1793157951189
+      }
+    ],
+    "8.11 Write property test for stratified AUC and capture bounds": [
+      {
+        "executionId": "72293761-6218-4bc6-87e0-7f020edfbdd3",
+        "chatSessionId": "sess_f2fc4898-7d5d-4dc6-a1f4-f048e8c26fa1",
+        "timestamp": 1793156785079
+      },
+      {
+        "executionId": "72293761-6218-4bc6-87e0-7f020edfbdd3",
+        "chatSessionId": "sess_f2fc4898-7d5d-4dc6-a1f4-f048e8c26fa1",
+        "timestamp": 1793157401318
+      },
+      {
+        "executionId": "72293761-6218-4bc6-87e0-7f020edfbdd3",
+        "chatSessionId": "sess_f2fc4898-7d5d-4dc6-a1f4-f048e8c26fa1",
+        "timestamp": 1793157951929
+      }
+    ],
+    "8.12 Write example/edge unit tests for the stratified headline report": [
+      {
+        "executionId": "72293761-6218-4bc6-87e0-7f020edfbdd3",
+        "chatSessionId": "sess_f2fc4898-7d5d-4dc6-a1f4-f048e8c26fa1",
+        "timestamp": 1793156785158
+      },
+      {
+        "executionId": "72293761-6218-4bc6-87e0-7f020edfbdd3",
+        "chatSessionId": "sess_f2fc4898-7d5d-4dc6-a1f4-f048e8c26fa1",
+        "timestamp": 1793157402529
+      },
+      {
+        "executionId": "72293761-6218-4bc6-87e0-7f020edfbdd3",
+        "chatSessionId": "sess_f2fc4898-7d5d-4dc6-a1f4-f048e8c26fa1",
+        "timestamp": 1793157952863
+      }
+    ],
+    "8. Implement the LOPO (cold-start) and headline stratified Validator": [
+      {
+        "executionId": "72293761-6218-4bc6-87e0-7f020edfbdd3",
+        "chatSessionId": "sess_f2fc4898-7d5d-4dc6-a1f4-f048e8c26fa1",
+        "timestamp": 1793157952941
+      }
+    ]
+  }
+}

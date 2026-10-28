@@ -2,7 +2,7 @@
 
 ## Overview
 
-Part1_Optin_Pipeline is a batch machine-learning pipeline built on pandas, scikit-learn, XGBoost, and SHAP. For each treated lead (a client messaged about a promo), it assembles a feature row from several client data sources, trains an XGBoost binary classifier wrapped in out-of-fold isotonic probability calibration (`CalibratedClassifierCV(method="isotonic", cv=3)`) to predict opt-in (`joined`), validates the model with leave-one-promo-out (LOPO) cross-validation across P001/P002/P003, explains every scored lead with its top-3 SHAP drivers, and writes a model artifact plus a scores file. It also exposes a `score_promo(promo_dict, clients_df)` function that estimates calibrated join probabilities for a brand-new, previously unseen promo by reapplying the fitted feature schema and calibrated model without retraining.
+Part1_Optin_Pipeline is a batch machine-learning pipeline built on pandas, scikit-learn, XGBoost, and SHAP. For each treated lead (a client messaged about a promo), it assembles a feature row from several client data sources, trains an XGBoost binary classifier wrapped in out-of-fold isotonic probability calibration (`CalibratedClassifierCV(method="isotonic", cv=3)`) to predict opt-in (`joined`), validates the model with two schemes — a headline stratified group k-fold cross-validation (`StratifiedGroupKFold`, 5 folds, grouped by `client_id`, stratified on `joined`) that measures ranking quality on the known promos, plus a leave-one-promo-out (LOPO) scheme across P001/P002/P003 relabeled as a cold-start stress test for an unseen promo type — explains every scored lead with its top-3 SHAP drivers, and writes a model artifact plus a scores file. It also exposes a `score_promo(promo_dict, clients_df)` function that estimates calibrated join probabilities for a brand-new, previously unseen promo by reapplying the fitted feature schema and calibrated model without retraining.
 
 The design mirrors the existing `part2_network` package exactly: a frozen `Config` dataclass holding input/output paths plus domain constants, one module per named component, absolute imports (`from part1_optin...`), a `main(argv) -> int` entrypoint with argparse overrides, and a `raise SystemExit(main())` guard. The pipeline runs as `python -m part1_optin.main` with `PYTHONPATH=src`.
 
@@ -18,6 +18,7 @@ The system decomposes into the six components named in the requirements — Lead
 - **Artifact format honors "valid JSON XGBoost booster document" (Requirement 6.1).** `outputs/model_part1.json` is written via XGBoost's native `booster.save_model(path)` with a `.json` extension on the single full-data booster, so the file *is* a valid JSON XGBoost booster document that reloads with `booster.load_model`. The `CalibratedClassifierCV` and `FeatureSchema` are not pure-booster XGBoost artifacts and cannot live inside the booster JSON without corrupting it; they are kept as the in-memory `Calibrated_Model` for the remainder of the same run (which is all the batch pipeline and `score_promo` need within one invocation) and, for out-of-process reuse, persisted to a **sidecar** `outputs/model_part1.sidecar.json`. The requirement-named artifact at `outputs/model_part1.json` stays a pure, valid booster document; the sidecar carries the schema and the calibration representation needed to reconstruct the calibrated predictor.
 - **Determinism everywhere.** A single `RANDOM_SEED` drives XGBoost (`random_state`) and the seeded `StratifiedKFold(n_splits=3, shuffle=True, random_state=RANDOM_SEED)` used as the `CalibratedClassifierCV` splitter; isotonic calibration is itself deterministic, and SHAP tie-breaks by ascending predictor name. Two runs on identical inputs produce byte-identical scores and drivers (Requirements 3.2, 5.3).
 - **LOPO leakage is enforced by partitioning on `promo_id` before any fit.** In each fold the `CalibratedClassifierCV` (classifier *and* its internal isotonic calibration) sees only the two training promos' leads; its internal 3-fold CV splits *within* those two-promo leads, and the held-out promo's leads never enter the fit — inner or outer (Requirements 3.3, 3.4, 4.1).
+- **Two validation schemes answer two different questions.** LOPO holds out an entire promo *type*, so its per-promo AUC measures cold-start generalization to a promo the model never trained on — near-random here because the dominant promo-level signal (`mechanic`, `threshold_php`) is constant within a held-out promo and carries no within-promo ranking information. That is a legitimate stress test but not the model's headline quality. The headline is **Stratified_Group_KFold_Validation** (Requirement 8): `StratifiedGroupKFold(n_splits=5)` over *all* treated leads, grouping by `client_id` (so no client leaks across the train/held-out split of a fold) and stratifying on `joined` (so each fold preserves the opt-in rate). Every fold still trains all three promos, so within-promo client features are learned and the out-of-fold AUC reflects the production task of ranking treated leads for known promos. The report presents the stratified metrics as headline and labels the LOPO section "cold-start: unseen promo type" so the two are never conflated.
 - **Answer-key prohibition is absolute.** No module references, opens, or imports any path containing `_answer_key`. The Feature_Assembler reads only the eight approved sources enumerated in `Config` (Requirement 2.14).
 
 ## Architecture
@@ -247,13 +248,25 @@ class PromoFoldResult:
     n: int
 
 @dataclass
+class StratifiedValidationResult:
+    overall_auc: float | None                      # Overall_Stratified_AUC, None if single-class overall
+    overall_capture_rate_top_quintile: float | None
+    per_promo_auc: dict[str, float | None]         # promo_id -> Per_Promo_Stratified_AUC (None if undefined)
+    per_promo_capture: dict[str, float | None]     # promo_id -> Stratified_Capture_Rate_Top_Quintile (None if no joiners)
+    n: int
+    joiners: int
+
+@dataclass
 class ValidationResult:
-    folds: list[PromoFoldResult]        # one per P001/P002/P003
+    folds: list[PromoFoldResult]                   # LOPO cold-start, one per P001/P002/P003
+    stratified: StratifiedValidationResult | None  # headline StratifiedGroupKFold metrics
 
 class Validator:
     def __init__(self, config: Config) -> None: ...
     def run(self, X: pd.DataFrame, y: pd.Series, promo_ids: pd.Series,
             schema: FeatureSchema) -> ValidationResult
+    def run_stratified(self, X: pd.DataFrame, y: pd.Series, promo_ids: pd.Series,
+                       client_ids: pd.Series, schema: FeatureSchema) -> StratifiedValidationResult
     def print_report(self, result: ValidationResult) -> None
 ```
 
@@ -263,7 +276,9 @@ class Validator:
 - **Capture_Rate_Top_Quintile** when there is ≥1 joiner: cutoff position `ceil(TOP_QUINTILE * N)`; all leads whose predicted probability is `>=` the probability at the cutoff position count as top-quintile; rate = joiners-in-top ÷ total joiners, in `[0, 1]` (Requirements 4.3, 4.5).
 - **Calibration_Table**: 10 equal-width bins over `[0, 1]`; per non-empty bin report mean predicted probability, observed join rate, and count; empty bins are omitted (Requirement 4.4).
 
-`print_report` prints the three metrics separately per held-out promo (Requirement 4.6), marking AUC/capture as undefined for zero-joiner folds without halting the other folds (Requirement 4.5).
+`run_stratified` (Requirement 8) performs the **headline** validation: `StratifiedGroupKFold(n_splits=5)` over all treated leads, passing `groups=client_ids` and `y=Join_Label` so every lead of one client stays in a single fold and each fold preserves the opt-in rate (Requirements 8.1, 8.3). For each fold it fits a fresh `Model_Trainer` on that fold's training leads only (never the held-out leads, inner or outer — Requirement 8.2) and collects the held-out leads' calibrated probabilities into a single out-of-fold prediction vector covering every lead exactly once. From that vector it computes `Overall_Stratified_AUC` and the overall `Stratified_Capture_Rate_Top_Quintile` across all leads, plus `Per_Promo_Stratified_AUC` and per-promo capture by slicing the out-of-fold vector per `promo_id`, reusing the same `roc_auc_score` guard (both classes present) and the same `ceil(TOP_QUINTILE * N)` cutoff/tie rule as LOPO (Requirements 8.4, 8.5). A promo whose slice lacks both classes gets `None` AUC and a promo with zero joiners gets `None` capture, without halting (Requirement 8.7).
+
+`run` returns a `ValidationResult` carrying both the LOPO `folds` and the headline `stratified` result. `print_report` prints the **Stratified group k-fold (headline)** block first — overall AUC and capture plus the per-promo values — then prints the LOPO block under the heading **"Cold-start: unseen promo type"**, presenting its three per-promo metrics separately (Requirements 4.6, 8.6) and marking AUC/capture undefined for zero-joiner folds without halting (Requirements 4.5, 8.7). A single stratified fold still fits `CalibratedClassifierCV(cv=3)`, so the per-fold training slice needs enough minority-class examples for the inner 3 folds; with 5 outer folds over the real data each training slice retains ~80% of joiners, comfortably satisfying this.
 
 ### `explain.py` — Explainer
 
@@ -340,7 +355,7 @@ Bundles `calibrated` (the out-of-fold `CalibratedClassifierCV(method="isotonic",
 
 ### ValidationResult structure
 
-`ValidationResult.folds` is a list of three `PromoFoldResult`, one per held-out promo, each carrying `roc_auc` (or `None`), `capture_rate_top_quintile` (or `None`), `calibration_table` (list of per-bin dicts with `bin_lo`, `bin_hi`, `mean_pred`, `observed_rate`, `count`), `joiners`, and `n`.
+`ValidationResult` carries two parts: `folds`, a list of three `PromoFoldResult` (the LOPO cold-start result), one per held-out promo, each with `roc_auc` (or `None`), `capture_rate_top_quintile` (or `None`), `calibration_table` (list of per-bin dicts with `bin_lo`, `bin_hi`, `mean_pred`, `observed_rate`, `count`), `joiners`, and `n`; and `stratified`, a `StratifiedValidationResult` (the headline result) with `overall_auc` (or `None`), `overall_capture_rate_top_quintile` (or `None`), `per_promo_auc` and `per_promo_capture` dicts keyed by `promo_id` (values `None` where undefined), `n`, and `joiners`.
 
 ### Scores_File schema (`outputs/scores.csv`)
 
@@ -487,6 +502,18 @@ These properties are derived from the prework classification of each acceptance 
 
 **Validates: Requirements 6.6**
 
+### Property 21: Stratified group k-fold keeps every client in one fold and covers every lead once
+
+*For any* treated-lead population spanning the three promos, the Stratified_Group_KFold_Validation produces exactly one out-of-fold prediction per lead (every lead held out exactly once across the 5 folds), and no `client_id` appears in both the training and held-out partitions of any fold.
+
+**Validates: Requirements 8.1, 8.2, 8.3**
+
+### Property 22: Stratified AUC and capture are bounded when defined
+
+*For any* treated-lead population, every reported Overall_Stratified_AUC and Per_Promo_Stratified_AUC lies in [0, 1] when defined (its slice has both classes) and is `None` otherwise, and every reported Stratified_Capture_Rate_Top_Quintile lies in [0, 1] when defined (its slice has >=1 joiner) and is `None` otherwise.
+
+**Validates: Requirements 8.4, 8.5, 8.7**
+
 ## Error Handling
 
 The pipeline has two halt gates and never writes outputs before the final model fit succeeds, so any earlier failure leaves `outputs/` free of `model_part1.json` and `scores.csv` (Requirements 6.2, 7.7).
@@ -521,7 +548,7 @@ This feature combines pure, input-sensitive logic (lead selection, feature assem
 
 ### Property tests (minimum 100 iterations each)
 
-Each correctness property (Properties 1–20) is implemented by a **single** Hypothesis-driven test with `@settings(max_examples=100)` (or higher), tagged with a comment:
+Each correctness property (Properties 1–22) is implemented by a **single** Hypothesis-driven test with `@settings(max_examples=100)` (or higher), tagged with a comment:
 
 `# Feature: part1-optin, Property {number}: {property_text}`
 
@@ -529,7 +556,8 @@ Each correctness property (Properties 1–20) is implemented by a **single** Hyp
 - **Determinism properties** (2, 10, 17) run the operation twice on identical inputs and assert equality; Property 10 fixes the seeded `StratifiedKFold` splitter so the out-of-fold calibration is reproducible; Property 17 additionally forces `|SHAP|` ties to exercise the ascending-name tie-break and `<3` non-zero contributions to exercise empty padding.
 - **Leakage Property 11** instruments the per-fold fit to record which client_ids/promos entered the `CalibratedClassifierCV` fit — including its internal 3-fold CV splits — and asserts the held-out promo never appears in any inner or outer fit, across all three folds.
 - **Schema-stability Property 9** fits a schema on one client set and transforms a disjoint set, asserting identical column set/order and reused encodings.
-- **Bound/structure properties** (12, 13, 15, 18, 19, 20) assert the stated ranges, orderings, and counts over generated inputs.
+- **Bound/structure properties** (12, 13, 15, 18, 19, 20, 22) assert the stated ranges, orderings, and counts over generated inputs.
+- **Stratified group k-fold property 21** generates a treated-lead population spanning the three promos (with clients contributing multiple leads) and asserts the `StratifiedGroupKFold(n_splits=5)` headline validation produces exactly one out-of-fold prediction per lead and that no `client_id` straddles the train/held-out split of any fold; **property 22** asserts the overall and per-promo stratified AUC and capture are in `[0, 1]` when their slice is defined and `None` otherwise.
 
 ### Example-based unit tests
 
@@ -538,7 +566,7 @@ Covering criteria classified EXAMPLE/SMOKE in the prework:
 - Lead_Loader reads the configured default path (1.1) and labels a small valid frame (1.5).
 - Missing Promo_Leads_File raises `FileNotFoundError` naming the path (1.7).
 - Model_Trainer fits a booster on a small two-class set and predicts probabilities (3.1).
-- The validation result has a per-promo entry for each of P001/P002/P003 with the three metric fields (4.6).
+- The validation result has a per-promo entry for each of P001/P002/P003 with the three metric fields (4.6), plus a headline `stratified` result carrying overall and per-promo AUC/capture fields (8.4, 8.5), and `print_report` labels the stratified block as headline and the LOPO block as "cold-start: unseen promo type" (8.6).
 - `outputs/model_part1.json` reloads as an XGBoost booster (the single full-data booster) and produces predictions (6.1); the sidecar carries the calibration representation + schema.
 - `scores.csv` header is exactly the six columns in order with no index column (6.3); a missing `outputs/` directory is created on write (6.7).
 - `score_promo` accepts a `promo_dict` with `promo_id`/`mechanic`/`threshold_php` and a `clients_df` and returns per-client results (7.1).
