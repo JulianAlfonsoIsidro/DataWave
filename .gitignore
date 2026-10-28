@@ -3,3 +3,10 @@
 outputs/
 data/real/
 __pycache__/
+*.log
+_*.txt
+*_out*.txt
+*_run*.txt
+*_err*.txt
+probe.txt
+proc.txt
