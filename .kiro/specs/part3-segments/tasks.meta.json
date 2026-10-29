@@ -1,0 +1,421 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Create the package skeleton": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284395273
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284405208
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284460751
+      }
+    ],
+    "1.2 Implement `config.py` with the Config dataclass and domain constants": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284395642
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284464230
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284514493
+      }
+    ],
+    "2.1 Implement `loader.load(cfg)` with ordered validation and type coercion": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284396161
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284518429
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284599616
+      }
+    ],
+    "2.2 Write example/edge unit tests for the loader": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284396328
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284603823
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284729683
+      }
+    ],
+    "3.1 Implement capacity computation in `segments.py`": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284396457
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284604597
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284730640
+      }
+    ],
+    "3.2 Write property test for the capacity formula": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284396552
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284734982
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284938290
+      }
+    ],
+    "3.3 Implement capacity_high, per-promo median score, and segment assignment": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284396656
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284735650
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284939151
+      }
+    ],
+    "3.4 Write property test for the 2x2 segment quadrant": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284396762
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284943529
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793285288839
+      }
+    ],
+    "3.5 Write property test for the median tie-break score test": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284396867
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284944465
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793285289548
+      }
+    ],
+    "4.1 Implement `segments.write(leads, path)`": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284396985
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284945411
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793285290723
+      }
+    ],
+    "4.2 Write property test for one-row-per-lead output": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284397082
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793285295294
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793298018604
+      }
+    ],
+    "4.3 Write example/edge unit tests for the segments output": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284397175
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793285297417
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793298019499
+      }
+    ],
+    "5. Checkpoint - Ensure Segmenter tests pass": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284397279
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793298033609
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793298871153
+      }
+    ],
+    "6.1 Implement per-cell aggregates and the promo x four-segment cross product": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284397384
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793285296760
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793298020431
+      }
+    ],
+    "6.2 Write property test for expected joiners per cell": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284397478
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793298876378
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793299159660
+      }
+    ],
+    "6.3 Implement the treated-lead actual join rate": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284397566
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793298875710
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793299160476
+      }
+    ],
+    "6.4 Write property test for summary completeness and empty-cell filling": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284397699
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793299166398
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793299740001
+      }
+    ],
+    "6.5 Write example/edge unit tests for the join rate and summary write": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284397799
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793299167581
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793299741186
+      }
+    ],
+    "7.1 Implement `main.main(argv)` with CLI wiring and summary print": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284397892
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793299165440
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793299741933
+      }
+    ],
+    "7.2 Write example unit tests for the Reporter and error propagation": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284397983
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793299746284
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793299910625
+      }
+    ],
+    "7.3 Write integration/smoke test against the real data": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284398076
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793299747013
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793299911677
+      }
+    ],
+    "8. Final checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284398165
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793299916119
+      },
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793300715768
+      }
+    ],
+    "1. Set up package scaffolding and configuration": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284514581
+      }
+    ],
+    "2. Implement the input-validating Input_Loader": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793284729765
+      }
+    ],
+    "3. Build the Segmenter: capacity, score, and segment": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793285289646
+      }
+    ],
+    "4. Write the per-lead Segments_File": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793298019570
+      }
+    ],
+    "6. Build the Summary_Builder": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793299741257
+      }
+    ],
+    "7. Wire the pipeline together in main and print the summary": [
+      {
+        "executionId": "a21ebbba-8a1b-4e3d-8107-4491602fbafb",
+        "chatSessionId": "sess_a8702d16-4331-4298-a3a6-f335349e0d1c",
+        "timestamp": 1793299911762
+      }
+    ]
+  }
+}
