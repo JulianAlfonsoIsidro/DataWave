@@ -1,0 +1,246 @@
+﻿/* Promo Audience Navigator - BPI website style.
+   Colors sampled from the BPI website reference screenshot:
+     --pan-red-deep   #AE1319  deep primary red (BPI wordmark / LOGIN button)
+     --pan-red-bright #D8232A  lighter red (gradient end)
+     --pan-gold       #C9A227  small gold accent (used sparingly, if at all)
+     --pan-charcoal   #2B2B2B  dark charcoal body text
+     --pan-ink        #1A1A1A  near-black headings
+     --pan-gray       #6B7280  utility/breadcrumb gray
+     --pan-line       #E6E6E6  thin gray dividers / input borders
+   Font: Poppins (Google Fonts, imported below).
+   This file is the single stylesheet, loaded once by app/theme.inject_css(). */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --pan-red-deep: #AE1319;
+  --pan-red-bright: #D8232A;
+  --pan-gold: #C9A227;
+  --pan-charcoal: #2B2B2B;
+  --pan-ink: #1A1A1A;
+  --pan-gray: #6B7280;
+  --pan-line: #E6E6E6;
+  --pan-grad: linear-gradient(135deg, #AE1319 0%, #D8232A 100%);
+}
+
+/* ---- Global page: white, Poppins, charcoal text, centered 1200px ---- */
+html, body, [class*="css"], .stApp, .stMarkdown, p, span, div, label, input, select, textarea, button {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.stApp { background: #FFFFFF; color: var(--pan-charcoal); }
+.block-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-top: 0.5rem;
+  padding-bottom: 3rem;
+}
+h1, h2, h3, h4 { color: var(--pan-ink); font-weight: 700; }
+h1 { font-size: 2.6rem; font-weight: 800; letter-spacing: -0.5px; }
+p { font-weight: 400; line-height: 1.6; }
+
+/* ---- Hide Streamlit chrome: header, menu, footer, sidebar toggle ---- */
+header[data-testid="stHeader"] { display: none !important; }
+#MainMenu { visibility: hidden; }
+footer { visibility: hidden; }
+div[data-testid="stToolbar"] { display: none !important; }
+div[data-testid="stDecoration"] { display: none !important; }
+button[kind="headerNoPadding"], div[data-testid="collapsedControl"] { display: none !important; }
+section[data-testid="stSidebar"] { display: none !important; }
+
+/* ---- Top utility bar ---- */
+.pan-utility {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--pan-gray);
+  padding: 8px 2px;
+}
+.pan-utility .pan-utility-right a {
+  color: var(--pan-gray);
+  text-decoration: none;
+  margin-left: 20px;
+}
+.pan-utility .pan-utility-right a:hover { color: var(--pan-red-deep); }
+.pan-utility b { color: var(--pan-charcoal); font-weight: 600; }
+.pan-rule { border: none; border-top: 1px solid var(--pan-line); margin: 0 0 0 0; }
+
+/* ---- Main nav bar ---- */
+.pan-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 2px;
+}
+.pan-nav .pan-brand {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--pan-red-deep);
+  letter-spacing: -0.3px;
+}
+.pan-nav .pan-navitems { display: flex; gap: 30px; }
+.pan-nav .pan-navitem {
+  font-size: 0.98rem;
+  font-weight: 500;
+  color: var(--pan-charcoal);
+  text-decoration: none;
+  padding-bottom: 4px;
+}
+.pan-nav .pan-navitem.active {
+  color: var(--pan-red-deep);
+  font-weight: 600;
+  border-bottom: 2px solid var(--pan-red-deep);
+}
+
+/* ---- Breadcrumb ---- */
+.pan-breadcrumb {
+  font-size: 0.82rem;
+  color: var(--pan-gray);
+  padding: 12px 2px 18px 2px;
+}
+.pan-breadcrumb .sep { margin: 0 8px; color: #B9BDC6; }
+
+/* ---- Hero section ---- */
+.pan-hero-title { font-size: 2.8rem; font-weight: 800; color: var(--pan-ink); margin: 0 0 8px 0; line-height: 1.1; }
+.pan-hero-sub { font-size: 1.05rem; color: var(--pan-charcoal); margin: 0 0 22px 0; }
+.pan-hero-kpi {
+  background: var(--pan-grad);
+  border-radius: 18px;
+  padding: 36px 28px;
+  color: #FFFFFF;
+  box-shadow: 0 12px 30px rgba(174,19,25,0.25);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.pan-hero-kpi .kpi-label {
+  font-size: 0.85rem;
+  text-transform: none;
+  letter-spacing: 0.3px;
+  opacity: 0.92;
+  font-weight: 500;
+}
+.pan-hero-kpi .kpi-number { font-size: 3.4rem; font-weight: 800; line-height: 1.05; margin-top: 4px; }
+.pan-hero-kpi .kpi-foot { font-size: 0.85rem; opacity: 0.9; margin-top: 8px; }
+
+/* ---- Pill / gradient buttons (Streamlit buttons restyled) ---- */
+.stButton > button, .stDownloadButton > button, .stFormSubmitButton > button {
+  background: var(--pan-grad);
+  color: #FFFFFF;
+  font-weight: 600;
+  font-size: 0.98rem;
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.6rem;
+  box-shadow: 0 4px 14px rgba(174,19,25,0.22);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.stButton > button:hover, .stDownloadButton > button:hover, .stFormSubmitButton > button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(174,19,25,0.3);
+  color: #FFFFFF;
+}
+.stButton > button:focus, .stDownloadButton > button:focus, .stFormSubmitButton > button:focus {
+  color: #FFFFFF; outline: none; box-shadow: 0 0 0 3px rgba(216,35,42,0.35);
+}
+
+/* Secondary buttons: white with red border */
+.stDownloadButton > button {
+  background: #FFFFFF;
+  color: var(--pan-red-deep);
+  border: 1.5px solid var(--pan-red-deep);
+  box-shadow: none;
+}
+.stDownloadButton > button:hover { background: #FFF5F5; color: var(--pan-red-deep); }
+
+/* ---- Tabs restyled as clean underline nav (Title Case via Python labels) ---- */
+.stTabs [data-baseweb="tab-list"] {
+  gap: 28px;
+  background: transparent;
+  border-bottom: 1px solid var(--pan-line);
+  padding: 0;
+}
+.stTabs [data-baseweb="tab"] {
+  background: transparent;
+  color: var(--pan-charcoal);
+  font-weight: 500;
+  font-size: 1rem;
+  padding: 10px 2px;
+  border-bottom: 2px solid transparent;
+}
+.stTabs [data-baseweb="tab"][aria-selected="true"] {
+  color: var(--pan-red-deep);
+  font-weight: 600;
+  border-bottom: 2px solid var(--pan-red-deep);
+}
+.stTabs [data-baseweb="tab-highlight"] { background-color: transparent; }
+.stTabs [data-baseweb="tab-border"] { background-color: transparent; }
+
+/* ---- Cards ---- */
+.pan-card {
+  background: #FFFFFF;
+  border: 1px solid var(--pan-line);
+  border-radius: 16px;
+  padding: 22px 26px;
+  box-shadow: 0 6px 20px rgba(17,17,17,0.06);
+  margin-bottom: 22px;
+}
+.pan-card .pan-card-heading {
+  color: var(--pan-red-deep);
+  font-weight: 700;
+  font-size: 1.15rem;
+  margin: 0 0 10px 0;
+}
+.pan-card hr.pan-divider { border: none; border-top: 1px solid var(--pan-line); margin: 10px 0 14px 0; }
+
+/* ---- 2x2 grid tiles ---- */
+.pan-tile {
+  border-radius: 16px;
+  padding: 22px 24px;
+  margin-bottom: 22px;
+  min-height: 150px;
+  box-shadow: 0 6px 20px rgba(17,17,17,0.06);
+}
+.pan-tile.white { background: #FFFFFF; border: 1.5px solid var(--pan-red-deep); color: var(--pan-charcoal); }
+.pan-tile.white .pan-tile-title { color: var(--pan-red-deep); }
+.pan-tile.white .pan-tile-accent { color: var(--pan-red-deep); }
+.pan-tile.red { background: var(--pan-grad); color: #FFFFFF; box-shadow: 0 10px 26px rgba(174,19,25,0.25); }
+.pan-tile.red .pan-tile-title, .pan-tile.red .pan-tile-accent { color: #FFFFFF; }
+.pan-tile .pan-tile-title { font-size: 1.15rem; font-weight: 700; margin: 0 0 12px 0; }
+.pan-tile .pan-tile-k { font-size: 0.8rem; opacity: 0.85; }
+.pan-tile .pan-tile-v { font-size: 1.6rem; font-weight: 800; line-height: 1.1; }
+.pan-tile .pan-tile-accent { font-size: 1.2rem; font-weight: 700; }
+
+/* ---- Stat chips ---- */
+.pan-chip {
+  display: inline-block;
+  background: #FBEDED;
+  color: var(--pan-red-deep);
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 0 8px 8px 0;
+}
+
+/* ---- Form inputs & sliders: rounded, light borders, red focus ---- */
+div[data-baseweb="input"] input,
+div[data-baseweb="select"] > div,
+.stNumberInput input,
+.stTextInput input,
+textarea {
+  border-radius: 10px !important;
+  border-color: var(--pan-line) !important;
+}
+div[data-baseweb="input"]:focus-within,
+div[data-baseweb="select"] > div:focus-within {
+  border-color: var(--pan-red-bright) !important;
+  box-shadow: 0 0 0 2px rgba(216,35,42,0.18) !important;
+}
+.stSlider [data-baseweb="slider"] div[role="slider"] { background: var(--pan-red-deep) !important; }
+.stSlider [data-baseweb="slider"] > div > div > div { background: var(--pan-red-deep) !important; }
+[data-testid="stMultiSelect"] span[data-baseweb="tag"] { background: var(--pan-red-deep) !important; }
+
+/* Headings inside Streamlit subheaders get the brand treatment */
+h2, h3 { letter-spacing: -0.2px; }

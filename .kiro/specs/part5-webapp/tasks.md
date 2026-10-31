@@ -1,4 +1,4 @@
-﻿# Implementation Plan: Part 5 Webapp
+# Implementation Plan: Part 5 Webapp
 
 ## Overview
 
@@ -72,17 +72,17 @@ Build the Streamlit app and its pipeline runner in Python, reusing the Part 1-4 
     - _Requirements: 1.1, 1.2_
 
 - [x] 5. Build the Theme and app shell helpers
-  - [x] 5.1 Sample Theme colors and write .streamlit/config.toml and app/theme.py
-    - Sample the exact deep-red, gold/mustard, white, and dark-text hex values from `data/theme_reference.png`; record them in `.streamlit/config.toml` `[theme]` and as a palette dict in `app/theme.py`; build the single injected CSS block and render helpers (`header`, `metric_panel`, `action_band`, `card`) styling the red header bar, uppercase tab strip (active white + gold underline, inactive gold), balance-style metric panel, four gold-ringed circular buttons, and white rounded gold-divider cards; no logo image, text title only
+  - [x] 5.1 Sample Theme colors and write .streamlit/config.toml, app/styles.css, and app/theme.py
+    - Sample the exact reds from the BPI website reference screenshot (deep red, lighter red for the gradient) plus white and charcoal; record them in `.streamlit/config.toml` `[theme]` and as the `PALETTE` dict in `app/theme.py`; author the single stylesheet `app/styles.css` (Poppins import, white 1200px-centered page, hidden Streamlit chrome, utility bar, nav bar, breadcrumb, red-gradient hero KPI panel, red-gradient pill buttons, underline tabs, rounded cards, 2x2 tiles, stat chips, rounded inputs and red sliders); have `app/theme.py` load it once via `build_css()`/`inject_css()` and expose `utility_bar`, `nav_bar`, `breadcrumb`, `hero_text_html`/`hero_kpi_html`, `card`, `tile`, `chip` (plus a `header` alias); gold only as a small accent; no logo image, text brand only
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6_
 
   - [x] 5.2 Write example unit tests for the Theme
-    - Add tests that `.streamlit/config.toml` parses and carries the sampled primary/accent colors, that the injected CSS string contains those colors, and that `header()` renders the "Promo Audience Navigator" text title with no image tag
+    - Add tests that `.streamlit/config.toml` parses and carries the sampled base colors, that `build_css()` loads the single `app/styles.css`, imports Poppins, hides the default Streamlit chrome, uses the red gradient, and contains every palette color, that `nav_bar()`/`header()` render the "Promo Audience Navigator" text brand with no image tag, and that the nav items are Title Case
     - _Requirements: 2.1, 2.2_
 
 - [x] 6. Build app/main.py and wire the tabs
   - [x] 6.1 Implement the app shell, routing, and NEW PROMO tab
-    - In `app/main.py` set wide layout, inject the Theme once, render the header + uppercase tabs + metric panel + action band, and build the NEW PROMO form (product_type, mechanic, threshold_php, reward, eligible segments, min_adb, channels) with an auto-generated `NEW-001` promo_id; on RUN call `run_promo`, store the `RunResult` in session state, surface the empty-audience message and the unseen-mechanic warning, and show the missing-model message if `load_model` raises
+    - In `app/main.py` set wide layout, inject the Theme once, render the BPI-web chrome (utility bar, nav bar with the red text brand, breadcrumb, hero with the red-gradient KPI panel) and the Title Case tabs, and build the New Promo form (product_type, mechanic, threshold_php, reward, eligible segments, min_adb, channels) with an auto-generated `NEW-001` promo_id; on Run Analysis call `run_promo`, store the `RunResult` in session state, surface the empty-audience message and the unseen-mechanic warning, and show the missing-model message if `load_model` raises
     - _Requirements: 1.4, 2.2, 2.3, 2.4, 2.5, 3.1, 3.2, 3.3, 3.4, 3.5_
 
   - [x] 6.2 Implement the RESULTS tab and DOWNLOAD LEADS

@@ -1,10 +1,10 @@
-﻿# Requirements Document
+# Requirements Document
 
 ## Introduction
 
 Part 5 Webapp is a Streamlit desktop web application plus a thin pipeline-orchestration script that let a marketing analyst design a promo, score and segment its eligible audience with the existing Part 1-4 models, and read back the resulting action cards. The app is a presentation and orchestration layer only: all scoring, segmentation, and card logic lives in the already-built `part1_optin`, `part3_segments`, and `part4_cards` packages, which this spec reuses without retraining any model. There is no LLM in this spec; the ASK ASSISTANT surface is a non-functional placeholder.
 
-The app presents three tabs (NEW PROMO, RESULTS, PAST PROMOS) under a fixed visual identity adapted from `data/theme_reference.png` (the BPI mobile app), rendered for a desktop web layout. A separate command-line script, `src/run_pipeline.py`, runs the four batch pipelines end to end in dependency order so the on-disk artifacts the app reads (the fitted Part 1 model, `outputs/cards.json`) can be regenerated from raw data.
+The app presents its surfaces as Title Case tabs (New Promo, Results, Past Promos, plus What-If and Ask Assistant) under a fixed visual identity matching the BPI public website, rendered for a desktop web layout. A separate command-line script, `src/run_pipeline.py`, runs the four batch pipelines end to end in dependency order so the on-disk artifacts the app reads (the fitted Part 1 model, `outputs/cards.json`) can be regenerated from raw data.
 
 All code runs under the project virtualenv (`.\.venv\Scripts\python.exe`) with `PYTHONPATH=src`; the app launches with `streamlit run app/main.py`. Any temporary output is written only under `scratch/`.
 
@@ -12,8 +12,8 @@ All code runs under the project virtualenv (`.\.venv\Scripts\python.exe`) with `
 
 - **Webapp**: The system under specification. A Streamlit application rooted at `app/main.py` plus a `src/run_pipeline.py` orchestration script.
 - **Pipeline_Runner**: The component at `src/run_pipeline.py` that runs the four batch pipelines in order.
-- **Theme**: The fixed visual identity (colors, header, tabs, panels, buttons, cards) sampled from `data/theme_reference.png` and adapted to desktop web.
-- **Theme_Reference**: The image at `data/theme_reference.png` from which exact colors are sampled.
+- **Theme**: The fixed visual identity (colors, fonts, utility bar, nav bar, breadcrumb, hero, cards, tiles, buttons) matching the BPI public website, adapted to the desktop web app.
+- **Theme_Reference**: The BPI website reference screenshot from which the exact reds are sampled.
 - **New_Promo_Form**: The input form on the NEW PROMO tab capturing a promo's attributes.
 - **Promo_Spec**: The in-memory promo description built from the New_Promo_Form, carrying at least `promo_id`, `product_type`, `mechanic`, `threshold_php`, `reward`, `eligible_segments`, `min_adb`, and `channels`. Its `promo_id` is auto-generated in the form `NEW-001`.
 - **Eligible_Clients**: The subset of clients from `data/` that satisfy the Promo_Spec's eligibility filters (min ADB and eligible segments).
@@ -43,18 +43,18 @@ All code runs under the project virtualenv (`.\.venv\Scripts\python.exe`) with `
 3. WHEN the Webapp needs to score a promo THEN it SHALL load the already-fitted Part 1 model from its persisted artifacts under `outputs/` and pass it to Score_Promo without retraining or recalibrating.
 4. WHERE a persisted model artifact required for scoring is missing THEN the Webapp SHALL show an error message directing the user to run `src/run_pipeline.py`, rather than raising an unhandled exception.
 
-### Requirement 2: Apply the Theme adapted from the reference image
+### Requirement 2: Apply the Theme matching the BPI website
 
-**User Story:** As a brand-conscious analyst, I want the app styled like the reference mobile app on a desktop layout, so that it reads as an official-looking promo tool.
+**User Story:** As a brand-conscious analyst, I want the app styled like the BPI public website, so that it reads as a polished, official-looking promo tool.
 
 #### Acceptance Criteria
 
-1. WHEN the Webapp renders THEN it SHALL apply exact colors sampled from Theme_Reference -- a deep red primary, a gold/mustard accent, white panels, and dark text -- defined in `.streamlit/config.toml` and a single CSS block injected via `st.markdown`.
-2. WHEN any page renders THEN the Webapp SHALL show a full-width deep-red header bar containing the title "Promo Audience Navigator" in bold white, with no BPI logo image (text title only).
-3. WHEN the header renders THEN it SHALL show the three tab labels NEW PROMO, RESULTS, PAST PROMOS in uppercase, the active tab in white with a gold underline and the inactive tabs in gold text.
-4. WHEN a results headline renders THEN the Webapp SHALL show one large bold headline number (the selected promo's expected joiners) above a small uppercase caption, styled like the account balance in Theme_Reference inside a white panel.
-5. WHEN the action band renders THEN the Webapp SHALL show a deep-red band with four circular white buttons that have gold rings and red icons, labelled below in white: RUN, WHAT-IF, DOWNLOAD LEADS, ASK ASSISTANT.
-6. WHEN content cards render THEN the Webapp SHALL show white cards with rounded corners, red headings, and gold dividers.
+1. WHEN the Webapp renders THEN it SHALL apply a white page background, generous whitespace, a centered content column about 1200px wide, the Poppins web font, and dark charcoal text, with the exact reds sampled from Theme_Reference (a deep red primary and a deep-to-lighter red gradient) defined in `.streamlit/config.toml` and a single stylesheet `app/styles.css` loaded once; gold is used only as a small accent, if at all.
+2. WHEN any page renders THEN the Webapp SHALL hide Streamlit's default header, menu, footer and sidebar toggle, and SHALL render all titles, tabs, buttons and labels in Title Case (e.g. "New Promo", "Download Leads"), not uppercase.
+3. WHEN the page chrome renders THEN the Webapp SHALL show a top utility bar (small gray context text on the left, small links on the right, thin gray divider), then a main nav bar with the text title "Promo Audience Navigator" in bold red on the left (no BPI logo image), the nav items New Promo / Results / Past Promos in dark text on the right with the active item in red under a thin red underline, then a gray breadcrumb row below the nav.
+4. WHEN a page hero renders THEN the Webapp SHALL show, on the left, a large bold title with a one-line subtitle and a red-gradient pill button with an arrow, and, on the right, a rounded red-gradient panel showing the headline KPI (expected joiners) in large white text (in place of a photo).
+5. WHEN buttons and the 2x2 grid render THEN primary buttons SHALL be red-gradient with white Title Case text, rounded, with a subtle hover lift (secondary buttons white with a red border), and the four 2x2 tiles SHALL be rounded with Ready Toppers in the red gradient with white text and the other three white with a thin red border.
+6. WHEN content cards, form inputs, sliders, and stat chips render THEN cards SHALL be white with 16px rounded corners, a soft shadow, a red section heading, and light gray dividers (two per row on wide screens); form inputs and sliders SHALL be rounded with light gray borders and a red focus/slider color; and numeric stat chips SHALL be small rounded pills.
 
 ### Requirement 3: Build a promo and compute its audience on the NEW PROMO tab
 

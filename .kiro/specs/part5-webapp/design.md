@@ -1,4 +1,4 @@
-﻿# Design Document
+# Design Document
 
 ## Overview
 
@@ -10,7 +10,7 @@ The design keeps all testable logic in small pure functions in `src/webapp_core/
 
 - Reuse the fitted model and the Part 1/3/4 APIs unchanged except for exposing one reusable segment-assignment function.
 - Keep scoring/segmentation/card logic out of `app/main.py`; put it in importable, unit- and property-testable functions.
-- Apply the Theme from exact colors sampled from `data/theme_reference.png`.
+- Apply the Theme matching the BPI public website (white page, Poppins, deep red + red gradient), with the exact reds sampled from the website reference screenshot.
 
 ### Non-Goals
 
@@ -22,10 +22,11 @@ The design keeps all testable logic in small pure functions in `src/webapp_core/
 
 ```
 app/
-  main.py                 # Streamlit entry: page config, Theme, header+tabs, routing
-  theme.py                # CSS block builder + header/tab/button/card render helpers
+  main.py                 # Streamlit entry: page config, Theme, chrome (utility/nav/breadcrumb/hero)+tabs, routing
+  theme.py                # loads styles.css + utility_bar/nav_bar/breadcrumb/hero/card/tile/chip helpers
+  styles.css              # single stylesheet (BPI-web look): Poppins, reds, cards, tiles, chips
 .streamlit/
-  config.toml             # [theme] base colors sampled from theme_reference.png
+  config.toml             # [theme] base colors (deep red / white / charcoal) matching the website
 src/
   run_pipeline.py         # Pipeline_Runner: part2 -> part1 -> part3 -> part4
   webapp_core/
@@ -90,11 +91,11 @@ Returns `Calibrated_Model(calibrated=..., booster=..., schema=...)`. Raises `Fil
 
 ### UI (`app/main.py` + `app/theme.py`)
 
-`app/main.py` sets `st.set_page_config(layout="wide")`, injects the Theme CSS once, renders the red header bar + the three uppercase tabs, the white headline panel, the red action band with four circular buttons, and routes to the three tab bodies. Session state holds the current `RunResult`. `app/theme.py` builds the single CSS string from the sampled palette and exposes small render helpers (`header()`, `metric_panel()`, `action_band()`, `card()`), so `main.py` reads as composition.
+`app/main.py` sets `st.set_page_config(layout="wide")`, injects the Theme stylesheet once, renders the BPI-web chrome (top utility bar, main nav bar with the red text brand, a breadcrumb row, and a hero with a red-gradient KPI panel), then the Title Case tabs (New Promo, Results, What-If, Ask Assistant, Past Promos), and routes to each tab body. Session state holds the current `RunResult`. `app/theme.py` loads the single stylesheet `app/styles.css` (via `build_css()`/`inject_css()`) and exposes small render helpers (`utility_bar()`, `nav_bar()`, `breadcrumb()`, `hero_text_html()`/`hero_kpi_html()`, `card()`, `tile()`, `chip()`; `header()` is kept as a back-compat alias for `nav_bar()`), so `main.py` reads as composition.
 
 ## Theme (Requirement 2)
 
-Colors are sampled from `data/theme_reference.png` during implementation and recorded once in both `.streamlit/config.toml` `[theme]` and `app/theme.py` as a palette dict. Placeholder names (exact hex filled at implementation from the image): `PRIMARY_RED` (deep red header/band), `ACCENT_GOLD` (mustard rings/underline/dividers), `PANEL_WHITE`, `TEXT_DARK`. The injected CSS styles: the full-width header bar, the uppercase tab strip (active = white text + gold bottom border; inactive = gold text), the balance-style metric panel (large bold number + small uppercase caption), the four circular buttons (white fill, gold ring, red glyph, white label beneath), and the content cards (white, rounded, red heading, gold `hr` divider). No logo image is used; the title is text only (Requirement 2.2).
+The reds are sampled from the BPI website reference screenshot and recorded once in both `.streamlit/config.toml` `[theme]` and the `PALETTE` dict in `app/theme.py`; the full visual system lives in the single stylesheet `app/styles.css`, which `app/theme.py` loads once (its palette hexes also appear there as CSS variables, keeping the two in sync). Palette: `PRIMARY_RED` `#AE1319` (deep red brand/buttons), `RED_BRIGHT` `#D8232A` (gradient end), `ACCENT_GOLD` `#C9A227` (small accent, used sparingly if at all), `PANEL_WHITE` `#FFFFFF`, `TEXT_DARK` `#2B2B2B` (charcoal). The stylesheet imports Poppins; sets a white page with a centered ~1200px column and generous whitespace; hides Streamlit's default header, menu, footer and sidebar toggle; and styles the top utility bar, the main nav bar (red text brand, dark Title Case nav items, active item red under a thin red underline), the gray breadcrumb, the hero (left: big title + one-line subtitle + red-gradient pill button with an arrow; right: a rounded red-gradient KPI panel with the expected-joiners number in large white text), the red-gradient pill buttons (white secondary buttons with a red border), the underline tab strip, the white 16px-rounded cards with a soft shadow and red headings, the 2x2 tiles (Ready Toppers red-gradient with white text, the rest white with a thin red border), the rounded form inputs and red sliders, and the small stat chips. No logo image is used; the brand is text only (Requirement 2.2, 2.3).
 
 ## Data Models
 
@@ -175,5 +176,5 @@ Pure functions are unit- and property-tested; the Streamlit UI is smoke-checked 
 - `load_model` round-trips a saved model and raises naming the first missing artifact.
 - `run_promo` returns an empty `RunResult` for an all-filtered-out audience.
 - `run_pipeline.main` stops after a failing stage and returns its non-zero code (stages monkeypatched).
-- Theme: `.streamlit/config.toml` parses and the injected CSS contains the sampled primary/accent colors; the header renders the text title and no image.
+- Theme: `.streamlit/config.toml` parses and carries the sampled base colors; the single stylesheet `app/styles.css` is loaded by `build_css()`, imports Poppins, hides the default Streamlit chrome, uses the red gradient, and carries every palette color; `nav_bar()`/`header()` render the text brand with no image; and the nav items are Title Case.
 - PAST PROMOS: a Past_Promo/segment with zero sendable leads renders actual as NA.

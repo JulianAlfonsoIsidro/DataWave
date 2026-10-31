@@ -1,12 +1,13 @@
-# Theme colors sampled from data/theme_reference.png (the BPI mobile app mock).
-# See app/theme.py for the matching PALETTE dict and the full CSS block.
-#   PRIMARY_RED  #A42A26  deep-red header bar / action band
-#   ACCENT_GOLD  #DBB32D  mustard rings / tab underline / card dividers
-#   PANEL_WHITE  #FFFFFF  white balance panel / cards
-#   TEXT_DARK    #1A1A1A  dark balance number / body text
+# Theme colors sampled from the BPI website reference screenshot.
+# The full stylesheet lives in app/styles.css (loaded once by app/theme.py);
+# this block sets Streamlit's base theme so native widgets match.
+#   PAN_RED_DEEP    #AE1319  deep primary red (BPI wordmark / LOGIN button)
+#   PAN_RED_BRIGHT  #D8232A  lighter red (gradient end)
+#   PAN_GOLD        #C9A227  small gold accent (used sparingly)
+#   PAN_CHARCOAL    #2B2B2B  dark charcoal body text
 [theme]
-primaryColor = "#A42A26"
+primaryColor = "#AE1319"
 backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#FFFFFF"
-textColor = "#1A1A1A"
+secondaryBackgroundColor = "#F7F7F8"
+textColor = "#2B2B2B"
 font = "sans serif"
