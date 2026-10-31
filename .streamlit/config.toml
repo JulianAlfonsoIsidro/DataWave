@@ -1,0 +1,12 @@
+# Theme colors sampled from data/theme_reference.png (the BPI mobile app mock).
+# See app/theme.py for the matching PALETTE dict and the full CSS block.
+#   PRIMARY_RED  #A42A26  deep-red header bar / action band
+#   ACCENT_GOLD  #DBB32D  mustard rings / tab underline / card dividers
+#   PANEL_WHITE  #FFFFFF  white balance panel / cards
+#   TEXT_DARK    #1A1A1A  dark balance number / body text
+[theme]
+primaryColor = "#A42A26"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#1A1A1A"
+font = "sans serif"
