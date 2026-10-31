@@ -9,4 +9,6 @@ _*.txt
 *_run*.txt
 *_err*.txt
 probe.txt
-proc.txtscratch/
+proc.txt
+scratch/
+scratch_*.txt

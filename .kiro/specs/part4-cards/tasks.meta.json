@@ -1,0 +1,534 @@
+{
+  "pbtResults": {
+    "5.4 Write property test for the per-cell reductions and range": {
+      "status": "passed",
+      "lastRunTimestamp": 1793457212000
+    }
+  },
+  "executionHistory": {
+    "1.1 Create the package skeleton": [
+      {
+        "executionId": "19546c91-fe29-425a-85d7-9459b32d4140",
+        "chatSessionId": "sess_b15e1626-84ec-46e6-b139-d186016e4f79",
+        "timestamp": 1793439307056
+      },
+      {
+        "executionId": "19546c91-fe29-425a-85d7-9459b32d4140",
+        "chatSessionId": "sess_b15e1626-84ec-46e6-b139-d186016e4f79",
+        "timestamp": 1793439317147
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454058565
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454068692
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454138649
+      }
+    ],
+    "1.2 Implement `config.py` with the Config dataclass and domain constants": [
+      {
+        "executionId": "19546c91-fe29-425a-85d7-9459b32d4140",
+        "chatSessionId": "sess_b15e1626-84ec-46e6-b139-d186016e4f79",
+        "timestamp": 1793439307369
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454058660
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454142301
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454205644
+      }
+    ],
+    "2.1 Implement `loader.load(cfg)` with ordered validation and type coercion": [
+      {
+        "executionId": "19546c91-fe29-425a-85d7-9459b32d4140",
+        "chatSessionId": "sess_b15e1626-84ec-46e6-b139-d186016e4f79",
+        "timestamp": 1793439307794
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454058758
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454212414
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454341645
+      }
+    ],
+    "2.2 Write example/edge unit tests for the loader": [
+      {
+        "executionId": "19546c91-fe29-425a-85d7-9459b32d4140",
+        "chatSessionId": "sess_b15e1626-84ec-46e6-b139-d186016e4f79",
+        "timestamp": 1793439307927
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454058838
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454346923
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454492777
+      }
+    ],
+    "3.1 Implement Avg_Contacts_Per_Month and the exclusion cascade in `classify.py`": [
+      {
+        "executionId": "19546c91-fe29-425a-85d7-9459b32d4140",
+        "chatSessionId": "sess_b15e1626-84ec-46e6-b139-d186016e4f79",
+        "timestamp": 1793439307997
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454058909
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454347754
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454493853
+      }
+    ],
+    "3.2 Write property test for the exclusion cascade": [
+      {
+        "executionId": "19546c91-fe29-425a-85d7-9459b32d4140",
+        "chatSessionId": "sess_b15e1626-84ec-46e6-b139-d186016e4f79",
+        "timestamp": 1793439308063
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454058993
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454498241
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793455013615
+      }
+    ],
+    "3.3 Implement best_channel selection gated by promo and reachability": [
+      {
+        "executionId": "19546c91-fe29-425a-85d7-9459b32d4140",
+        "chatSessionId": "sess_b15e1626-84ec-46e6-b139-d186016e4f79",
+        "timestamp": 1793439308147
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454059097
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454498917
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793455014329
+      }
+    ],
+    "3.4 Write property test for best_channel selection": [
+      {
+        "executionId": "19546c91-fe29-425a-85d7-9459b32d4140",
+        "chatSessionId": "sess_b15e1626-84ec-46e6-b139-d186016e4f79",
+        "timestamp": 1793439308217
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454059187
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793455019693
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793455697824
+      }
+    ],
+    "3.5 Implement the seeded per-cell control split": [
+      {
+        "executionId": "19546c91-fe29-425a-85d7-9459b32d4140",
+        "chatSessionId": "sess_b15e1626-84ec-46e6-b139-d186016e4f79",
+        "timestamp": 1793439308277
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454059273
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793455018835
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793455695756
+      }
+    ],
+    "3.6 Write property test for the control holdout": [
+      {
+        "executionId": "19546c91-fe29-425a-85d7-9459b32d4140",
+        "chatSessionId": "sess_b15e1626-84ec-46e6-b139-d186016e4f79",
+        "timestamp": 1793439308340
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454059350
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793455704420
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793456028026
+      }
+    ],
+    "4. Checkpoint - Ensure Lead_Classifier tests pass": [
+      {
+        "executionId": "19546c91-fe29-425a-85d7-9459b32d4140",
+        "chatSessionId": "sess_b15e1626-84ec-46e6-b139-d186016e4f79",
+        "timestamp": 1793439308399
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454059417
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793456079362
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793456086166
+      }
+    ],
+    "5.1 Implement per-cell counts, breakdowns, top drivers, and dominant channel": [
+      {
+        "executionId": "19546c91-fe29-425a-85d7-9459b32d4140",
+        "chatSessionId": "sess_b15e1626-84ec-46e6-b139-d186016e4f79",
+        "timestamp": 1793439308474
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454059498
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793455705386
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793456028741
+      }
+    ],
+    "5.2 Write property test for the per-cell partition": [
+      {
+        "executionId": "19546c91-fe29-425a-85d7-9459b32d4140",
+        "chatSessionId": "sess_b15e1626-84ec-46e6-b139-d186016e4f79",
+        "timestamp": 1793439308538
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454059577
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793456091623
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793456530631
+      }
+    ],
+    "5.3 Implement expected joiners, channel cost, expected value, and the 90% range": [
+      {
+        "executionId": "19546c91-fe29-425a-85d7-9459b32d4140",
+        "chatSessionId": "sess_b15e1626-84ec-46e6-b139-d186016e4f79",
+        "timestamp": 1793439308604
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454059678
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793456090907
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793456531288
+      }
+    ],
+    "5.4 Write property test for the per-cell reductions and range": [
+      {
+        "executionId": "19546c91-fe29-425a-85d7-9459b32d4140",
+        "chatSessionId": "sess_b15e1626-84ec-46e6-b139-d186016e4f79",
+        "timestamp": 1793439308705
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454059756
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793456537239
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793458536388
+      }
+    ],
+    "5.5 Implement the action rule, message angle, and the public build_cards wrapper": [
+      {
+        "executionId": "19546c91-fe29-425a-85d7-9459b32d4140",
+        "chatSessionId": "sess_b15e1626-84ec-46e6-b139-d186016e4f79",
+        "timestamp": 1793439308762
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454059845
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793456536582
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793458537043
+      }
+    ],
+    "5.6 Write property test for the action rule": [
+      {
+        "executionId": "19546c91-fe29-425a-85d7-9459b32d4140",
+        "chatSessionId": "sess_b15e1626-84ec-46e6-b139-d186016e4f79",
+        "timestamp": 1793439308829
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454059920
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793458543100
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793459418261
+      }
+    ],
+    "5.7 Write example/edge unit tests for message angle and build_cards": [
+      {
+        "executionId": "19546c91-fe29-425a-85d7-9459b32d4140",
+        "chatSessionId": "sess_b15e1626-84ec-46e6-b139-d186016e4f79",
+        "timestamp": 1793439308897
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454060001
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793458544055
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793459419422
+      }
+    ],
+    "6.1 Implement `main.main(argv)` with CLI wiring, output writers, and summary print": [
+      {
+        "executionId": "19546c91-fe29-425a-85d7-9459b32d4140",
+        "chatSessionId": "sess_b15e1626-84ec-46e6-b139-d186016e4f79",
+        "timestamp": 1793439308962
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454060077
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793458541731
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793459420465
+      }
+    ],
+    "6.2 Write example unit tests for the Reporter and error propagation": [
+      {
+        "executionId": "19546c91-fe29-425a-85d7-9459b32d4140",
+        "chatSessionId": "sess_b15e1626-84ec-46e6-b139-d186016e4f79",
+        "timestamp": 1793439309031
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454060153
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793459425957
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793459880545
+      }
+    ],
+    "6.3 Write integration/smoke test against the real data": [
+      {
+        "executionId": "19546c91-fe29-425a-85d7-9459b32d4140",
+        "chatSessionId": "sess_b15e1626-84ec-46e6-b139-d186016e4f79",
+        "timestamp": 1793439309095
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454060265
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793459425284
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793459881540
+      }
+    ],
+    "7. Final checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "19546c91-fe29-425a-85d7-9459b32d4140",
+        "chatSessionId": "sess_b15e1626-84ec-46e6-b139-d186016e4f79",
+        "timestamp": 1793439309155
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454060338
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793459896526
+      },
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793459929434
+      }
+    ],
+    "1. Set up package scaffolding and configuration": [
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454205735
+      }
+    ],
+    "2. Implement the input-validating Input_Loader": [
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793454492878
+      }
+    ],
+    "3. Build the Lead_Classifier: exclusion, best_channel, and the control split": [
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793456028106
+      }
+    ],
+    "5. Build the Card_Builder": [
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793459419506
+      }
+    ],
+    "6. Wire the pipeline together in main and write the outputs": [
+      {
+        "executionId": "e2e1b996-8e65-452a-8d33-45a9f77b9eb2",
+        "chatSessionId": "sess_d9e7cb2c-e72d-4231-8c37-c6e2c407afb6",
+        "timestamp": 1793459881638
+      }
+    ]
+  }
+}
