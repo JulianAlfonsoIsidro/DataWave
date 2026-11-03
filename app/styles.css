@@ -244,3 +244,11 @@ div[data-baseweb="select"] > div:focus-within {
 
 /* Headings inside Streamlit subheaders get the brand treatment */
 h2, h3 { letter-spacing: -0.2px; }
+
+/* ---- Tables inside cards: no vertical grid lines, values centered per cell ---- */
+.pan-card table, .pan-card table th, .pan-card table td {
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+}
+.pan-card table th { background: transparent; }

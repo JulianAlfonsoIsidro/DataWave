@@ -59,7 +59,11 @@ def build_css() -> str:
     and defines the palette hexes as CSS variables, so the sampled colors appear
     in the returned string.
     """
-    css = _STYLES_PATH.read_text(encoding="utf-8")
+    # "utf-8-sig" drops a leading byte-order mark (BOM) if an editor on Windows
+    # adds one. A BOM in front of the stylesheet makes the browser discard the
+    # first rule block (the :root color variables), which leaves every red
+    # gradient panel and button blank white. The lstrip is a second guard.
+    css = _STYLES_PATH.read_text(encoding="utf-8-sig").lstrip("﻿")
     return f"<style>\n{css}\n</style>"
 
 

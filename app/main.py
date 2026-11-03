@@ -70,7 +70,11 @@ SEEN_PROMO_IDS_KEY = "seen_promo_ids"
 # Sensible defaults for the New Promo form selectors.
 MECHANIC_OPTIONS = ["TOP_UP", "NEW_ACCOUNT", "ADB_INCREASE", "OTHER"]
 PRODUCT_TYPE_OPTIONS = ["Savings", "Time Deposit", "Investment", "Credit Card"]
-CHANNEL_OPTIONS = ["email", "sms", "app_push", "branch", "call"]
+# These must match Part 4's channel labels exactly (part4_cards.config
+# CHANNEL_PRIORITY). Any other spelling, e.g. lowercase "email", makes every
+# lead "no reachable channel", so nothing is sendable and every segment shows
+# 0 expected joiners.
+CHANNEL_OPTIONS = ["In-app", "Email", "SMS"]
 
 RUN_PIPELINE_MESSAGE = (
     "The fitted Part 1 model could not be found. Run "
@@ -107,19 +111,28 @@ def _metric_from_run() -> tuple[str, str]:
     return f"{total:,.0f}", "Expected Joiners"
 
 
-def _execute_run(spec: PromoSpec) -> None:
-    """Reload the model, run the promo, and stash the result in session state."""
+FLASH_KEY = "flash_messages"
+
+
+def _show_messages(messages: list[tuple[str, str]]) -> None:
+    """Display (level, text) messages as Streamlit alerts."""
+    for level, text in messages:
+        {"error": st.error, "warning": st.warning, "success": st.success}.get(
+            level, st.info
+        )(text)
+
+
+def _execute_run(spec: PromoSpec) -> list[tuple[str, str]]:
+    """Reload the model, run the promo, and stash the result in session state.
+
+    Returns the (level, text) messages to show, so the caller decides whether
+    to show them now (What-If) or after a page refresh (New Promo).
+    """
     try:
         model = load_model(OUTPUTS_DIR)
-    except FileNotFoundError:
-        st.error(RUN_PIPELINE_MESSAGE)
-        return
-
-    try:
         data = _load_data_bundle()
     except FileNotFoundError:
-        st.error(RUN_PIPELINE_MESSAGE)
-        return
+        return [("error", RUN_PIPELINE_MESSAGE)]
 
     config = Part1Config()
 
@@ -127,8 +140,9 @@ def _execute_run(spec: PromoSpec) -> None:
         warnings.simplefilter("always")
         result = run_promo(spec, model=model, config=config, data=data)
 
-    for warning in captured:
-        st.warning(str(warning.message))
+    messages: list[tuple[str, str]] = [
+        ("warning", str(warning.message)) for warning in captured
+    ]
 
     st.session_state[RUN_RESULT_KEY] = result
     seen = st.session_state.setdefault(SEEN_PROMO_IDS_KEY, [])
@@ -136,20 +150,23 @@ def _execute_run(spec: PromoSpec) -> None:
         seen.append(spec.promo_id)
 
     if not result.cards:
-        st.warning(
+        messages.append((
+            "warning",
             "No clients satisfy the eligibility filters, so no audience was "
             "produced. Loosen the minimum ADB or broaden the eligible "
-            "segments, then run again."
-        )
+            "segments, then run again.",
+        ))
     else:
         total = sum(
             float(card.get("expected_joiners", 0.0)) for card in result.cards
         )
-        st.success(
+        messages.append((
+            "success",
             f"Ran {spec.promo_id}: {len(result.scored):,} eligible clients "
             f"across {len(result.cards)} segments, "
-            f"~{total:,.0f} expected joiners. See the Results tab."
-        )
+            f"about {total:,.0f} expected joiners. See the Results tab.",
+        ))
+    return messages
 
 
 def _render_new_promo_tab() -> None:
@@ -160,6 +177,9 @@ def _render_new_promo_tab() -> None:
     auto_promo_id = next_promo_id(seen_ids)
 
     st.subheader("Design A Promo")
+
+    # Messages from the last Run survive the page refresh below.
+    _show_messages(st.session_state.pop(FLASH_KEY, []))
 
     with st.form("new_promo_form"):
         st.text_input("Promo ID (Auto-Generated)", value=auto_promo_id, disabled=True)
@@ -193,7 +213,7 @@ def _render_new_promo_tab() -> None:
             channels = st.multiselect(
                 "Channels",
                 options=CHANNEL_OPTIONS,
-                default=["email", "sms"],
+                default=CHANNEL_OPTIONS,
             )
 
         submitted = st.form_submit_button("Run Analysis")
@@ -209,7 +229,10 @@ def _render_new_promo_tab() -> None:
             min_adb=float(min_adb),
             channels=list(channels),
         )
-        _execute_run(spec)
+        with st.spinner("Scoring and segmenting the audience..."):
+            st.session_state[FLASH_KEY] = _execute_run(spec)
+        # Refresh once so the hero KPI at the top shows the new run's number.
+        st.rerun()
 
 
 # The four Part 3 Segment_Labels laid out as the 2x2 Results grid:
@@ -297,7 +320,7 @@ def _decision_card_html(card: dict) -> str:
     items = "".join(
         f'<div style="margin-bottom:8px;">'
         f'<span style="color:var(--pan-gray);font-size:0.78rem;'
-        f'text-transform:uppercase;letter-spacing:0.5px;">{label}</span><br/>'
+        f'letter-spacing:0.2px;">{label}</span><br/>'
         f'<span style="font-weight:600;color:var(--pan-charcoal);">{value}</span>'
         "</div>"
         for label, value in rows
@@ -311,7 +334,7 @@ def _render_results_tab() -> None:
     if result is None or not result.cards:
         st.info(
             "Run a promo first. Open the New Promo tab, design a promo, and "
-            "press Run Analysis -- the results grid, decision cards, and lead "
+            "press Run Analysis. The results grid, decision cards, and lead "
             "downloads appear here once a run exists."
         )
         return
@@ -387,7 +410,7 @@ def _render_whatif_tab() -> None:
     if result is None:
         st.info(
             "Run a promo first. Open the New Promo tab, design a promo, and "
-            "press Run Analysis -- the What-If threshold slider appears here "
+            "press Run Analysis. The What-If threshold slider appears here "
             "once a run exists."
         )
         return
@@ -398,7 +421,7 @@ def _render_whatif_tab() -> None:
     st.subheader("What-If: Vary The Threshold")
     st.caption(
         "Drag the threshold to rescore the current eligible audience with the "
-        "already-fitted model. No model is retrained -- only threshold_php "
+        "already-fitted model. No model is retrained; only the threshold "
         "changes, so the audience is rescored, resegmented, and recarded."
     )
 
@@ -415,14 +438,14 @@ def _render_whatif_tab() -> None:
         new_spec = dataclasses.replace(
             result.promo_spec, threshold_php=float(new_threshold)
         )
-        _execute_run(new_spec)
+        _show_messages(_execute_run(new_spec))
         result = st.session_state.get(RUN_RESULT_KEY)
 
     number, caption = _metric_from_run()
     theme.metric_panel(number, caption)
     if result is not None and result.cards:
         st.caption(
-            f"Threshold {float(result.promo_spec.threshold_php):,.0f} PHP -- "
+            f"Threshold ₱{float(result.promo_spec.threshold_php):,.0f}: "
             f"{len(result.scored):,} eligible clients across "
             f"{len(result.cards)} segments."
         )
@@ -439,33 +462,55 @@ def _render_ask_assistant_tab() -> None:
 
 
 def _fmt_rate(value: float) -> str:
-    """Format a join rate for display, or "N/A" when it is NA."""
+    """Format a join rate as a percentage (39.6%), or "No Leads" when NA."""
     if value is None or (isinstance(value, float) and math.isnan(value)):
-        return "N/A"
-    return f"{float(value):.3f}"
+        return "No Leads"
+    return f"{float(value) * 100:.1f}%"
+
+
+# Segments always appear in this order, best to worst.
+SEGMENT_ORDER = ["Ready Toppers", "Untapped Wealth", "Willing but Stretched", "Not Now"]
+
+
+def _segment_sort_key(row: dict) -> tuple[int, str]:
+    segment = str(row.get("segment"))
+    rank = SEGMENT_ORDER.index(segment) if segment in SEGMENT_ORDER else len(SEGMENT_ORDER)
+    return rank, segment
 
 
 def _past_promo_card_html(rows: list[dict]) -> str:
-    """Build the (escaped) body HTML for one Past_Promo predicted-vs-actual card."""
+    """Build the (escaped) body HTML for one Past_Promo predicted-vs-actual card.
+
+    Values are centered; the Segment column stays left-aligned so the names
+    read cleanly. Rates are shown as percentages with one decimal.
+    """
+    th = (
+        "padding:10px 12px;font-size:0.8rem;font-weight:600;"
+        "color:#6B7280;border-bottom:1.5px solid #E6E6E6;"
+    )
+    td = "padding:10px 12px;border-bottom:1px solid #F0F0F0;"
     header = (
-        '<tr style="text-align:left;color:var(--pan-gray);font-size:0.78rem;'
-        'text-transform:uppercase;letter-spacing:0.5px;">'
-        "<th>Segment</th><th>Predicted</th><th>Actual</th></tr>"
+        "<tr>"
+        f'<th style="{th}text-align:left;">Segment</th>'
+        f'<th style="{th}text-align:center;">Predicted</th>'
+        f'<th style="{th}text-align:center;">Actual</th>'
+        "</tr>"
     )
     body_rows = []
-    for row in sorted(rows, key=lambda r: str(r.get("segment"))):
-        segment = html.escape(str(row.get("segment", "--")))
+    for row in sorted(rows, key=_segment_sort_key):
+        segment = html.escape(str(row.get("segment", "N/A")))
         predicted = _fmt_rate(row.get("predicted"))
         actual = _fmt_rate(row.get("actual"))
         body_rows.append(
-            f'<tr style="border-top:1px solid var(--pan-line);">'
-            f'<td style="padding:6px 12px 6px 0;font-weight:600;">{segment}</td>'
-            f'<td style="padding:6px 12px 6px 0;">{predicted}</td>'
-            f'<td style="padding:6px 0;color:var(--pan-red-deep);font-weight:700;">'
+            "<tr>"
+            f'<td style="{td}text-align:left;font-weight:600;">{segment}</td>'
+            f'<td style="{td}text-align:center;color:#2B2B2B;">{predicted}</td>'
+            f'<td style="{td}text-align:center;color:#AE1319;font-weight:700;">'
             f"{actual}</td></tr>"
         )
     return (
-        '<table style="border-collapse:collapse;width:100%;font-size:0.95rem;">'
+        '<table style="border-collapse:collapse;width:100%;font-size:0.95rem;'
+        'border:none;">'
         f"{header}{''.join(body_rows)}</table>"
     )
 
@@ -504,8 +549,8 @@ def _render_past_promos_tab() -> None:
     st.subheader("Past Promos: Predicted Vs Actual Join Rate")
     st.caption(
         "For each past promo, the model's predicted join rate next to the "
-        "actual join rate that happened, per segment. N/A means the cell had "
-        "no sendable leads."
+        "actual join rate that happened, per segment. No Leads means the "
+        "segment had no sendable leads."
     )
     promo_ids = sorted(rows_by_promo)
     for i in range(0, len(promo_ids), 2):
