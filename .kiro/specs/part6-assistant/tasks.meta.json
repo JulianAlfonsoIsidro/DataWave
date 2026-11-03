@@ -1,0 +1,508 @@
+{
+  "pbtResults": {
+    "2.6 Write property test for logging": {
+      "status": "passed",
+      "lastRunTimestamp": 1793671852452
+    }
+  },
+  "executionHistory": {
+    "1.1 Create the package skeleton": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671007057
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671017038
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671266329
+      }
+    ],
+    "1.2 Implement `models.py` with the shared dataclasses and literals": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671007251
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671271435
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671388658
+      }
+    ],
+    "2.1 Implement `config.load_model_config`": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671007615
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671403141
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671639161
+      }
+    ],
+    "2.2 Write unit tests for `load_model_config`": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671007731
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671652371
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671876828
+      }
+    ],
+    "2.3 Implement the guardrails in `guardrails.py`": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671007793
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671404339
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671641276
+      }
+    ],
+    "2.4 Write property tests for the privacy and length guardrails": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671007877
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671653318
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671875975
+      }
+    ],
+    "2.5 Implement `logging_util.log_turn`": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671007937
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671405290
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671637983
+      }
+    ],
+    "2.6 Write property test for logging": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671007996
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671654710
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671875038
+      }
+    ],
+    "3.1 Implement the current-run card tools in `tools.py`": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671008056
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671406683
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671640322
+      }
+    ],
+    "3.2 Implement the what_if and past_promo_accuracy tools": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671008113
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671655668
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671872682
+      }
+    ],
+    "3.3 Write property test that tool outputs equal the webapp's own numbers": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671008174
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671887702
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793672419500
+      }
+    ],
+    "3.4 Write unit tests for the tool not-available branches": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671008241
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671888648
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793672418558
+      }
+    ],
+    "4.1 Implement `mock_driver.answer_with_mock`": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671008300
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671886502
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793672420403
+      }
+    ],
+    "4.2 Implement `engine.answer_turn`": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671008360
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793672426532
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793672880058
+      }
+    ],
+    "4.3 Write property tests for mode selection, citation, and scope": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671008416
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793672887363
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793673327472
+      }
+    ],
+    "5.1 Implement `prompts.py` and `bedrock_driver.answer_with_bedrock`": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671008572
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793672886203
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793673328619
+      }
+    ],
+    "5.2 Write unit tests for the Bedrock chat loop with a stubbed client": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671008629
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793673336436
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793673557275
+      }
+    ],
+    "6.1 Implement `doc_text.extract_text`": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671008697
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671407449
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671642251
+      }
+    ],
+    "6.2 Write property/doc-text tests for extraction routing": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671008756
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671889538
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793672417148
+      }
+    ],
+    "6.3 Implement the channel mapper and shared `validate_fields` in `extract.py`": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671008849
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671657058
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671873945
+      }
+    ],
+    "6.4 Implement the Mock rule extractor, the Bedrock JSON extractor, and `extract_form`": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671008914
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793673335517
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793673558310
+      }
+    ],
+    "6.5 Write property tests for validation and no-auto-run": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671008974
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793673574732
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793673795508
+      }
+    ],
+    "7.1 Replace the Ask Assistant placeholder with the chat UI": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671009035
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793672888264
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793673329781
+      }
+    ],
+    "7.2 Add the New Promo Fill In Details / Upload Campaign File sub-tabs": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671009094
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793673573767
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793673794600
+      }
+    ],
+    "8.1 Write the offline chat integration test": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671009152
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793673801306
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793674001562
+      }
+    ],
+    "8.2 Write the offline upload integration test and run the suite": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671009209
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793674005402
+      },
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793674908033
+      }
+    ],
+    "1. Set up package scaffolding, dependencies, and the data model": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671388729
+      }
+    ],
+    "2. Implement config, guardrails, and logging (pure core)": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793671876904
+      }
+    ],
+    "3. Implement the four tools over the existing webapp_core functions": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793672419620
+      }
+    ],
+    "4. Implement the Mock chat driver and the engine orchestrator": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793673327573
+      }
+    ],
+    "5. Implement the Bedrock chat driver (Converse API tool use)": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793673557367
+      }
+    ],
+    "7. Wire the UI into app/main.py": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793673794710
+      }
+    ],
+    "6. Implement local document text extraction and the upload field-extraction pipeline": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793673795581
+      }
+    ],
+    "8. End-to-end integration and offline verification": [
+      {
+        "executionId": "809a3744-a798-49f8-9ef8-504735c3f19e",
+        "chatSessionId": "sess_06c76db1-a68c-4f42-ada5-4fec1766f69a",
+        "timestamp": 1793674908210
+      }
+    ]
+  }
+}
