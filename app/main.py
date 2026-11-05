@@ -40,6 +40,7 @@ st.set_page_config(
 )
 
 import theme  # noqa: E402  (imported after set_page_config by design)
+import persona_page  # noqa: E402  (Persona_Page tab body; imported like theme)
 
 from part1_optin.config import Config as Part1Config  # noqa: E402
 from webapp_core.model_io import load_model  # noqa: E402
@@ -597,10 +598,11 @@ def main() -> None:
         new_promo_tab,
         results_tab,
         whatif_tab,
+        personas_tab,
         ask_assistant_tab,
         past_promos_tab,
     ) = st.tabs(
-        ["New Promo", "Results", "What-If", "Ask Assistant", "Past Promos"]
+        ["New Promo", "Results", "What-If", "Personas", "Ask Assistant", "Past Promos"]
     )
 
     with new_promo_tab:
@@ -609,6 +611,8 @@ def main() -> None:
         _render_results_tab()
     with whatif_tab:
         _render_whatif_tab()
+    with personas_tab:
+        persona_page.render_persona_tab(run_result_key=RUN_RESULT_KEY)
     with ask_assistant_tab:
         _render_ask_assistant_tab()
     with past_promos_tab:

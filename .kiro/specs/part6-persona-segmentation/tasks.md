@@ -155,23 +155,23 @@ The build order follows the design's module breakdown: dependency → config →
 - [ ] 12. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 13. Implement the `Persona_Core` orchestration (`src/webapp_core/personas.py`)
+- [x] 13. Implement the `Persona_Core` orchestration (`src/webapp_core/personas.py`)
   - [x] 13.1 Implement `run_personas` and `persona_mix_by_cell` with no Streamlit imports
     - Implement `run_personas(spec, namer, cfg, *, live_leads=None) -> PersonaRunResult` building the joined set and running levels/grouping/clustering/profiling/naming deterministically; use the current New Promo session leads for the campaign live pool and `promo_leads.csv` / `outputs/leads/` for past promos
     - Implement `persona_mix_by_cell(labels, cards) -> dict[(promo_id, segment), PersonaMix]` computing per-cell shares normalized to sum to 100% for non-empty cells and aligning them onto the existing Part 4 cards by `(promo_id, segment)` without mutating any card; mark `available=False` when a cell has no assignment
     - Reuse Part 3 `assign_segments` and Part 4 `build_cards` read-only; add no modelling and no Streamlit imports
     - _Requirements: 5.1, 5.3, 6.8, 7.1, 7.3, 7.4, 7.5_
-  - [ ] 13.2 Write the persona-mix sum property test in `tests/test_part5_personas_mix_sum_property.py`
+  - [x] 13.2 Write the persona-mix sum property test in `tests/test_part5_personas_mix_sum_property.py`
     - **Property 3: Persona mix sums to 100% per non-empty cell**
     - **Validates: Requirements 7.1**
     - hypothesis, minimum 100 iterations, tagged `# Feature: persona-segmentation, Property 3: Persona mix sums to 100% per non-empty cell`
     - _Requirements: 7.1_
-  - [ ] 13.3 Write cards-mix unit tests in `tests/test_part5_personas_cards_mix_unit.py`
+  - [x] 13.3 Write cards-mix unit tests in `tests/test_part5_personas_cards_mix_unit.py`
     - Verify the mix is joined by `(promo_id, segment)`, that every Part 4 card field is unchanged byte-for-byte, and the unavailable-mix fallback
     - _Requirements: 7.2, 7.3, 7.4, 7.5_
 
 - [ ] 14. Implement the Streamlit `Persona_Page` (`app/`)
-  - [ ] 14.1 Build the CRM-friendly page composition and session-state wiring
+  - [x] 14.1 Build the CRM-friendly page composition and session-state wiring
     - Render the Clustering_Level selector with the plain labels "All leads" / "By customer segment" / "By campaign" mapped to internal values `all` / `business-segment` / `campaign` (default `all`); a k selector labeled "Number of personas", integers 2–6, default 3; and a Run control
     - Render the Attribute_Picker over Joined_Attribute_Set columns grouped under Demographics / Lifestyle / Products owned / Spending behavior with readable display labels (e.g. "Owns deposit account" for `owns_deposit`) while passing the raw column name as the selected value; preselect a Default_Attribute_Set so Run works immediately; do NOT render any numeric/categorical type-override control (auto-detect stays in the backend; override stays available via Config/API). Keep the raw→(group,label) mapping and Default_Attribute_Set in the `app/` layer with a graceful fallback for unmapped columns
     - Replace the two separate Grouping/Clustering controls with one optional control phrased "Split by [attributes] first, then create personas within each group": its attributes become `grouping_attributes` in the spec, the Attribute_Picker selection stays `clustering_attributes`, and "Number of personas" stays per-group k (the spec handed to the pipeline is unchanged)

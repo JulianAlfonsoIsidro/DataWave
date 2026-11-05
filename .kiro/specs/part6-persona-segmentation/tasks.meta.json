@@ -1,5 +1,10 @@
 {
-  "pbtResults": {},
+  "pbtResults": {
+    "13.2 Write the persona-mix sum property test in `tests/test_part5_personas_mix_sum_property.py`": {
+      "status": "passed",
+      "lastRunTimestamp": 1793887140733
+    }
+  },
   "executionHistory": {
     "1. Add the `kmodes` dependency": [
       {
@@ -469,6 +474,16 @@
         "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
         "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
         "timestamp": 1793874002061
+      },
+      {
+        "executionId": "ef321165-e068-49c5-bc13-bf49bc1dc1d9",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793886975786
+      },
+      {
+        "executionId": "ef321165-e068-49c5-bc13-bf49bc1dc1d9",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793887576650
       }
     ],
     "13.3 Write cards-mix unit tests in `tests/test_part5_personas_cards_mix_unit.py`": [
@@ -481,6 +496,16 @@
         "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
         "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
         "timestamp": 1793874002142
+      },
+      {
+        "executionId": "ef321165-e068-49c5-bc13-bf49bc1dc1d9",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793886980890
+      },
+      {
+        "executionId": "ef321165-e068-49c5-bc13-bf49bc1dc1d9",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793887578038
       }
     ],
     "14.1 Build the page composition and session-state wiring": [
@@ -617,6 +642,16 @@
         "executionId": "28d65b7a-3e56-48d6-88b5-83d392908e45",
         "chatSessionId": "sess_5780e688-2837-4234-b44f-081ff42b3512",
         "timestamp": 1793883730382
+      },
+      {
+        "executionId": "ef321165-e068-49c5-bc13-bf49bc1dc1d9",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793886981720
+      },
+      {
+        "executionId": "ef321165-e068-49c5-bc13-bf49bc1dc1d9",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793887582650
       }
     ],
     "14.3 Write Persona_Page helper unit tests in `tests/test_part5_personas_page_unit.py`": [
@@ -638,6 +673,13 @@
         "executionId": "28d65b7a-3e56-48d6-88b5-83d392908e45",
         "chatSessionId": "sess_5780e688-2837-4234-b44f-081ff42b3512",
         "timestamp": 1793884225238
+      }
+    ],
+    "13. Implement the `Persona_Core` orchestration (`src/webapp_core/personas.py`)": [
+      {
+        "executionId": "ef321165-e068-49c5-bc13-bf49bc1dc1d9",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793887580089
       }
     ]
   }
