@@ -174,16 +174,29 @@ def elbow_costs(
     mapping (Requirement 2.12). Every fit is seeded with ``cfg.random_seed`` for
     determinism (Requirement 2.11).
 
+    k-prototypes cannot fit more clusters than there are data points, so a group
+    at/above ``cfg.min_group_size`` but smaller than the top of ``ELBOW_K_RANGE``
+    (for example a group of 4 leads capped to ``k_used=4`` by Requirement 3.11)
+    would otherwise fail the sweep. Any candidate k that exceeds the subsample's
+    row count is therefore skipped: the sweep is clamped to the feasible k values
+    (those ``<= len(X_sub)``) so the cost curve stays well-formed for small groups.
+
     Args:
         X_sub: The subsample matrix (same one used for the main fit).
         cat_indices: Positional indices of categorical columns within ``X_sub``.
         cfg: Config carrying ``random_seed``.
 
     Returns:
-        A ``{k: cost_}`` dict with one float cost for each k in ``ELBOW_K_RANGE``.
+        A ``{k: cost_}`` dict with one float cost for each feasible k in
+        ``ELBOW_K_RANGE`` (those not exceeding the subsample row count).
     """
+    n_points = len(X_sub)
     costs: dict[int, float] = {}
     for k in ELBOW_K_RANGE:
+        # k-prototypes requires n_clusters <= n_points; skip infeasible k so a
+        # small, k-capped group (Requirement 3.11) can still produce a sweep.
+        if int(k) > n_points:
+            continue
         model = fit_kprototypes(X_sub, cat_indices, int(k), cfg)
         costs[int(k)] = float(model.cost_)
     return costs
