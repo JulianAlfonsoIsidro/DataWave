@@ -108,27 +108,27 @@ The build order follows the design's module breakdown: dependency → config →
     - Derive the suggested channel deterministically from the profile (e.g. the dominant category of a channel-like categorical attribute when present, otherwise a deterministic default) and the offer angle from the persona's top distinguishing attributes; keep 2–3 actions
     - Keep the `PersonaNamer` interface, the `PersonaNaming` shape, name uniqueness within a set, and full determinism for identical profiles unchanged; update any earlier naming code/tests this affects
     - _Requirements: 4.5, 4.6_
-  - [~] 8.2 Write naming unit tests in `tests/test_part5_personas_naming_unit.py`
+  - [x] 8.2 Write naming unit tests in `tests/test_part5_personas_naming_unit.py`
     - Verify rule-based name/description/2–3 actions for representative profiles and the disambiguation suffix path
     - _Requirements: 4.4, 4.5, 4.8_
-  - [~] 8.3 Write the unique-names property test in `tests/test_part5_personas_naming_unique_property.py`
+  - [x] 8.3 Write the unique-names property test in `tests/test_part5_personas_naming_unique_property.py`
     - **Property 7: Persona names are unique within a set**
     - **Validates: Requirements 4.9**
     - hypothesis, minimum 100 iterations, tagged `# Feature: persona-segmentation, Property 7: Persona names are unique within a set`
     - _Requirements: 4.9_
 
-- [ ] 9. Implement levels and the two-step flow (`grouping.py`)
+- [x] 9. Implement levels and the two-step flow (`grouping.py`)
   - [x] 9.1 Implement clustering levels, two-step grouping, and group-size handling
     - Support levels `all` (one set), `business-segment` (one set per distinct `Business_Segment_Field` value using `customer_dna.segment` or Part 3 `Segment_Label`; reject naming the field when it has no usable values), and `campaign` (cluster only the chosen pool, exclude out-of-pool leads, use no `Business_Segment_Field` as a clustering feature; report empty-audience without clustering on an empty pool)
     - Implement the two-step flow: partition by `Grouping_Attributes`, then cluster each group on `Clustering_Attributes` with k per group
     - Flag groups below `min_group_size` as "too small to cluster" (`too_small=True`, no personas); cap k to the group size when the group is at/above `min_group_size` but below the requested k
     - _Requirements: 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 5.4, 5.5, 5.6_
-  - [~] 9.2 Write grouping edge tests in `tests/test_part5_personas_grouping_edge.py`
+  - [x] 9.2 Write grouping edge tests in `tests/test_part5_personas_grouping_edge.py`
     - Verify the too-small group flag, k-cap-to-group-size, empty business-segment field rejection, and empty campaign pool handling
     - _Requirements: 3.7, 3.10, 3.11, 5.6_
 
 - [ ] 10. Implement the leads export (`export.py`)
-  - [ ] 10.1 Implement `Persona_Labeled_Leads` construction and the default `Campaign_Leads_Export`
+  - [x] 10.1 Implement `Persona_Labeled_Leads` construction and the default `Campaign_Leads_Export`
     - Produce exactly one row per Part 4 leads-input lead with a `persona_label` column assigning each to one persona and a `group` column (business-segment value or campaign identifier per level)
     - Left-join on `client_id` the richer attributes from `customer_dna.csv`, the pivoted `product_ownership.csv`, and `features_part2.csv`, preserving every source column name, dropping no lead and introducing no duplicates, leaving unmatched source attributes empty
     - At `campaign` level, leave `persona_label` and `group` empty for leads outside the chosen pool

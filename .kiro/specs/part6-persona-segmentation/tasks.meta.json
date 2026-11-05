@@ -289,6 +289,16 @@
         "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
         "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
         "timestamp": 1793874001192
+      },
+      {
+        "executionId": "3eec97ba-1066-42b1-912f-4175fa4b5c8a",
+        "chatSessionId": "sess_d517f565-0ddc-475f-87cc-98734bc6d823",
+        "timestamp": 1793879362985
+      },
+      {
+        "executionId": "3eec97ba-1066-42b1-912f-4175fa4b5c8a",
+        "chatSessionId": "sess_d517f565-0ddc-475f-87cc-98734bc6d823",
+        "timestamp": 1793881625105
       }
     ],
     "8.3 Write the unique-names property test in `tests/test_part5_personas_naming_unique_property.py`": [
@@ -301,6 +311,16 @@
         "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
         "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
         "timestamp": 1793874001271
+      },
+      {
+        "executionId": "3eec97ba-1066-42b1-912f-4175fa4b5c8a",
+        "chatSessionId": "sess_d517f565-0ddc-475f-87cc-98734bc6d823",
+        "timestamp": 1793879364091
+      },
+      {
+        "executionId": "3eec97ba-1066-42b1-912f-4175fa4b5c8a",
+        "chatSessionId": "sess_d517f565-0ddc-475f-87cc-98734bc6d823",
+        "timestamp": 1793881626467
       }
     ],
     "9.1 Implement clustering levels, two-step grouping, and group-size handling": [
@@ -335,6 +355,16 @@
         "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
         "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
         "timestamp": 1793874001414
+      },
+      {
+        "executionId": "3eec97ba-1066-42b1-912f-4175fa4b5c8a",
+        "chatSessionId": "sess_d517f565-0ddc-475f-87cc-98734bc6d823",
+        "timestamp": 1793879365520
+      },
+      {
+        "executionId": "3eec97ba-1066-42b1-912f-4175fa4b5c8a",
+        "chatSessionId": "sess_d517f565-0ddc-475f-87cc-98734bc6d823",
+        "timestamp": 1793881627894
       }
     ],
     "10.1 Implement `Persona_Labeled_Leads` construction": [
@@ -529,6 +559,25 @@
         "executionId": "72bb217a-0463-441f-a35e-1a56db686d2f",
         "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
         "timestamp": 1793878647620
+      }
+    ],
+    "10.1 Implement `Persona_Labeled_Leads` construction and the default `Campaign_Leads_Export`": [
+      {
+        "executionId": "3eec97ba-1066-42b1-912f-4175fa4b5c8a",
+        "chatSessionId": "sess_d517f565-0ddc-475f-87cc-98734bc6d823",
+        "timestamp": 1793879367366
+      },
+      {
+        "executionId": "3eec97ba-1066-42b1-912f-4175fa4b5c8a",
+        "chatSessionId": "sess_d517f565-0ddc-475f-87cc-98734bc6d823",
+        "timestamp": 1793881629482
+      }
+    ],
+    "9. Implement levels and the two-step flow (`grouping.py`)": [
+      {
+        "executionId": "3eec97ba-1066-42b1-912f-4175fa4b5c8a",
+        "chatSessionId": "sess_d517f565-0ddc-475f-87cc-98734bc6d823",
+        "timestamp": 1793881628258
       }
     ]
   }
