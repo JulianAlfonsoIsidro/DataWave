@@ -13,12 +13,24 @@ scientist (requirements Introduction): controls carry plain business labels,
 attributes are grouped and renamed into business terms, and validation /
 "too small to cluster" messages read as actionable instructions.
 
-Scope note (task 14.1): this builds the **page composition + session-state
-wiring** only -- the Clustering_Level / k / Run controls, the grouped
-Attribute_Picker, the optional two-step control, the campaign-pool selector,
-validation, the per-persona summary cards, and the two download controls. The
-cluster bar chart, the elbow expander, and the persona-mix badges on decision
-cards are task 14.2 and are intentionally **not** rendered here.
+Scope note: task 14.1 built the **page composition + session-state wiring** --
+the Clustering_Level / k / Run controls, the grouped Attribute_Picker, the
+optional two-step control, the campaign-pool selector, validation, the
+per-persona summary cards, and the two download controls. Task 14.2 adds, after
+a successful run, three Streamlit **built-in** renders (no new chart dependency,
+Requirement 9.9): the cluster comparison ``st.bar_chart`` of standardized
+differences (Requirement 6.4), the Elbow_Plot ``st.line_chart`` inside the
+collapsed Advanced expander (Requirement 6.5), and the existing Part 4 cards
+rendered read-only with an adjacent Persona_Mix badge and the unavailable
+fallback (Requirements 7.1, 7.2, 7.5).
+
+Chart/mix pure helpers (importable without Streamlit, unit-tested in task 14.3)
+also live at module level:
+
+- :func:`standardized_comparison_frame` -- the standardized per-attribute
+  comparison frame behind the bar chart (Requirement 6.4).
+- :func:`elbow_frame` -- the k-vs-cost frame behind the elbow line chart
+  (Requirement 6.5).
 
 Pure helpers (importable without a running Streamlit server, unit-tested in task
 14.3) live at module level:
@@ -70,7 +82,13 @@ from part5_personas.grouping import (
     PersonaSet,
 )
 from part5_personas.profile import PersonaProfile
-from webapp_core.personas import PersonaRunResult, PersonaRunSpec, run_personas
+from webapp_core.personas import (
+    PersonaMix,
+    PersonaRunResult,
+    PersonaRunSpec,
+    persona_mix_by_cell,
+    run_personas,
+)
 
 # --------------------------------------------------------------------------- #
 # Clustering_Level: plain label <-> internal value mapping (Requirement 3.4)  #
@@ -392,6 +410,104 @@ def distinguishing_sentences(
 
 
 # --------------------------------------------------------------------------- #
+# Chart-shaping pure helpers (Requirements 6.4, 6.5) -- no Streamlit import    #
+# --------------------------------------------------------------------------- #
+def standardized_comparison_frame(persona_set: PersonaSet) -> pd.DataFrame:
+    """Standardized per-attribute comparison across a set's personas (Req 6.4).
+
+    Builds the frame behind the cluster comparison chart: for every numeric
+    attribute, each persona's mean is expressed as a **standardized difference**
+    from the across-persona average -- how far above or below the typical persona
+    it sits -- rather than a raw value on a mixed scale (Requirement 6.4). This is
+    a pure display transform over the already-returned
+    :attr:`PersonaProfile.numeric_mean` values; it refits nothing.
+
+    The standardization matches design D2 and the :func:`_standardized_direction`
+    helper exactly: for each numeric attribute ``f`` with persona means
+    ``m_1..m_K``, let ``mu`` be their average and ``sigma`` the **population**
+    standard deviation of those means (dividing by ``K``). Each persona's cell is
+    ``(m_p - mu) / sigma``; when ``sigma == 0`` (every persona identical on ``f``)
+    the cell is ``0.0`` so a flat attribute reads as "no difference" rather than
+    dividing by zero. A positive value is above the across-persona average, a
+    negative value below -- exactly the "each persona shown as above/below the
+    across-persona average" framing of Requirement 6.4.
+
+    Only numeric attributes are charted (categorical attributes have no mean to
+    standardize); the surfaced columns are the readable Attribute_Display_Labels
+    (:func:`attribute_display_label`) so the chart axis is business-readable. A
+    ``too_small`` set, a set with no personas, or a set whose personas carry no
+    numeric means yields an empty frame so the caller can skip the chart.
+
+    Args:
+        persona_set: The :class:`PersonaSet` whose personas to compare.
+
+    Returns:
+        A ``pandas.DataFrame`` indexed by persona name with one column per numeric
+        attribute (labeled with its display label), holding standardized
+        differences; empty when there is nothing numeric to compare.
+    """
+    if persona_set.too_small or not persona_set.personas:
+        return pd.DataFrame()
+
+    personas = persona_set.personas
+    # The numeric attributes charted are those every persona carries a mean for,
+    # in a stable (sorted) order so the chart columns are deterministic.
+    attribute_sets = [set(p.profile.numeric_mean.keys()) for p in personas]
+    common = set.intersection(*attribute_sets) if attribute_sets else set()
+    attributes = sorted(common)
+    if not attributes:
+        return pd.DataFrame()
+
+    data: dict[str, list[float]] = {}
+    for column in attributes:
+        means = [p.profile.numeric_mean[column] for p in personas]
+        mu = sum(means) / len(means)
+        # Population std (divide by K), matching design D2's convention.
+        variance = sum((m - mu) ** 2 for m in means) / len(means)
+        sigma = variance ** 0.5
+        if sigma == 0:
+            standardized = [0.0 for _ in means]
+        else:
+            standardized = [(m - mu) / sigma for m in means]
+        data[attribute_display_label(column)] = standardized
+
+    index = [p.name for p in personas]
+    return pd.DataFrame(data, index=index)
+
+
+def elbow_frame(persona_set: PersonaSet) -> pd.DataFrame:
+    """Shape a persona set's elbow sweep for the Elbow_Plot line chart (Req 6.5).
+
+    Turns :attr:`PersonaSet.elbow_costs` (a ``{k: cost}`` mapping over the
+    candidate k range, Requirement 2.12) into a small frame indexed by ``k`` in
+    ascending order with a single ``Clustering cost`` column, ready for
+    ``st.line_chart`` to plot cost against k. A pure shaping helper that reads only
+    the already-computed costs and adds no modelling.
+
+    A ``too_small`` set (or any set with no elbow costs) yields an empty frame so
+    the caller can skip the plot.
+
+    Args:
+        persona_set: The :class:`PersonaSet` whose elbow sweep to shape.
+
+    Returns:
+        A ``pandas.DataFrame`` indexed by ``k`` (named ``"k"``) with one
+        ``Clustering cost`` column, in ascending k order; empty when there is no
+        sweep to plot.
+    """
+    costs = persona_set.elbow_costs
+    if not costs:
+        return pd.DataFrame()
+
+    ks = sorted(costs)
+    frame = pd.DataFrame(
+        {"Clustering cost": [float(costs[k]) for k in ks]},
+        index=pd.Index(ks, name="k"),
+    )
+    return frame
+
+
+# --------------------------------------------------------------------------- #
 # Actionable messages (Requirements 6.2, 6.10)                                #
 # --------------------------------------------------------------------------- #
 def validation_error(
@@ -672,6 +788,33 @@ def _available_promo_meta() -> dict[str, str]:
     return meta
 
 
+def _load_part4_cards() -> list[dict]:
+    """Read the Part 4 decision cards from ``outputs/cards.json`` (Requirement 7).
+
+    Follows the path-resolution pattern of :func:`_available_promo_meta` (resolve
+    ``outputs/cards.json`` relative to the app root) so the persona-mix layer can
+    render **alongside** the existing Part 4 cards without touching any Part 4 code
+    or ``app/main.py``. The returned card dicts are read only -- neither this page
+    nor :func:`webapp_core.personas.persona_mix_by_cell` mutates them, keeping every
+    Part 4 field byte-for-byte unchanged (Requirements 7.3, 7.4).
+
+    Returns:
+        The list of card dicts, or an empty list when the file is absent or
+        unreadable (the caller then renders nothing rather than failing).
+    """
+    import json
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parent.parent
+    cards_path = root / "outputs" / "cards.json"
+    try:
+        with open(cards_path, encoding="utf-8") as fh:
+            cards = json.load(fh)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+    return cards if isinstance(cards, list) else []
+
+
 def _show_messages(messages: list[tuple[str, str]]) -> None:
     """Display ``(level, text)`` messages as Streamlit alerts (mirrors main.py)."""
     import streamlit as st
@@ -775,6 +918,229 @@ def _group_lead_count(result: PersonaRunResult, group_key: str) -> int:
     if labels is None or labels.empty or GROUP_COLUMN not in labels.columns:
         return 0
     return int((labels[GROUP_COLUMN] == group_key).sum())
+
+
+# --------------------------------------------------------------------------- #
+# Cluster comparison chart (Requirement 6.4) -- st.bar_chart                   #
+# --------------------------------------------------------------------------- #
+def _render_comparison_charts(result: PersonaRunResult) -> None:
+    """Render one standardized cluster comparison chart per set (Req 6.4).
+
+    For each clustered :class:`PersonaSet` draws a Streamlit **built-in**
+    ``st.bar_chart`` of the standardized per-attribute differences from
+    :func:`standardized_comparison_frame` -- each persona shown as above/below the
+    across-persona average, never raw values on mixed scales (Requirement 6.4). No
+    matplotlib/plotly/altair is imported, so Requirement 9.9's "no dependency other
+    than kmodes and the existing chart libs" holds.
+
+    ``too_small`` sets and sets with nothing numeric to compare are skipped (the
+    helper returns an empty frame), so the chart renders only when it is meaningful.
+    """
+    import streamlit as st
+
+    rendered_any = False
+    for persona_set in result.persona_sets:
+        frame = standardized_comparison_frame(persona_set)
+        if frame.empty:
+            continue
+        if not rendered_any:
+            st.subheader("How Personas Differ")
+            st.caption(
+                "Each bar shows how far a persona sits above or below the typical "
+                "persona on an attribute. Taller bars mean a bigger difference."
+            )
+            rendered_any = True
+        if persona_set.group_key:
+            st.markdown(f"**Segment: {persona_set.group_key}**")
+        # Transpose so the x-axis is the attribute and each persona is a series,
+        # which reads as "this attribute, how each persona compares".
+        st.bar_chart(frame.T)
+
+
+# --------------------------------------------------------------------------- #
+# Elbow_Plot inside the Advanced expander (Requirement 6.5) -- st.line_chart   #
+# --------------------------------------------------------------------------- #
+def _render_elbow(result: PersonaRunResult) -> None:
+    """Render the Elbow_Plot inside the collapsed Advanced expander (Req 6.5).
+
+    Draws a Streamlit **built-in** ``st.line_chart`` of clustering cost against k
+    (from :func:`elbow_frame`) inside a **collapsed** ``st.expander`` titled exactly
+    "How many personas fit best?" with the caption exactly "Pick the point where
+    the line starts to flatten." Rendering inside that expander satisfies
+    Requirement 6.5. Only built-in charts are used (no matplotlib/plotly),
+    honouring Requirement 9.9.
+
+    One line chart is drawn per clustered set with an elbow sweep; ``too_small``
+    sets (empty sweep) are skipped. The expander renders even when no sweep is
+    available, carrying the caption, so the Advanced area is consistently present.
+    """
+    import streamlit as st
+
+    frames = [
+        (ps.group_key, elbow_frame(ps))
+        for ps in result.persona_sets
+    ]
+    plottable = [(key, frame) for key, frame in frames if not frame.empty]
+
+    with st.expander("How many personas fit best?", expanded=False):
+        st.caption("Pick the point where the line starts to flatten.")
+        if not plottable:
+            st.info("No cost curve is available for this run.")
+            return
+        for group_key, frame in plottable:
+            if group_key:
+                st.markdown(f"**Segment: {group_key}**")
+            st.line_chart(frame)
+
+
+# --------------------------------------------------------------------------- #
+# Persona mix on decision cards (Requirements 7.1, 7.2, 7.5) -- read-only      #
+# --------------------------------------------------------------------------- #
+def _persona_mix_badge_html(mix) -> str:
+    """Build the (escaped) persona-mix badge HTML shown beside a card (Req 7.1, 7.2).
+
+    Renders the :class:`webapp_core.personas.PersonaMix` for one cell as a visually
+    distinct block of persona-name -> one-decimal-percentage chips, adjacent to the
+    card's existing guidance and never overwriting, hiding, or reordering any card
+    field (Requirement 7.2). Shares are shown to one decimal place and listed in
+    descending share so the dominant persona reads first.
+
+    When the mix is unavailable (``available == False``, Requirement 7.5) a muted
+    "Persona context unavailable" chip is returned instead so the card still renders
+    with its guidance intact. Reuses the ``pan-chip`` style (no new CSS classes).
+    """
+    label = (
+        '<span style="color:var(--pan-gray);font-size:0.78rem;'
+        'letter-spacing:0.2px;">Persona Mix</span><br/>'
+    )
+    if not getattr(mix, "available", False) or not getattr(mix, "shares", None):
+        return (
+            f'<div style="margin-top:4px;">{label}'
+            '<span class="pan-chip">Persona context unavailable</span></div>'
+        )
+
+    ordered = sorted(mix.shares.items(), key=lambda kv: (-kv[1], kv[0]))
+    chips = "".join(
+        f'<span class="pan-chip">{html.escape(str(name))} {share:.1f}%</span>'
+        for name, share in ordered
+    )
+    return f'<div style="margin-top:4px;">{label}{chips}</div>'
+
+
+def _render_cards_with_mix(result: PersonaRunResult) -> None:
+    """Render each Part 4 card read-only with its Persona_Mix adjacent (Req 7).
+
+    Reads the Part 4 decision cards from ``outputs/cards.json`` (via
+    :func:`_load_part4_cards`), computes the per-cell Persona_Mix with the already
+    implemented :func:`webapp_core.personas.persona_mix_by_cell` from the run's
+    ``labels`` and those cards, and renders each card **alongside** a persona-mix
+    badge. Every Part 4 field is shown read-only exactly as laid out by Part 4's
+    ``_decision_card_html`` field order (Action, Dominant Channel, Message Angle,
+    Top Drivers, Exclusions By Reason) -- nothing is overwritten, hidden, or
+    reordered (Requirements 7.2, 7.3, 7.4); this page renders a local read-only copy
+    of those fields and never mutates a card.
+
+    The unavailable-mix fallback (Requirement 7.5) is handled per card by
+    :func:`_persona_mix_badge_html`, so a cell with no assignment still renders its
+    guidance plus a "persona context unavailable" indication while the remaining
+    cards render normally. No chart/plot dependency is involved here (Req 9.9).
+
+    Does nothing when no cards are on disk, so a workspace without ``cards.json``
+    simply omits this section rather than failing the page.
+    """
+    import streamlit as st
+    import theme
+
+    cards = _load_part4_cards()
+    if not cards:
+        return
+
+    labels = result.labels
+    try:
+        mixes = persona_mix_by_cell(labels, cards)
+    except Exception:  # noqa: BLE001 - never fail the page on a mix error (Req 7.5)
+        mixes = {}
+
+    st.subheader("Decision Cards With Persona Mix")
+    st.caption(
+        "Each card keeps its Part 4 guidance unchanged, with the persona mix of "
+        "its leads shown alongside."
+    )
+
+    for i in range(0, len(cards), 2):
+        pair = cards[i : i + 2]
+        cols = st.columns(2)
+        for col, card in zip(cols, pair):
+            with col:
+                promo_id = str(card.get("promo_id", "--"))
+                segment = str(card.get("segment", "--"))
+                mix = mixes.get((promo_id, segment))
+                if mix is None:
+                    # No mix entry for this card -> treat as unavailable (Req 7.5).
+                    mix = PersonaMix(
+                        promo_id=promo_id,
+                        segment=segment,
+                        shares={},
+                        available=False,
+                    )
+                body = _part4_card_readonly_html(card) + _persona_mix_badge_html(mix)
+                theme.card(f"{promo_id} -- {segment}", body)
+
+
+def _part4_card_readonly_html(card: dict) -> str:
+    """Build the read-only body HTML for one Part 4 card (Requirements 7.2-7.4).
+
+    A local, read-only render of the Part 4 card fields in the **same field order**
+    as ``app/main.py``'s ``_decision_card_html`` (Action, Dominant Channel, Message
+    Angle, Top Drivers, Exclusions By Reason, plus the Joiners / 90% / Value stat
+    chips). It only *reads* ``card`` values -- it never edits, hides, or reorders a
+    field -- so every Part 4 value stays byte-for-byte unchanged (Requirements 7.2,
+    7.3, 7.4). This is intentionally separate from ``main.py`` so no Part 4 code and
+    no existing tab is touched; we render alongside, not in place.
+    """
+    action = html.escape(str(card.get("action", "--")))
+    channel = html.escape(str(card.get("dominant_channel", "--")))
+    angle = html.escape(str(card.get("message_angle", "--")))
+
+    joiners = float(card.get("expected_joiners", 0.0) or 0.0)
+    low = float(card.get("joiners_90_low", 0.0) or 0.0)
+    high = float(card.get("joiners_90_high", 0.0) or 0.0)
+    exp_value = float(card.get("expected_value", 0.0) or 0.0)
+
+    drivers = card.get("top_drivers") or []
+    drivers_html = ", ".join(html.escape(str(d)) for d in drivers) or "--"
+
+    excluded = card.get("excluded_by_reason") or {}
+    if excluded:
+        exclusions_html = ", ".join(
+            f"{html.escape(str(reason))}: {int(count):,}"
+            for reason, count in excluded.items()
+        )
+    else:
+        exclusions_html = "none"
+
+    chips = (
+        f'<span class="pan-chip">Joiners {joiners:,.1f}</span>'
+        f'<span class="pan-chip">90% {low:,.1f}-{high:,.1f}</span>'
+        f'<span class="pan-chip">Value {exp_value:,.0f}</span>'
+    )
+
+    rows = [
+        ("Action", action),
+        ("Dominant Channel", channel),
+        ("Message Angle", angle),
+        ("Top Drivers", drivers_html),
+        ("Exclusions By Reason", exclusions_html),
+    ]
+    items = "".join(
+        f'<div style="margin-bottom:8px;">'
+        f'<span style="color:var(--pan-gray);font-size:0.78rem;'
+        f'letter-spacing:0.2px;">{label}</span><br/>'
+        f'<span style="font-weight:600;color:var(--pan-charcoal);">{value}</span>'
+        "</div>"
+        for label, value in rows
+    )
+    return f'<div style="margin-bottom:12px;">{chips}</div>{items}'
 
 
 def _render_downloads() -> None:
@@ -882,14 +1248,19 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
     4. a **Run** control that validates the config (Requirement 6.2), runs the
        cached backend, and stashes the result + exports in session state;
     5. one **summary card** per persona (Requirement 6.3) with the too-small
-       instruction for flagged groups (Requirement 6.10); and
-    6. the two **download** controls, default Campaign_Leads_Export + optional full
+       instruction for flagged groups (Requirement 6.10);
+    6. after a successful run, the **cluster comparison chart** (``st.bar_chart``
+       of standardized differences, Requirement 6.4), the **Elbow_Plot**
+       (``st.line_chart``) inside the collapsed Advanced expander
+       (Requirement 6.5), and the existing Part 4 **cards with their Persona_Mix**
+       badge, unavailable fallback included (Requirements 7.1, 7.2, 7.5); and
+    7. the two **download** controls, default Campaign_Leads_Export + optional full
        Persona_Labeled_Leads, disabled until a run completes (Requirements 8.8-8.10).
 
     All clustering/profiling is delegated to the cached
     :func:`webapp_core.personas.run_personas`; this function only wires widgets and
-    session state (Requirement 6.9). The charts and the on-card persona mix are
-    task 14.2 and are intentionally not rendered here.
+    session state (Requirement 6.9). The task-14.2 charts and on-card persona mix
+    use Streamlit built-in charts only, adding no dependency (Requirement 9.9).
 
     Args:
         run_result_key: The session-state key under which ``main.py`` stashes the
@@ -1010,11 +1381,22 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
                 run_result_key=run_result_key,
             )
 
-    # --- results: summary cards + downloads (persist across reruns) ---
+    # --- results: summary cards + charts + cards-with-mix + downloads ---
+    # Everything below persists across reruns and is gated on a run result
+    # existing in the session (task 14.2: the charts and the on-card persona mix
+    # render only after a successful persona run).
     result: PersonaRunResult | None = st.session_state.get(PERSONA_RESULT_KEY)
     if result is not None:
         st.subheader("Personas")
         _render_summary_cards(result)
+        # Cluster comparison chart (Requirement 6.4, st.bar_chart).
+        _render_comparison_charts(result)
+        # Elbow_Plot inside the collapsed Advanced expander (Requirement 6.5,
+        # st.line_chart).
+        _render_elbow(result)
+        # Existing Part 4 cards rendered read-only with the Persona_Mix badge
+        # adjacent, with the unavailable fallback (Requirements 7.1, 7.2, 7.5).
+        _render_cards_with_mix(result)
 
     _render_downloads()
 

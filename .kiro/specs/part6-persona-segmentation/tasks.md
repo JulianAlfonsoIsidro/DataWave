@@ -180,7 +180,7 @@ The build order follows the design's module breakdown: dependency → config →
     - Render one summary card per persona (name, description, integer size, one-decimal percentage, distinguishing attributes as plain sentences, and recommended actions as campaign guidance); default the download control to the `Campaign_Leads_Export` and offer the full `Persona_Labeled_Leads` as a clearly labeled optional second download, both disabled until a run completes in the session
     - Delegate all clustering and profile computation to `Persona_Core` / `Persona_Pipeline`; own the `st.cache_data` wrappers in this layer; keep all label/mapping/message/standardization helpers as pure functions so they can be unit-tested (see 14.3)
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.8, 3.13, 3.14, 3.15, 4.5, 4.10, 5.1, 5.2, 5.3, 6.1, 6.2, 6.3, 6.6, 6.7, 6.9, 6.10, 8.8, 8.9, 8.10_
-  - [ ] 14.2 Render the charts and the persona mix on cards using Streamlit built-ins only
+  - [x] 14.2 Render the charts and the persona mix on cards using Streamlit built-ins only
     - Render the cluster comparison chart with a Streamlit built-in chart (`st.bar_chart`) comparing standardized differences per attribute (each persona shown as above/below the across-persona average), not raw values on mixed scales; compute the standardization in the `app/` layer from the already-returned per-persona numeric means (center on the across-persona mean, divide by the across-persona std, 0 when std is 0)
     - Render the Elbow_Plot with a Streamlit built-in chart (`st.line_chart`) inside a collapsed "Advanced" expander titled "How many personas fit best?" with the caption "Pick the point where the line starts to flatten."; rendering inside the expander counts as displaying the Elbow_Plot (Requirement 6.5). Do NOT introduce matplotlib or plotly so Requirement 9.9's "no dependency other than kmodes and existing chart libs" holds
     - Render each existing Part 4 card with its Persona_Mix as a visually distinct badge/tab adjacent to the card without overwriting, hiding, or reordering any field; when the mix is unavailable for a cell, render that card intact plus a "persona context unavailable" indication while the remaining cards still render
@@ -199,7 +199,7 @@ The build order follows the design's module breakdown: dependency → config →
     - _Requirements: 10.1, 10.2, 10.3, 10.4_
 
 - [ ] 15. Shared test strategies and end-to-end verification
-  - [ ] 15.1 Add shared hypothesis strategies in `tests/strategies_part5_personas.py`
+  - [x] 15.1 Add shared hypothesis strategies in `tests/strategies_part5_personas.py`
     - Provide generators for joined attribute sets, run specs, and lead pools shared by the property tests; rely on `tests/conftest.py` for `sys.path` (never hardcode it)
     - _Requirements: 2.1, 4.1, 8.1_
   - [ ] 15.2 Write the integration test in `tests/test_part5_personas_integration.py`
