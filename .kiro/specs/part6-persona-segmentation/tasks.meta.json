@@ -127,6 +127,240 @@
         "chatSessionId": "sess_6539e09b-8236-4ae8-a084-d18c622647f7",
         "timestamp": 1793870811574
       }
+    ],
+    "5.2 Write cluster unit tests in `tests/test_part5_personas_cluster_unit.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872533327
+      },
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872547785
+      },
+      {
+        "executionId": "79cf00b8-3d6e-4582-9a19-4ac878715b85",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793873298875
+      }
+    ],
+    "5.3 Write the cluster-count property test in `tests/test_part5_personas_cluster_count_property.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872533638
+      },
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872549222
+      },
+      {
+        "executionId": "79cf00b8-3d6e-4582-9a19-4ac878715b85",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793873300242
+      }
+    ],
+    "5.4 Write the assignment/coverage property test in `tests/test_part5_personas_assignment_property.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872533756
+      },
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872550582
+      },
+      {
+        "executionId": "79cf00b8-3d6e-4582-9a19-4ac878715b85",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793873308010
+      },
+      {
+        "executionId": "79cf00b8-3d6e-4582-9a19-4ac878715b85",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793873687351
+      }
+    ],
+    "6. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872533871
+      }
+    ],
+    "7.1 Implement `PersonaProfile` stats and distinguishing attributes": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872533973
+      },
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872551866
+      },
+      {
+        "executionId": "79cf00b8-3d6e-4582-9a19-4ac878715b85",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793873301438
+      }
+    ],
+    "7.2 Write the distinguishing-metric determinism property test in `tests/test_part5_personas_determinism_property.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872534101
+      }
+    ],
+    "7.3 Write the profile-bounds property test in `tests/test_part5_personas_profile_bounds_property.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872534239
+      }
+    ],
+    "8.1 Implement the `PersonaNamer` interface and `RuleBasedNamer`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872534339
+      }
+    ],
+    "8.2 Write naming unit tests in `tests/test_part5_personas_naming_unit.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872534438
+      }
+    ],
+    "8.3 Write the unique-names property test in `tests/test_part5_personas_naming_unique_property.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872534533
+      }
+    ],
+    "9.1 Implement clustering levels, two-step grouping, and group-size handling": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872534627
+      }
+    ],
+    "9.2 Write grouping edge tests in `tests/test_part5_personas_grouping_edge.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872534753
+      }
+    ],
+    "10.1 Implement `Persona_Labeled_Leads` construction": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872534852
+      }
+    ],
+    "10.2 Write the export-rows property test in `tests/test_part5_personas_export_rows_property.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872534963
+      }
+    ],
+    "11.1 Implement `main(argv: list[str] | None = None) -> int`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872535063
+      }
+    ],
+    "11.2 Write main unit tests in `tests/test_part5_personas_main_unit.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872535155
+      }
+    ],
+    "12. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872535255
+      }
+    ],
+    "13.1 Implement `run_personas` and `persona_mix_by_cell` with no Streamlit imports": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872535352
+      }
+    ],
+    "13.2 Write the persona-mix sum property test in `tests/test_part5_personas_mix_sum_property.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872535444
+      }
+    ],
+    "13.3 Write cards-mix unit tests in `tests/test_part5_personas_cards_mix_unit.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872535548
+      }
+    ],
+    "14.1 Build the page composition and session-state wiring": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872535646
+      }
+    ],
+    "14.2 Render the charts and the persona mix on cards using Streamlit built-ins only": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872535745
+      }
+    ],
+    "15.1 Add shared hypothesis strategies in `tests/strategies_part5_personas.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872535858
+      }
+    ],
+    "15.2 Write the integration test in `tests/test_part5_personas_integration.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872535952
+      }
+    ],
+    "15.3 Run `pytest` and confirm the existing pipeline is unchanged": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872536054
+      }
+    ],
+    "16. Final checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872536217
+      }
+    ],
+    "5. Implement clustering (`cluster.py`)": [
+      {
+        "executionId": "79cf00b8-3d6e-4582-9a19-4ac878715b85",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793873687496
+      }
     ]
   }
 }

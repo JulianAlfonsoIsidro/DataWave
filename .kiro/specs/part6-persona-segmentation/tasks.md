@@ -52,21 +52,21 @@ The build order follows the design's module breakdown: dependency → config →
     - hypothesis, minimum 100 iterations, tagged `# Feature: persona-segmentation, Property 6: Imputation leaves zero missing values`
     - _Requirements: 2.5_
 
-- [ ] 5. Implement clustering (`cluster.py`)
+- [x] 5. Implement clustering (`cluster.py`)
   - [x] 5.1 Implement seeded k-prototypes fit, k validation, sampling cap, assignment, and elbow sweep
     - Cluster with `kmodes.kprototypes.KPrototypes` seeded with `random_seed=42`; default k to 3 when unspecified; accept integer k in `[2, 6]`; reject non-integer or out-of-range k with an error stating the valid range and produce no assignments
     - When a group exceeds `max_sample_size`, fit on a seeded `numpy.random.default_rng(random_seed)` subsample of the group sorted by `client_id`, then assign the full group to the nearest learned prototype using the k-prototypes mixed dissimilarity with `model.gamma_`
     - Compute the elbow cost sweep for each `k = 2..6` on the shared subsample, recording `cost_` per k
     - _Requirements: 2.1, 2.8, 2.9, 2.10, 2.11, 2.12_
-  - [ ] 5.2 Write cluster unit tests in `tests/test_part5_personas_cluster_unit.py`
+  - [x] 5.2 Write cluster unit tests in `tests/test_part5_personas_cluster_unit.py`
     - Verify invalid-k rejection message, default k=3, and that elbow costs cover k=2..6
     - _Requirements: 2.8, 2.10, 2.12_
-  - [ ] 5.3 Write the cluster-count property test in `tests/test_part5_personas_cluster_count_property.py`
+  - [x] 5.3 Write the cluster-count property test in `tests/test_part5_personas_cluster_count_property.py`
     - **Property 1: Cluster label count equals k (or the capped k)**
     - **Validates: Requirements 2.9, 3.11**
     - hypothesis, minimum 100 iterations, tagged `# Feature: persona-segmentation, Property 1: Cluster label count equals k (or the capped k)`
     - _Requirements: 2.9, 3.11_
-  - [ ] 5.4 Write the assignment/coverage property test in `tests/test_part5_personas_assignment_property.py`
+  - [x] 5.4 Write the assignment/coverage property test in `tests/test_part5_personas_assignment_property.py`
     - **Property 2: Every clustered lead is assigned exactly one persona**
     - **Property 11: Sampling-then-assign covers all leads**
     - **Validates: Requirements 2.1, 5.4, 8.1**
@@ -77,7 +77,7 @@ The build order follows the design's module breakdown: dependency → config →
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 7. Implement persona profiling (`profile.py`)
-  - [ ] 7.1 Implement `PersonaProfile` stats and distinguishing attributes
+  - [x] 7.1 Implement `PersonaProfile` stats and distinguishing attributes
     - Compute per persona: `size` (non-negative integer), `pct_of_leads` (0.0–100.0 rounded to one decimal), numeric mean and median per numeric attribute, and top-3 categories per categorical attribute with a fallback to all categories when fewer than 3 are present
     - Compute the top-3 distinguishing attributes via standardized numeric z-score (`abs(mean_p - mu)/sigma`, 0 when sigma is 0) and categorical max absolute proportion-difference against pooled other-personas, never raw values, with ties broken by ascending attribute name
     - Omit zero-size personas from the set rather than profiling them
