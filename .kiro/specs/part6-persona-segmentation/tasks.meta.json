@@ -389,6 +389,16 @@
         "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
         "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
         "timestamp": 1793874001567
+      },
+      {
+        "executionId": "28d65b7a-3e56-48d6-88b5-83d392908e45",
+        "chatSessionId": "sess_5780e688-2837-4234-b44f-081ff42b3512",
+        "timestamp": 1793883742971
+      },
+      {
+        "executionId": "28d65b7a-3e56-48d6-88b5-83d392908e45",
+        "chatSessionId": "sess_5780e688-2837-4234-b44f-081ff42b3512",
+        "timestamp": 1793884225106
       }
     ],
     "11.1 Implement `main(argv: list[str] | None = None) -> int`": [
@@ -401,6 +411,16 @@
         "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
         "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
         "timestamp": 1793874001681
+      },
+      {
+        "executionId": "28d65b7a-3e56-48d6-88b5-83d392908e45",
+        "chatSessionId": "sess_5780e688-2837-4234-b44f-081ff42b3512",
+        "timestamp": 1793883743962
+      },
+      {
+        "executionId": "28d65b7a-3e56-48d6-88b5-83d392908e45",
+        "chatSessionId": "sess_5780e688-2837-4234-b44f-081ff42b3512",
+        "timestamp": 1793884225967
       }
     ],
     "11.2 Write main unit tests in `tests/test_part5_personas_main_unit.py`": [
@@ -485,6 +505,11 @@
         "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
         "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
         "timestamp": 1793874002329
+      },
+      {
+        "executionId": "28d65b7a-3e56-48d6-88b5-83d392908e45",
+        "chatSessionId": "sess_5780e688-2837-4234-b44f-081ff42b3512",
+        "timestamp": 1793883730708
       }
     ],
     "15.1 Add shared hypothesis strategies in `tests/strategies_part5_personas.py`": [
@@ -578,6 +603,41 @@
         "executionId": "3eec97ba-1066-42b1-912f-4175fa4b5c8a",
         "chatSessionId": "sess_d517f565-0ddc-475f-87cc-98734bc6d823",
         "timestamp": 1793881628258
+      }
+    ],
+    "8. Implement persona naming (`naming.py`)": [
+      {
+        "executionId": "28d65b7a-3e56-48d6-88b5-83d392908e45",
+        "chatSessionId": "sess_5780e688-2837-4234-b44f-081ff42b3512",
+        "timestamp": 1793883730000
+      }
+    ],
+    "14.1 Build the CRM-friendly page composition and session-state wiring": [
+      {
+        "executionId": "28d65b7a-3e56-48d6-88b5-83d392908e45",
+        "chatSessionId": "sess_5780e688-2837-4234-b44f-081ff42b3512",
+        "timestamp": 1793883730382
+      }
+    ],
+    "14.3 Write Persona_Page helper unit tests in `tests/test_part5_personas_page_unit.py`": [
+      {
+        "executionId": "28d65b7a-3e56-48d6-88b5-83d392908e45",
+        "chatSessionId": "sess_5780e688-2837-4234-b44f-081ff42b3512",
+        "timestamp": 1793883731473
+      }
+    ],
+    "14.4 (Optional) Add a downloadable one-page Persona_Brief": [
+      {
+        "executionId": "28d65b7a-3e56-48d6-88b5-83d392908e45",
+        "chatSessionId": "sess_5780e688-2837-4234-b44f-081ff42b3512",
+        "timestamp": 1793883731805
+      }
+    ],
+    "10. Implement the leads export (`export.py`)": [
+      {
+        "executionId": "28d65b7a-3e56-48d6-88b5-83d392908e45",
+        "chatSessionId": "sess_5780e688-2837-4234-b44f-081ff42b3512",
+        "timestamp": 1793884225238
       }
     ]
   }

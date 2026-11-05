@@ -73,7 +73,7 @@ The build order follows the design's module breakdown: dependency → config →
     - hypothesis, minimum 100 iterations, tagged `# Feature: persona-segmentation, Property 2: Every clustered lead is assigned exactly one persona` and `# Feature: persona-segmentation, Property 11: Sampling-then-assign covers all leads`
     - _Requirements: 2.1, 5.4, 8.1_
 
-- [~] 6. Checkpoint - Ensure all tests pass
+- [ ] 6. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 7. Implement persona profiling (`profile.py`)
@@ -127,7 +127,7 @@ The build order follows the design's module breakdown: dependency → config →
     - Verify the too-small group flag, k-cap-to-group-size, empty business-segment field rejection, and empty campaign pool handling
     - _Requirements: 3.7, 3.10, 3.11, 5.6_
 
-- [ ] 10. Implement the leads export (`export.py`)
+- [x] 10. Implement the leads export (`export.py`)
   - [x] 10.1 Implement `Persona_Labeled_Leads` construction and the default `Campaign_Leads_Export`
     - Produce exactly one row per Part 4 leads-input lead with a `persona_label` column assigning each to one persona and a `group` column (business-segment value or campaign identifier per level)
     - Left-join on `client_id` the richer attributes from `customer_dna.csv`, the pivoted `product_ownership.csv`, and `features_part2.csv`, preserving every source column name, dropping no lead and introducing no duplicates, leaving unmatched source attributes empty
@@ -135,7 +135,7 @@ The build order follows the design's module breakdown: dependency → config →
     - Expose a default `Campaign_Leads_Export` variant with exactly `client_id`, the `persona_label` column, the `group` column, `best_channel`, `p_join`, and `control` (a column projection of the full frame, one row per Part 4 lead, agreeing row-for-row on `client_id`/persona label/group), and keep the full `Persona_Labeled_Leads` (all richer joined attributes) as the optional second variant; both preserve the one-row-per-lead guarantee
     - Make the export the last step, produced only after clustering and profiling both succeed
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8, 8.9_
-  - [~] 10.2 Write the export-rows property test in `tests/test_part5_personas_export_rows_property.py`
+  - [x] 10.2 Write the export-rows property test in `tests/test_part5_personas_export_rows_property.py`
     - **Property 8: Export row count equals the input lead count**
     - **Property 9: Group column correctness**
     - **Validates: Requirements 8.1, 8.3, 8.6, 8.7**
@@ -143,30 +143,30 @@ The build order follows the design's module breakdown: dependency → config →
     - _Requirements: 8.1, 8.3, 8.6, 8.7_
 
 - [ ] 11. Implement the CLI entry point (`main.py`)
-  - [~] 11.1 Implement `main(argv: list[str] | None = None) -> int`
+  - [ ] 11.1 Implement `main(argv: list[str] | None = None) -> int`
     - Parse path-override flags (`--customer-dna`, `--product-ownership`, `--features-part2`, `--segments`, `--cards`, `--leads-dir`, `--promo-leads`, `--labeled-leads-out`) onto `Config`
     - Run the pipeline in order (join → preprocess → cluster → profile → name → group → export); halt before any write when a required `outputs/` artifact is missing, returning non-zero and naming the missing artifact
     - Perform every output write only after all clustering and profiling succeed (output-last); return 0 on success and a non-zero code naming the failing step otherwise; end with the `if __name__ == "__main__": raise SystemExit(main())` guard
     - _Requirements: 9.1, 9.3, 9.5, 9.6, 9.7, 9.8_
-  - [~] 11.2 Write main unit tests in `tests/test_part5_personas_main_unit.py`
+  - [ ] 11.2 Write main unit tests in `tests/test_part5_personas_main_unit.py`
     - Verify `main` exit codes, missing-artifact halt message, and output-last write safety (no file written on a mid-run failure)
     - _Requirements: 9.5, 9.6, 9.7, 9.8_
 
-- [~] 12. Checkpoint - Ensure all tests pass
+- [ ] 12. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 13. Implement the `Persona_Core` orchestration (`src/webapp_core/personas.py`)
-  - [~] 13.1 Implement `run_personas` and `persona_mix_by_cell` with no Streamlit imports
+  - [ ] 13.1 Implement `run_personas` and `persona_mix_by_cell` with no Streamlit imports
     - Implement `run_personas(spec, namer, cfg, *, live_leads=None) -> PersonaRunResult` building the joined set and running levels/grouping/clustering/profiling/naming deterministically; use the current New Promo session leads for the campaign live pool and `promo_leads.csv` / `outputs/leads/` for past promos
     - Implement `persona_mix_by_cell(labels, cards) -> dict[(promo_id, segment), PersonaMix]` computing per-cell shares normalized to sum to 100% for non-empty cells and aligning them onto the existing Part 4 cards by `(promo_id, segment)` without mutating any card; mark `available=False` when a cell has no assignment
     - Reuse Part 3 `assign_segments` and Part 4 `build_cards` read-only; add no modelling and no Streamlit imports
     - _Requirements: 5.1, 5.3, 6.8, 7.1, 7.3, 7.4, 7.5_
-  - [~] 13.2 Write the persona-mix sum property test in `tests/test_part5_personas_mix_sum_property.py`
+  - [ ] 13.2 Write the persona-mix sum property test in `tests/test_part5_personas_mix_sum_property.py`
     - **Property 3: Persona mix sums to 100% per non-empty cell**
     - **Validates: Requirements 7.1**
     - hypothesis, minimum 100 iterations, tagged `# Feature: persona-segmentation, Property 3: Persona mix sums to 100% per non-empty cell`
     - _Requirements: 7.1_
-  - [~] 13.3 Write cards-mix unit tests in `tests/test_part5_personas_cards_mix_unit.py`
+  - [ ] 13.3 Write cards-mix unit tests in `tests/test_part5_personas_cards_mix_unit.py`
     - Verify the mix is joined by `(promo_id, segment)`, that every Part 4 card field is unchanged byte-for-byte, and the unavailable-mix fallback
     - _Requirements: 7.2, 7.3, 7.4, 7.5_
 
@@ -199,17 +199,17 @@ The build order follows the design's module breakdown: dependency → config →
     - _Requirements: 10.1, 10.2, 10.3, 10.4_
 
 - [ ] 15. Shared test strategies and end-to-end verification
-  - [~] 15.1 Add shared hypothesis strategies in `tests/strategies_part5_personas.py`
+  - [ ] 15.1 Add shared hypothesis strategies in `tests/strategies_part5_personas.py`
     - Provide generators for joined attribute sets, run specs, and lead pools shared by the property tests; rely on `tests/conftest.py` for `sys.path` (never hardcode it)
     - _Requirements: 2.1, 4.1, 8.1_
-  - [~] 15.2 Write the integration test in `tests/test_part5_personas_integration.py`
+  - [ ] 15.2 Write the integration test in `tests/test_part5_personas_integration.py`
     - Run an end-to-end persona run over the sample `data/` + `outputs/` producing a labeled-leads CSV and per-cell mixes; confirm `run_pipeline.py` behavior and `outputs/` byte-identity are unaffected by the presence of `src/part5_personas`
     - _Requirements: 9.2, 9.3, 9.4_
-  - [~] 15.3 Run `pytest` and confirm the existing pipeline is unchanged
+  - [ ] 15.3 Run `pytest` and confirm the existing pipeline is unchanged
     - Run the full `pytest` suite; confirm all persona tests pass and that the existing stages still produce byte-identical `outputs/` artifacts
     - _Requirements: 9.2, 9.3_
 
-- [~] 16. Final checkpoint - Ensure all tests pass
+- [ ] 16. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
