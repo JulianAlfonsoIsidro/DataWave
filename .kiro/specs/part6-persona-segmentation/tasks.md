@@ -8,52 +8,52 @@ The build order follows the design's module breakdown: dependency → config →
 
 ## Tasks
 
-- [ ] 1. Add the `kmodes` dependency
+- [x] 1. Add the `kmodes` dependency
   - Append `kmodes` to `requirements.txt` as the only new dependency (`hypothesis` and `pytest` are already listed — do not re-add them)
   - Introduce no dependency other than `kmodes` and the chart libraries already listed
   - _Requirements: 9.9_
 
-- [ ] 2. Create the `src/part5_personas` package and frozen Config
-  - [ ] 2.1 Create `src/part5_personas/__init__.py` and `src/part5_personas/config.py`
+- [x] 2. Create the `src/part5_personas` package and frozen Config
+  - [x] 2.1 Create `src/part5_personas/__init__.py` and `src/part5_personas/config.py`
     - Define a frozen `@dataclass Config` with the input `Path` fields (`customer_dna_path`, `product_ownership_path`, `features_part2_path`, `segments_path`, `cards_path`, `leads_dir`, `promo_leads_path`) and the output field `labeled_leads_out_path`, using the design's canonical defaults
     - Add the D4 domain constants as Config fields: `min_match_rate=0.5`, `min_group_size=30`, `max_sample_size=2000`, `random_seed=42`, `default_k=3`, `k_min=2`, `k_max=6`
     - Add module-level constants `ANSWER_KEY_MARKER = "_answer_key"`, `ELBOW_K_RANGE = (2, 3, 4, 5, 6)`, `CAMPAIGN_PROMO_IDS = ("P001", "P002", "P003")`
     - Cite the governing requirements in the module docstring
     - _Requirements: 1.9, 2.8, 2.9, 3.12, 9.1_
 
-- [ ] 3. Build the Joined_Attribute_Set (`join.py`)
-  - [ ] 3.1 Implement `join.py` to assemble the clustering input
+- [x] 3. Build the Joined_Attribute_Set (`join.py`)
+  - [x] 3.1 Implement `join.py` to assemble the clustering input
     - Pivot long-format `product_ownership.csv` into one row per `client_id` with one `owns_<product_type>` flag per distinct `product_type` (1 when the client has at least one row of that type, else 0), each flag categorical over `{0, 1}`
     - Left-join the pivoted flags and `outputs/features_part2.csv` onto `customer_dna.csv` on `client_id`, producing exactly one row per `client_id` in `customer_dna.csv`; set absent-ownership clients' flags to 0; source behavioral features only from `features_part2.csv`
     - Compute `Match_Rate` per source (customer_dna, pivoted product_ownership, features_part2) as the fraction of leads with a matching row
     - Add the answer-key guard: reject any input path containing `ANSWER_KEY_MARKER` and halt before output naming the file
     - Add the match-rate halt: if any source's rate is 0 or below `min_match_rate`, halt before output naming the source and its rate
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.8, 1.10_
-  - [ ] 3.2 Write join unit tests in `tests/test_part5_personas_join_unit.py`
+  - [x] 3.2 Write join unit tests in `tests/test_part5_personas_join_unit.py`
     - Verify pivot one-hot correctness, Match_Rate values, imputation of absent-product clients (flags all 0), and the answer-key rejection and low-match-rate halt messages
     - _Requirements: 1.2, 1.4, 1.6, 1.8, 1.10_
 
-- [ ] 4. Implement preprocessing (`preprocess.py`)
-  - [ ] 4.1 Implement type detection, scaling, imputation, and categorical indices
+- [x] 4. Implement preprocessing (`preprocess.py`)
+  - [x] 4.1 Implement type detection, scaling, imputation, and categorical indices
     - Classify each selected column as numeric when its schema dtype is integer/float, categorical otherwise; apply user `type_overrides` over auto-detection
     - Standardize each numeric feature to zero mean / unit variance across the clustered leads
     - Impute every missing numeric value with the column mean and every missing categorical value with the column mode so the clustered input has zero missing values
     - Reject the run naming the column (and produce no assignments) if, after imputation, a selected column has zero non-missing values
     - Compute and return the categorical column indices for k-prototypes
     - _Requirements: 2.2, 2.3, 2.4, 2.5, 2.6, 2.7_
-  - [ ] 4.2 Write the scaling property test in `tests/test_part5_personas_scaling_property.py`
+  - [x] 4.2 Write the scaling property test in `tests/test_part5_personas_scaling_property.py`
     - **Property 5: Scaling yields zero mean and unit variance**
     - **Validates: Requirements 2.4**
     - hypothesis, minimum 100 iterations, tagged `# Feature: persona-segmentation, Property 5: Scaling yields zero mean and unit variance`
     - _Requirements: 2.4_
-  - [ ] 4.3 Write the imputation property test in `tests/test_part5_personas_imputation_property.py`
+  - [x] 4.3 Write the imputation property test in `tests/test_part5_personas_imputation_property.py`
     - **Property 6: Imputation leaves zero missing values**
     - **Validates: Requirements 2.5**
     - hypothesis, minimum 100 iterations, tagged `# Feature: persona-segmentation, Property 6: Imputation leaves zero missing values`
     - _Requirements: 2.5_
 
 - [ ] 5. Implement clustering (`cluster.py`)
-  - [ ] 5.1 Implement seeded k-prototypes fit, k validation, sampling cap, assignment, and elbow sweep
+  - [x] 5.1 Implement seeded k-prototypes fit, k validation, sampling cap, assignment, and elbow sweep
     - Cluster with `kmodes.kprototypes.KPrototypes` seeded with `random_seed=42`; default k to 3 when unspecified; accept integer k in `[2, 6]`; reject non-integer or out-of-range k with an error stating the valid range and produce no assignments
     - When a group exceeds `max_sample_size`, fit on a seeded `numpy.random.default_rng(random_seed)` subsample of the group sorted by `client_id`, then assign the full group to the nearest learned prototype using the k-prototypes mixed dissimilarity with `model.gamma_`
     - Compute the elbow cost sweep for each `k = 2..6` on the shared subsample, recording `cost_` per k
