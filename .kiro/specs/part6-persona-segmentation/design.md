@@ -1,4 +1,4 @@
-# Design Document
+﻿# Design Document
 
 ## Overview
 
@@ -70,6 +70,8 @@ For a `Persona_Set` with personas `p = 1..K`, let a persona's profile hold `mean
 
 This is fully deterministic: the same `Persona_Set` profiles always yield the same top-3 per persona.
 
+**Presentation note (Requirement 4.10):** these standardized scores and the top-3 ranking are the backend computation and are unchanged. The Persona_Page never shows z-scores or raw deviations to the user; it renders each distinguishing attribute as a plain business sentence (e.g. "Higher inflows and fewer products than other personas") computed in the `app/` layer by comparing the persona's standardized value to the across-persona average. This is a display transform over already-computed profile values and adds no modelling.
+
 ### D3 — Performance: sampling cap + nearest-prototype assignment, caching, shared elbow subsample (performance directive)
 
 k-prototypes is slow, and the elbow sweep fits it five times (k=2..6) on top of the main run. The design keeps the Streamlit page responsive with three concrete mechanisms.
@@ -115,7 +117,7 @@ class PersonaNamer(Protocol):       # the interface the pipeline depends on
 ```
 
 - The pure `Persona_Pipeline` depends **only** on the `PersonaNamer` interface; it never imports a concrete namer type. The orchestrator passes a concrete namer in (default `RuleBasedNamer()`), so swapping implementations is a one-line change at the call site.
-- **`RuleBasedNamer`** (the default) derives name, one-line description, and 2–3 actions purely from the `PersonaProfile` fields. Given an identical profile it yields identical output (Requirement 4.6 — determinism). The `taken` set lets the namer guarantee **unique names within a `Persona_Set`** (Requirement 4.9): if a derived base name is already in `taken`, the namer appends a deterministic suffix (e.g. the persona index) until the name is unique, then the caller adds it to `taken` before naming the next persona. Naming personas in a fixed order (ascending cluster label) keeps the disambiguation deterministic.
+- **`RuleBasedNamer`** (the default) derives name, one-line description, and 2–3 actions purely from the `PersonaProfile` fields. The actions are phrased as **campaign guidance** a campaign planner can act on and, where the profile supports it, name a **suggested channel and an offer angle** (e.g. "Best reached by SMS with a savings-bundle offer", Requirement 4.5). The channel is chosen deterministically from the profile — for example the dominant category of a channel-like attribute when present, otherwise a deterministic default — and the offer angle is derived from the persona's top distinguishing attributes (e.g. high inflows → a savings/deposit angle, low product count → a cross-sell bundle). Because every step reads only the profile, an identical profile yields identical name/description/actions (Requirement 4.6 — determinism). The `taken` set lets the namer guarantee **unique names within a `Persona_Set`** (Requirement 4.9): if a derived base name is already in `taken`, the namer appends a deterministic suffix (e.g. the persona index) until the name is unique, then the caller adds it to `taken` before naming the next persona. Naming personas in a fixed order (ascending cluster label) keeps the disambiguation deterministic. These wording changes stay inside `RuleBasedNamer` and do not change the `PersonaNamer` interface or any caller.
 - **Where Bedrock slots in:** a future `BedrockNamer(PersonaNamer)` living in its own module implements the same `name(profile, taken)` signature and is passed to `run_personas(..., namer=BedrockNamer(...))`. No pipeline or page code changes. (Bedrock itself is explicitly out of scope.)
 
 ---
@@ -229,9 +231,9 @@ sequenceDiagram
 | `preprocess.py` | Type auto-detect + user override, standard-scale numerics, impute (mean/mode), categorical-index computation, empty-column guard. | 2.2–2.7 |
 | `cluster.py` | Seeded k-prototypes fit; sampling cap; assign-to-nearest-prototype; k validation; elbow cost sweep. | 2.1, 2.8–2.12 |
 | `profile.py` | `PersonaProfile` stats + distinguishing attributes (D2); drop zero-size personas. | 4.1, 4.2, 4.3, 4.7 |
-| `naming.py` | `PersonaNamer` Protocol + `PersonaNaming` + `RuleBasedNamer` (D5). | 4.4, 4.5, 4.6, 4.8, 4.9 |
+| `naming.py` | `PersonaNamer` Protocol + `PersonaNaming` + `RuleBasedNamer` (D5); actions read as campaign guidance with a suggested channel + offer angle where the profile supports it. | 4.4, 4.5, 4.6, 4.8, 4.9 |
 | `grouping.py` | Clustering levels (`all`/`business-segment`/`campaign`), two-step flow, min-group-size flag, k cap. | 3.2, 3.4–3.11, 5.4, 5.5 |
-| `export.py` | `Persona_Labeled_Leads` (persona label + group column; empty label outside campaign pool; richer attributes left-joined). | 8.1–8.7 |
+| `export.py` | `Persona_Labeled_Leads` (persona label + group column; empty label outside campaign pool; richer attributes left-joined), plus the default `Campaign_Leads_Export` column subset; both one row per Part 4 lead. | 8.1–8.9 |
 | `main.py` | `main(argv) -> int` CLI; output-last write safety; missing-artifact halt. | 9.1, 9.3, 9.5–9.8 |
 
 ### `src/webapp_core/personas.py` (Persona_Core)
@@ -244,7 +246,19 @@ Pure orchestration — **no Streamlit imports** (Requirement 6.8). Public functi
 
 ### `app/` Persona_Page
 
-Streamlit composition + session state only; owns `st.cache_data` wrappers around the two pure functions (D3). It renders the `Attribute_Picker`, the k selector (integers 2–6), the `Clustering_Level` selector, the optional two-step grouping controls, the `Run` control, one summary card per persona, the cluster-comparison chart, the `Elbow_Plot`, the existing Part 4 cards each annotated with their `Persona_Mix` badge/tab, and the (disabled-until-run) download control.
+Streamlit composition + session state only; owns `st.cache_data` wrappers around the two pure functions (D3). It is written for a CRM manager or campaign planner who is not a data scientist, so every control carries a plain business label and statistical machinery is hidden or explained. These are presentation-and-wording concerns in `app/` only; the `Persona_Core` / `Persona_Pipeline` contracts and all backend behavior are unchanged. The page renders:
+
+- **Clustering_Level selector** — shown as the plain labels "All leads", "By customer segment", and "By campaign", mapped to the internal values `all` / `business-segment` / `campaign` (Requirement 3.4). The internal values passed to `run_personas` are unchanged.
+- **k selector** — labeled "Number of personas", integers 2–6, defaulting to 3 (Requirement 6.1).
+- **Attribute_Picker** — the Joined_Attribute_Set columns grouped under the Attribute_Group headings Demographics, Lifestyle, Products owned, and Spending behavior, each shown with an Attribute_Display_Label (e.g. "Owns deposit account" for `owns_deposit`) while the raw column name is the value passed to the pipeline (Requirement 3.1). A Default_Attribute_Set is preselected so Run works immediately (Requirement 3.13). The numeric/categorical **type-override control is not rendered** — auto-detection runs in the backend (Requirement 2.2) and the override stays available through the Config/API (Requirements 2.3, 3.14). A small raw-column → `(Attribute_Group, Attribute_Display_Label)` mapping and the Default_Attribute_Set live in the `app/` layer (presentation only); columns with no mapping fall back to a title-cased label under a default group so the picker degrades gracefully.
+- **Optional two-step control** — a single optional control phrased "Split by [attributes] first, then create personas within each group" (Requirement 3.8). The attributes chosen there become the `grouping_attributes` in the `PersonaRunSpec`; the Attribute_Picker selection stays the `clustering_attributes`; the "Number of personas" value stays the per-group k. The spec fields handed to the pipeline (and thus the Requirement 3.8–3.9 backend behavior) are identical to before; only the page's two separate attribute controls are collapsed into one.
+- **Campaign pool selector** — the live New Promo session leads or a past promo selected by `promo_id` in {P001, P002, P003}, disabling the live choice when no run exists (Requirements 5.1, 5.2). When a promo name or date is available it is shown next to the `promo_id` while selection stays keyed on `promo_id` (Requirements 3.15, 5.3). The `promo_id → label` lookup is read from the available promo metadata in the `app/` layer; absent a label, the bare `promo_id` is shown.
+- **Run control** and **persona summary cards** — one card per persona showing name, description, integer size, one-decimal percentage, the distinguishing attributes rendered as plain sentences (e.g. "Higher inflows and fewer products than other personas", Requirement 4.10) rather than z-scores, and the recommended actions phrased as campaign guidance (Requirement 4.5). The plain-sentence rendering is a presentation transform in `app/` over `PersonaProfile.distinguishing` (whose ranking is still the D2 computation): for each distinguishing attribute the page compares the persona's standardized value against the across-persona average and emits a "higher/lower/more/fewer … than other personas" phrase; it reads only already-computed profile values and adds no modelling.
+- **Cluster comparison chart** — a `st.bar_chart` of **standardized differences** per attribute (each persona's value as above/below the across-persona average), not raw values on mixed scales (Requirement 6.4). The standardization is computed in the `app/` layer from the already-returned per-persona numeric means (center on the across-persona mean, divide by the across-persona std, 0 when std is 0 — the same convention as D2), so it is a pure display transform.
+- **Advanced_Section** — a collapsed "Advanced" expander titled "How many personas fit best?" with the caption "Pick the point where the line starts to flatten.", inside which the `Elbow_Plot` (`st.line_chart`) is rendered; rendering inside the expander satisfies Requirement 6.5.
+- **Decision cards + Persona_Mix** — the existing Part 4 cards, each annotated with their `Persona_Mix` badge/tab (D1), with the "persona context unavailable" fallback (Requirement 7.5).
+- **Actionable messages** — validation errors (Requirement 6.2) and the "too small to cluster" flag (Requirements 3.10, 6.10) are rendered as instructions the user can act on (e.g. "This segment has only 12 leads. Pick a larger segment or combine segments."), not bare status flags. The message strings live in the `app/` layer; the backend flag/exception they are rendered from is unchanged.
+- **Download controls** — defaulting to the Campaign_Leads_Export (`client_id`, persona label, group, `best_channel`, `p_join`, `control`) with the full Persona_Labeled_Leads offered as a clearly labeled optional second download, both disabled until a run completes (Requirements 6.6, 6.7, 8.8–8.10). Optionally (Requirement 10) a Persona_Brief download.
 
 ---
 
@@ -358,6 +372,16 @@ Part 4 code is untouched; the mix is computed and attached entirely in `Persona_
 - A `group` column names the lead's business-segment value or the campaign identifier per the level (Requirement 8.6).
 - At `campaign` level, leads outside the chosen pool keep **both** `persona_label` and `group` empty, so only pool leads carry a label (Requirement 8.7).
 - The export is the **last** step, produced only after clustering and profiling both succeed; it is not written if either fails (Requirements 8.5, 9.8).
+- **Two download variants (Requirements 8.8–8.10).** `export.py` exposes the same assignment in two column shapes, both one row per Part 4 lead:
+  - the **`Campaign_Leads_Export`** — the *default* — with exactly `client_id`, the `persona_label` column, the `group` column, `best_channel`, `p_join`, and `control` and no richer joined attributes (a column projection of the full frame, so it agrees with the full export row-for-row on `client_id`, persona label, and group);
+  - the **full `Persona_Labeled_Leads`** — the *optional second download* — carrying all the richer joined attributes above in addition to those columns.
+  Both are derived from the one assignment, so the one-row-per-lead guarantee (Requirement 8.1) holds for each. The Persona_Page defaults its download control to the `Campaign_Leads_Export` and offers the full `Persona_Labeled_Leads` as a clearly labeled optional second download (Requirement 8.10). The CLI `main` continues to write the full `Persona_Labeled_Leads` to `labeled_leads_out_path`; the default-vs-full *choice* is a Persona_Page concern and does not change the CLI artifact.
+
+---
+
+## Optional: Persona Brief (Requirement 10)
+
+The Persona_Brief is an **optional** one-page summary for campaign proposals; it is additive and skippable, and skipping it affects nothing else. A pure builder (for example `persona_brief(persona_set) -> str | bytes` living in the `app/` layer or a small pure helper beside `webapp_core/personas.py`) renders, per persona in a `PersonaSet`, the persona's **name**, its **size** (integer lead count), its **key traits** as the same plain sentences shown on the cards (Requirement 4.10), and its **recommended campaign angle** derived from the persona's recommended actions (Requirement 4.5). Because it reads only an already-computed `PersonaSet`, an identical `PersonaSet` yields an identical brief (Requirement 10.3), so it is covered by a determinism-style test. The Persona_Page exposes it as a download control that stays disabled until a run has completed (Requirement 10.4). No backend clustering/profiling/naming contract changes.
 
 ---
 
@@ -497,9 +521,9 @@ All gates halt **before** any output write, leaving existing `outputs/` artifact
 | Column with zero non-missing values after imputation | Reject run; no assignments; error names the column. | 2.6 |
 | Invalid k (non-integer or outside 2–6) | Reject; no assignments; error states the valid range. | 2.10 |
 | Business-segment field with no usable values | Reject; message names the field. | 3.7 |
-| Group below `min_group_size` | Flag "too small to cluster"; no personas for that group; other groups proceed. | 3.10 |
+| Group below `min_group_size` | Backend flags "too small to cluster" (no personas, other groups proceed); the Persona_Page renders it as an actionable instruction naming the lead count. | 3.10, 6.10 |
 | Empty audience / empty campaign pool | Report empty-audience; do not cluster; retain configuration. | 5.6, 6.2 |
-| Fewer than one attribute / invalid page config | Page rejects run; retains selections and current results; shows the offending input. | 3.3, 6.2 |
+| Fewer than one attribute / invalid page config | Page rejects run; retains selections and current results; shows an actionable message naming the offending input and how to fix it. | 3.3, 6.2 |
 | Missing `outputs/` upstream artifact (CLI) | `main` halts before any write, returns non-zero, names the missing artifact. | 9.5 |
 | Any persona stage fails (CLI) | `main` returns non-zero, names the failing step. | 9.7 |
 | No persona assignment for a card cell | Render card intact + "persona context unavailable"; other cards unaffected. | 7.5 |
@@ -533,6 +557,8 @@ Property-based tests (hypothesis) are the dominant style, complemented by exampl
 - `test_part5_personas_cards_mix_unit.py` — mix joined by `(promo_id, segment)`; Part 4 card fields unchanged byte-for-byte; unavailable-mix fallback.
 - `test_part5_personas_main_unit.py` — `main` exit codes, missing-artifact halt, output-last write safety (no file written on mid-run failure).
 - `test_part5_personas_integration.py` — end-to-end run over the sample `data/`+`outputs/` producing a labeled-leads CSV and per-cell mixes; confirms `run_pipeline.py` behavior and `outputs/` byte-identity are unaffected (Requirements 9.2, 9.3).
+- `test_part5_personas_page_unit.py` — pure-helper unit tests for the Persona_Page presentation layer: the raw-column → (Attribute_Group, Attribute_Display_Label) mapping and Default_Attribute_Set, the level-label ↔ internal-value mapping, the plain-sentence rendering of distinguishing attributes, the standardized cluster-comparison transform, the `Campaign_Leads_Export` column projection, and the actionable too-small / validation message strings (Requirements 3.1, 3.4, 3.8, 3.13, 3.14, 4.5, 4.10, 6.2, 6.4, 6.5, 6.10, 8.8).
+- `test_part5_personas_brief_unit.py` *(optional, Requirement 10)* — the Persona_Brief builder carries each persona's name/size/key traits/campaign angle and is a deterministic function of the `PersonaSet`.
 
 PBT is appropriate here because the pipeline is largely **pure data transformation and clustering logic** with clear input/output behavior and universal invariants (coverage, determinism, normalization, uniqueness). The Streamlit page itself is covered by targeted unit tests of the pure functions it calls, not by PBT.
 
@@ -544,12 +570,13 @@ PBT is appropriate here because the pipeline is largely **pure data transformati
 | --- | --- |
 | **1** Join & pivot source data | [Joined_Attribute_Set construction](#joined_attribute_set-construction-requirement-1); `join.py`; Property 8 |
 | **2** k-prototypes clustering | [Preprocessing](#preprocessing-requirement-2), [Clustering](#clustering-levels-and-the-two-step-flow); `preprocess.py`, `cluster.py`; Properties 1, 2, 4, 5, 6, 11 |
-| **3** Attribute & level selection | [Clustering, Levels, Two-Step Flow](#clustering-levels-and-the-two-step-flow); `grouping.py`; Persona_Page controls |
-| **4** Profiles, names, actions | [Data Models](#data-models), D2, D5; `profile.py`, `naming.py`; Properties 7, 10, 12 |
+| **3** Attribute & level selection | [Clustering, Levels, Two-Step Flow](#clustering-levels-and-the-two-step-flow); `grouping.py`; [app/ Persona_Page](#app-persona_page) controls — plain level labels (3.4), grouped/relabeled Attribute_Picker (3.1), Default_Attribute_Set (3.13), hidden type override with backend intact (3.14), single two-step control (3.8), past-promo label (3.15) |
+| **4** Profiles, names, actions | [Data Models](#data-models), D2 (plain-sentence presentation note, 4.10), D5 (campaign-guidance actions with channel/offer angle, 4.5); `profile.py`, `naming.py`; Properties 7, 10, 12 |
 | **5** Per-campaign personas | [Levels — `campaign`](#clustering-levels-and-the-two-step-flow); `grouping.py` + Persona_Core live/past pool |
-| **6** Streamlit page | [app/ Persona_Page](#app-persona_page), D3 (caching in `app/`), Req 6.8 pure `Persona_Core` |
+| **6** Streamlit page | [app/ Persona_Page](#app-persona_page) (CRM-friendly presentation: k label 6.1, standardized cluster chart 6.4, Elbow_Plot in Advanced_Section expander 6.5, actionable messages 6.2/6.10, default+optional downloads 6.6/6.7), D3 (caching in `app/`), Req 6.8 pure `Persona_Core` |
 | **7** Integrate with decision cards | **D1 — per-cell only**; [Persona Mix on Cards](#persona-mix-on-cards-requirement-7-resolved-per-d1); Property 3; Part 4 untouched |
-| **8** Export leads with labels | [Leads Export](#leads-export-requirement-8); `export.py`; Properties 8, 9 |
+| **8** Export leads with labels | [Leads Export](#leads-export-requirement-8); `export.py` — default `Campaign_Leads_Export` (8.8) + optional full `Persona_Labeled_Leads` (8.9) + Persona_Page download defaults (8.10); Properties 8, 9 |
 | **9** Optional, isolated add-on | [Overview](#overview), [Config](#config), `main.py`; [Error Handling](#error-handling); integration test for `outputs/` byte-identity |
+| **10** Persona brief (optional) | [Optional: Persona Brief](#optional-persona-brief-requirement-10); additive Persona_Page download + pure builder; `test_part5_personas_brief_unit.py` |
 
 Requirement 7's open design question is resolved to **per-cell cards only** (D1); the traceability above reflects that the persona layer joins onto existing Part 4 cards by `(promo_id, segment)` and builds no merged cards.

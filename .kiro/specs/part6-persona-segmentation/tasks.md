@@ -1,4 +1,4 @@
-# Implementation Plan: Persona Segmentation
+﻿# Implementation Plan: Persona Segmentation
 
 ## Overview
 
@@ -73,60 +73,69 @@ The build order follows the design's module breakdown: dependency → config →
     - hypothesis, minimum 100 iterations, tagged `# Feature: persona-segmentation, Property 2: Every clustered lead is assigned exactly one persona` and `# Feature: persona-segmentation, Property 11: Sampling-then-assign covers all leads`
     - _Requirements: 2.1, 5.4, 8.1_
 
-- [ ] 6. Checkpoint - Ensure all tests pass
+- [~] 6. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 7. Implement persona profiling (`profile.py`)
+- [x] 7. Implement persona profiling (`profile.py`)
   - [x] 7.1 Implement `PersonaProfile` stats and distinguishing attributes
     - Compute per persona: `size` (non-negative integer), `pct_of_leads` (0.0–100.0 rounded to one decimal), numeric mean and median per numeric attribute, and top-3 categories per categorical attribute with a fallback to all categories when fewer than 3 are present
     - Compute the top-3 distinguishing attributes via standardized numeric z-score (`abs(mean_p - mu)/sigma`, 0 when sigma is 0) and categorical max absolute proportion-difference against pooled other-personas, never raw values, with ties broken by ascending attribute name
     - Omit zero-size personas from the set rather than profiling them
     - _Requirements: 4.1, 4.2, 4.3, 4.7_
-  - [ ] 7.2 Write the distinguishing-metric determinism property test in `tests/test_part5_personas_determinism_property.py`
+  - [x] 7.2 Write the distinguishing-metric determinism property test in `tests/test_part5_personas_determinism_property.py`
     - **Property 4: Determinism under fixed seed**
     - **Property 10: Distinguishing-metric determinism and standardization**
     - **Validates: Requirements 2.11, 4.3, 4.6**
     - hypothesis, minimum 100 iterations, tagged `# Feature: persona-segmentation, Property 4: Determinism under fixed seed` and `# Feature: persona-segmentation, Property 10: Distinguishing-metric determinism and standardization`
     - _Requirements: 2.11, 4.3, 4.6_
-  - [ ] 7.3 Write the profile-bounds property test in `tests/test_part5_personas_profile_bounds_property.py`
+  - [x] 7.3 Write the profile-bounds property test in `tests/test_part5_personas_profile_bounds_property.py`
     - **Property 12: Percentage bounds and size consistency**
     - **Validates: Requirements 4.1, 4.7**
     - hypothesis, minimum 100 iterations, tagged `# Feature: persona-segmentation, Property 12: Percentage bounds and size consistency`
     - _Requirements: 4.1, 4.7_
 
 - [ ] 8. Implement persona naming (`naming.py`)
-  - [ ] 8.1 Implement the `PersonaNamer` interface and `RuleBasedNamer`
+  - [x] 8.1 Implement the `PersonaNamer` interface and `RuleBasedNamer`
     - Define the `PersonaNaming` TypedDict (`name`, `description`, `actions`) and the `PersonaNamer` Protocol with `name(profile, taken) -> PersonaNaming`
     - Implement `RuleBasedNamer` deriving name, one-line description, and 2–3 recommended actions purely from the `PersonaProfile` so identical profiles yield identical output
+    - Phrase the recommended actions as campaign guidance a campaign planner can act on and, where the profile supports it, name a suggested channel and an offer angle (e.g. "Best reached by SMS with a savings-bundle offer"); keep the channel/angle a deterministic function of the profile and keep names unique and output deterministic (Requirement 4.5)
     - Guarantee unique names within a set using the `taken` set with a deterministic suffix when a base name is already taken; name personas in ascending cluster-label order
     - _Requirements: 4.4, 4.5, 4.6, 4.8, 4.9_
-  - [ ] 8.2 Write naming unit tests in `tests/test_part5_personas_naming_unit.py`
+    - NOTE (spec revision): 8.1 is already implemented and completed; the campaign-guidance action wording above is a follow-up refinement to `RuleBasedNamer._actions` to apply the next time this module is edited. It does not change the `PersonaNamer` interface, name uniqueness, or determinism, and does not require re-running the completed task now. The companion naming unit test (8.2) should assert the channel/offer-angle phrasing when that refinement lands.
+
+  - [x] 8.1b Revise `RuleBasedNamer` (`naming.py`) so recommended actions read as campaign guidance
+    - Revise `RuleBasedNamer._actions` (and any helper it needs) so each recommended action reads as campaign guidance a campaign planner can act on and, WHERE the `PersonaProfile` supports it, names a suggested channel and an offer angle (e.g. "Best reached by SMS with a savings-bundle offer"), per updated Requirement 4.5
+    - Derive the suggested channel deterministically from the profile (e.g. the dominant category of a channel-like categorical attribute when present, otherwise a deterministic default) and the offer angle from the persona's top distinguishing attributes; keep 2–3 actions
+    - Keep the `PersonaNamer` interface, the `PersonaNaming` shape, name uniqueness within a set, and full determinism for identical profiles unchanged; update any earlier naming code/tests this affects
+    - _Requirements: 4.5, 4.6_
+  - [~] 8.2 Write naming unit tests in `tests/test_part5_personas_naming_unit.py`
     - Verify rule-based name/description/2–3 actions for representative profiles and the disambiguation suffix path
     - _Requirements: 4.4, 4.5, 4.8_
-  - [ ] 8.3 Write the unique-names property test in `tests/test_part5_personas_naming_unique_property.py`
+  - [~] 8.3 Write the unique-names property test in `tests/test_part5_personas_naming_unique_property.py`
     - **Property 7: Persona names are unique within a set**
     - **Validates: Requirements 4.9**
     - hypothesis, minimum 100 iterations, tagged `# Feature: persona-segmentation, Property 7: Persona names are unique within a set`
     - _Requirements: 4.9_
 
 - [ ] 9. Implement levels and the two-step flow (`grouping.py`)
-  - [ ] 9.1 Implement clustering levels, two-step grouping, and group-size handling
+  - [x] 9.1 Implement clustering levels, two-step grouping, and group-size handling
     - Support levels `all` (one set), `business-segment` (one set per distinct `Business_Segment_Field` value using `customer_dna.segment` or Part 3 `Segment_Label`; reject naming the field when it has no usable values), and `campaign` (cluster only the chosen pool, exclude out-of-pool leads, use no `Business_Segment_Field` as a clustering feature; report empty-audience without clustering on an empty pool)
     - Implement the two-step flow: partition by `Grouping_Attributes`, then cluster each group on `Clustering_Attributes` with k per group
     - Flag groups below `min_group_size` as "too small to cluster" (`too_small=True`, no personas); cap k to the group size when the group is at/above `min_group_size` but below the requested k
     - _Requirements: 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 5.4, 5.5, 5.6_
-  - [ ] 9.2 Write grouping edge tests in `tests/test_part5_personas_grouping_edge.py`
+  - [~] 9.2 Write grouping edge tests in `tests/test_part5_personas_grouping_edge.py`
     - Verify the too-small group flag, k-cap-to-group-size, empty business-segment field rejection, and empty campaign pool handling
     - _Requirements: 3.7, 3.10, 3.11, 5.6_
 
 - [ ] 10. Implement the leads export (`export.py`)
-  - [ ] 10.1 Implement `Persona_Labeled_Leads` construction
+  - [ ] 10.1 Implement `Persona_Labeled_Leads` construction and the default `Campaign_Leads_Export`
     - Produce exactly one row per Part 4 leads-input lead with a `persona_label` column assigning each to one persona and a `group` column (business-segment value or campaign identifier per level)
     - Left-join on `client_id` the richer attributes from `customer_dna.csv`, the pivoted `product_ownership.csv`, and `features_part2.csv`, preserving every source column name, dropping no lead and introducing no duplicates, leaving unmatched source attributes empty
     - At `campaign` level, leave `persona_label` and `group` empty for leads outside the chosen pool
+    - Expose a default `Campaign_Leads_Export` variant with exactly `client_id`, the `persona_label` column, the `group` column, `best_channel`, `p_join`, and `control` (a column projection of the full frame, one row per Part 4 lead, agreeing row-for-row on `client_id`/persona label/group), and keep the full `Persona_Labeled_Leads` (all richer joined attributes) as the optional second variant; both preserve the one-row-per-lead guarantee
     - Make the export the last step, produced only after clustering and profiling both succeed
-    - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7_
-  - [ ] 10.2 Write the export-rows property test in `tests/test_part5_personas_export_rows_property.py`
+    - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8, 8.9_
+  - [~] 10.2 Write the export-rows property test in `tests/test_part5_personas_export_rows_property.py`
     - **Property 8: Export row count equals the input lead count**
     - **Property 9: Group column correctness**
     - **Validates: Requirements 8.1, 8.3, 8.6, 8.7**
@@ -134,62 +143,78 @@ The build order follows the design's module breakdown: dependency → config →
     - _Requirements: 8.1, 8.3, 8.6, 8.7_
 
 - [ ] 11. Implement the CLI entry point (`main.py`)
-  - [ ] 11.1 Implement `main(argv: list[str] | None = None) -> int`
+  - [~] 11.1 Implement `main(argv: list[str] | None = None) -> int`
     - Parse path-override flags (`--customer-dna`, `--product-ownership`, `--features-part2`, `--segments`, `--cards`, `--leads-dir`, `--promo-leads`, `--labeled-leads-out`) onto `Config`
     - Run the pipeline in order (join → preprocess → cluster → profile → name → group → export); halt before any write when a required `outputs/` artifact is missing, returning non-zero and naming the missing artifact
     - Perform every output write only after all clustering and profiling succeed (output-last); return 0 on success and a non-zero code naming the failing step otherwise; end with the `if __name__ == "__main__": raise SystemExit(main())` guard
     - _Requirements: 9.1, 9.3, 9.5, 9.6, 9.7, 9.8_
-  - [ ] 11.2 Write main unit tests in `tests/test_part5_personas_main_unit.py`
+  - [~] 11.2 Write main unit tests in `tests/test_part5_personas_main_unit.py`
     - Verify `main` exit codes, missing-artifact halt message, and output-last write safety (no file written on a mid-run failure)
     - _Requirements: 9.5, 9.6, 9.7, 9.8_
 
-- [ ] 12. Checkpoint - Ensure all tests pass
+- [~] 12. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 13. Implement the `Persona_Core` orchestration (`src/webapp_core/personas.py`)
-  - [ ] 13.1 Implement `run_personas` and `persona_mix_by_cell` with no Streamlit imports
+  - [~] 13.1 Implement `run_personas` and `persona_mix_by_cell` with no Streamlit imports
     - Implement `run_personas(spec, namer, cfg, *, live_leads=None) -> PersonaRunResult` building the joined set and running levels/grouping/clustering/profiling/naming deterministically; use the current New Promo session leads for the campaign live pool and `promo_leads.csv` / `outputs/leads/` for past promos
     - Implement `persona_mix_by_cell(labels, cards) -> dict[(promo_id, segment), PersonaMix]` computing per-cell shares normalized to sum to 100% for non-empty cells and aligning them onto the existing Part 4 cards by `(promo_id, segment)` without mutating any card; mark `available=False` when a cell has no assignment
     - Reuse Part 3 `assign_segments` and Part 4 `build_cards` read-only; add no modelling and no Streamlit imports
     - _Requirements: 5.1, 5.3, 6.8, 7.1, 7.3, 7.4, 7.5_
-  - [ ] 13.2 Write the persona-mix sum property test in `tests/test_part5_personas_mix_sum_property.py`
+  - [~] 13.2 Write the persona-mix sum property test in `tests/test_part5_personas_mix_sum_property.py`
     - **Property 3: Persona mix sums to 100% per non-empty cell**
     - **Validates: Requirements 7.1**
     - hypothesis, minimum 100 iterations, tagged `# Feature: persona-segmentation, Property 3: Persona mix sums to 100% per non-empty cell`
     - _Requirements: 7.1_
-  - [ ] 13.3 Write cards-mix unit tests in `tests/test_part5_personas_cards_mix_unit.py`
+  - [~] 13.3 Write cards-mix unit tests in `tests/test_part5_personas_cards_mix_unit.py`
     - Verify the mix is joined by `(promo_id, segment)`, that every Part 4 card field is unchanged byte-for-byte, and the unavailable-mix fallback
     - _Requirements: 7.2, 7.3, 7.4, 7.5_
 
 - [ ] 14. Implement the Streamlit `Persona_Page` (`app/`)
-  - [ ] 14.1 Build the page composition and session-state wiring
-    - Render the Attribute_Picker over Joined_Attribute_Set columns, a k selector constrained to integers 2–6, a Clustering_Level selector (default `all`), the optional two-step grouping controls (separate Grouping_Attributes and Clustering_Attributes controls), the campaign pool selector (live session leads or past promo by `promo_id` in P001/P002/P003, disabling the live choice when no run exists), and a Run control
-    - On an invalid configuration (fewer than one attribute, k outside 2–6, or no level) reject the run, retain current configuration and displayed results, and show an error naming the invalid input
-    - Render one summary card per persona (name, description, integer size, one-decimal percentage, recommended actions), and a download control that stays disabled until a run completes in the session
-    - Delegate all clustering and profile computation to `Persona_Core` / `Persona_Pipeline`; own the `st.cache_data` wrappers in this layer
-    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.8, 5.1, 5.2, 5.3, 6.1, 6.2, 6.3, 6.6, 6.7, 6.9_
+  - [ ] 14.1 Build the CRM-friendly page composition and session-state wiring
+    - Render the Clustering_Level selector with the plain labels "All leads" / "By customer segment" / "By campaign" mapped to internal values `all` / `business-segment` / `campaign` (default `all`); a k selector labeled "Number of personas", integers 2–6, default 3; and a Run control
+    - Render the Attribute_Picker over Joined_Attribute_Set columns grouped under Demographics / Lifestyle / Products owned / Spending behavior with readable display labels (e.g. "Owns deposit account" for `owns_deposit`) while passing the raw column name as the selected value; preselect a Default_Attribute_Set so Run works immediately; do NOT render any numeric/categorical type-override control (auto-detect stays in the backend; override stays available via Config/API). Keep the raw→(group,label) mapping and Default_Attribute_Set in the `app/` layer with a graceful fallback for unmapped columns
+    - Replace the two separate Grouping/Clustering controls with one optional control phrased "Split by [attributes] first, then create personas within each group": its attributes become `grouping_attributes` in the spec, the Attribute_Picker selection stays `clustering_attributes`, and "Number of personas" stays per-group k (the spec handed to the pipeline is unchanged)
+    - Render the campaign pool selector (live session leads or past promo by `promo_id` in P001/P002/P003, disabling the live choice when no run exists), showing the promo name or date next to the `promo_id` when available while still selecting by `promo_id`
+    - On an invalid configuration (fewer than one attribute, k outside 2–6, or no level) reject the run, retain current configuration and displayed results, and show an actionable error that names the invalid input and how to fix it; render any "too small to cluster" group as an actionable instruction stating the lead count (e.g. "This segment has only 12 leads. Pick a larger segment or combine segments.")
+    - Render one summary card per persona (name, description, integer size, one-decimal percentage, distinguishing attributes as plain sentences, and recommended actions as campaign guidance); default the download control to the `Campaign_Leads_Export` and offer the full `Persona_Labeled_Leads` as a clearly labeled optional second download, both disabled until a run completes in the session
+    - Delegate all clustering and profile computation to `Persona_Core` / `Persona_Pipeline`; own the `st.cache_data` wrappers in this layer; keep all label/mapping/message/standardization helpers as pure functions so they can be unit-tested (see 14.3)
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.8, 3.13, 3.14, 3.15, 4.5, 4.10, 5.1, 5.2, 5.3, 6.1, 6.2, 6.3, 6.6, 6.7, 6.9, 6.10, 8.8, 8.9, 8.10_
   - [ ] 14.2 Render the charts and the persona mix on cards using Streamlit built-ins only
-    - Render the cluster comparison chart with a Streamlit built-in chart (`st.bar_chart`) and the Elbow_Plot with a Streamlit built-in chart (`st.line_chart`); do NOT introduce matplotlib or plotly so Requirement 9.9's "no dependency other than kmodes and existing chart libs" holds
+    - Render the cluster comparison chart with a Streamlit built-in chart (`st.bar_chart`) comparing standardized differences per attribute (each persona shown as above/below the across-persona average), not raw values on mixed scales; compute the standardization in the `app/` layer from the already-returned per-persona numeric means (center on the across-persona mean, divide by the across-persona std, 0 when std is 0)
+    - Render the Elbow_Plot with a Streamlit built-in chart (`st.line_chart`) inside a collapsed "Advanced" expander titled "How many personas fit best?" with the caption "Pick the point where the line starts to flatten."; rendering inside the expander counts as displaying the Elbow_Plot (Requirement 6.5). Do NOT introduce matplotlib or plotly so Requirement 9.9's "no dependency other than kmodes and existing chart libs" holds
     - Render each existing Part 4 card with its Persona_Mix as a visually distinct badge/tab adjacent to the card without overwriting, hiding, or reordering any field; when the mix is unavailable for a cell, render that card intact plus a "persona context unavailable" indication while the remaining cards still render
     - _Requirements: 6.4, 6.5, 7.1, 7.2, 7.5, 9.9_
 
+  - [ ] 14.3 Write Persona_Page helper unit tests in `tests/test_part5_personas_page_unit.py`
+    - Unit-test the pure presentation helpers from 14.1/14.2: the raw-column → (Attribute_Group, Attribute_Display_Label) mapping and the Default_Attribute_Set; the plain-label ↔ internal-value level mapping; the plain-sentence rendering of distinguishing attributes; the standardized cluster-comparison transform (above/below average); the `Campaign_Leads_Export` column projection (exactly client_id, persona label, group, best_channel, p_join, control, one row per lead); and the actionable too-small / validation message strings
+    - Keep these helpers importable without launching Streamlit (test the pure functions, not the rendered widgets)
+    - _Requirements: 3.1, 3.4, 3.8, 3.13, 3.14, 4.10, 6.2, 6.4, 6.5, 6.10, 8.8_
+
+  - [ ] 14.4 (Optional) Add a downloadable one-page Persona_Brief
+    - Implement a pure Persona_Brief builder (in the `app/` layer or a small pure helper beside `webapp_core/personas.py`) that renders, per persona in a `PersonaSet`, the persona name, size (integer lead count), key traits as plain sentences (Requirement 4.10), and a recommended campaign angle derived from the recommended actions (Requirement 4.5); the brief is a deterministic function of the `PersonaSet`
+    - Add a Persona_Page download control for the brief that stays disabled until a persona run has completed in the session
+    - This task is OPTIONAL and may be skipped if time is short; skipping it does not affect any other task
+    - Write `tests/test_part5_personas_brief_unit.py` asserting the brief carries each persona's name/size/key-traits/campaign-angle and that an identical `PersonaSet` yields an identical brief (determinism)
+    - _Requirements: 10.1, 10.2, 10.3, 10.4_
+
 - [ ] 15. Shared test strategies and end-to-end verification
-  - [ ] 15.1 Add shared hypothesis strategies in `tests/strategies_part5_personas.py`
+  - [~] 15.1 Add shared hypothesis strategies in `tests/strategies_part5_personas.py`
     - Provide generators for joined attribute sets, run specs, and lead pools shared by the property tests; rely on `tests/conftest.py` for `sys.path` (never hardcode it)
     - _Requirements: 2.1, 4.1, 8.1_
-  - [ ] 15.2 Write the integration test in `tests/test_part5_personas_integration.py`
+  - [~] 15.2 Write the integration test in `tests/test_part5_personas_integration.py`
     - Run an end-to-end persona run over the sample `data/` + `outputs/` producing a labeled-leads CSV and per-cell mixes; confirm `run_pipeline.py` behavior and `outputs/` byte-identity are unaffected by the presence of `src/part5_personas`
     - _Requirements: 9.2, 9.3, 9.4_
-  - [ ] 15.3 Run `pytest` and confirm the existing pipeline is unchanged
+  - [~] 15.3 Run `pytest` and confirm the existing pipeline is unchanged
     - Run the full `pytest` suite; confirm all persona tests pass and that the existing stages still produce byte-identical `outputs/` artifacts
     - _Requirements: 9.2, 9.3_
 
-- [ ] 16. Final checkpoint - Ensure all tests pass
+- [~] 16. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
 
-- All test tasks are required; none are optional.
+- All test tasks are required except the optional Persona_Brief task 14.4 and its test, which may be skipped if time is short.
 - Each task references specific requirements for traceability, and property-test tasks name the correctness property they verify.
 - The Streamlit page uses only Streamlit built-in charts (`st.bar_chart` / `st.line_chart`) for both the cluster comparison chart and the Elbow_Plot, keeping `kmodes` the only new dependency.
 - No module under the existing `run_pipeline.py` stages is modified, and `src/part5_personas` is never added to the stage sequence.
@@ -205,13 +230,14 @@ The build order follows the design's module breakdown: dependency → config →
     { "id": 2, "tasks": ["3.2", "4.2", "4.3", "5.1"] },
     { "id": 3, "tasks": ["5.2", "5.3", "5.4", "7.1"] },
     { "id": 4, "tasks": ["7.2", "7.3", "8.1", "9.1"] },
-    { "id": 5, "tasks": ["8.2", "8.3", "9.2", "10.1"] },
-    { "id": 6, "tasks": ["10.2", "11.1"] },
-    { "id": 7, "tasks": ["11.2", "13.1"] },
-    { "id": 8, "tasks": ["13.2", "13.3", "14.1"] },
-    { "id": 9, "tasks": ["14.2", "15.1"] },
-    { "id": 10, "tasks": ["15.2"] },
-    { "id": 11, "tasks": ["15.3"] }
+    { "id": 5, "tasks": ["8.1b"] },
+    { "id": 6, "tasks": ["8.2", "8.3", "9.2", "10.1"] },
+    { "id": 7, "tasks": ["10.2", "11.1"] },
+    { "id": 8, "tasks": ["11.2", "13.1"] },
+    { "id": 9, "tasks": ["13.2", "13.3", "14.1"] },
+    { "id": 10, "tasks": ["14.2", "15.1"] },
+    { "id": 11, "tasks": ["14.3", "14.4", "15.2"] },
+    { "id": 12, "tasks": ["15.3"] }
   ]
 }
 ```
