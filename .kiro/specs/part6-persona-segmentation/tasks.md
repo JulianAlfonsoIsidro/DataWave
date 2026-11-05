@@ -142,13 +142,13 @@ The build order follows the design's module breakdown: dependency → config →
     - hypothesis, minimum 100 iterations, tagged `# Feature: persona-segmentation, Property 8: Export row count equals the input lead count` and `# Feature: persona-segmentation, Property 9: Group column correctness`
     - _Requirements: 8.1, 8.3, 8.6, 8.7_
 
-- [ ] 11. Implement the CLI entry point (`main.py`)
-  - [ ] 11.1 Implement `main(argv: list[str] | None = None) -> int`
+- [x] 11. Implement the CLI entry point (`main.py`)
+  - [x] 11.1 Implement `main(argv: list[str] | None = None) -> int`
     - Parse path-override flags (`--customer-dna`, `--product-ownership`, `--features-part2`, `--segments`, `--cards`, `--leads-dir`, `--promo-leads`, `--labeled-leads-out`) onto `Config`
     - Run the pipeline in order (join → preprocess → cluster → profile → name → group → export); halt before any write when a required `outputs/` artifact is missing, returning non-zero and naming the missing artifact
     - Perform every output write only after all clustering and profiling succeed (output-last); return 0 on success and a non-zero code naming the failing step otherwise; end with the `if __name__ == "__main__": raise SystemExit(main())` guard
     - _Requirements: 9.1, 9.3, 9.5, 9.6, 9.7, 9.8_
-  - [ ] 11.2 Write main unit tests in `tests/test_part5_personas_main_unit.py`
+  - [x] 11.2 Write main unit tests in `tests/test_part5_personas_main_unit.py`
     - Verify `main` exit codes, missing-artifact halt message, and output-last write safety (no file written on a mid-run failure)
     - _Requirements: 9.5, 9.6, 9.7, 9.8_
 
@@ -156,7 +156,7 @@ The build order follows the design's module breakdown: dependency → config →
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 13. Implement the `Persona_Core` orchestration (`src/webapp_core/personas.py`)
-  - [ ] 13.1 Implement `run_personas` and `persona_mix_by_cell` with no Streamlit imports
+  - [x] 13.1 Implement `run_personas` and `persona_mix_by_cell` with no Streamlit imports
     - Implement `run_personas(spec, namer, cfg, *, live_leads=None) -> PersonaRunResult` building the joined set and running levels/grouping/clustering/profiling/naming deterministically; use the current New Promo session leads for the campaign live pool and `promo_leads.csv` / `outputs/leads/` for past promos
     - Implement `persona_mix_by_cell(labels, cards) -> dict[(promo_id, segment), PersonaMix]` computing per-cell shares normalized to sum to 100% for non-empty cells and aligning them onto the existing Part 4 cards by `(promo_id, segment)` without mutating any card; mark `available=False` when a cell has no assignment
     - Reuse Part 3 `assign_segments` and Part 4 `build_cards` read-only; add no modelling and no Streamlit imports
@@ -241,3 +241,4 @@ The build order follows the design's module breakdown: dependency → config →
   ]
 }
 ```
+
