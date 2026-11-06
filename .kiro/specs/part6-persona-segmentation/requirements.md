@@ -87,6 +87,7 @@ The Streamlit front end is designed for a CRM manager or campaign planner who is
 10. IF a user specifies a value for k that is not an integer, or is an integer less than 2 or greater than 6, THEN THE Persona_Pipeline SHALL reject the value and report an error indicating that k must be an integer from 2 through 6 inclusive, and SHALL produce no cluster assignments.
 11. THE Persona_Pipeline SHALL seed k-prototypes with the Random_Seed so that a run with identical inputs and identical options produces identical cluster assignments.
 12. THE Persona_Pipeline SHALL compute an Elbow_Plot of clustering cost across each integer candidate k from 2 through 6 inclusive to support choosing k.
+13. WHERE the selected attributes, after type classification (Requirements 2.2, 2.3), are all numeric or all categorical, THE Persona_Pipeline SHALL cluster them with the single-type equivalent of k-prototypes -- seeded k-means for numeric-only selections and seeded k-modes for categorical-only selections -- instead of failing; both fallbacks SHALL use the same Random_Seed (Requirement 2.11), the same k validation (Requirements 2.8-2.10), the same sampling cap with assignment of the full group (Requirement 2.1), and the same label contract (labels 0..k-1, every clustered lead assigned exactly one label, deterministic), SHALL keep the Elbow_Plot cost computation (Requirement 2.12) working, and SHALL leave mixed selections on k-prototypes unchanged; profiling, naming, grouping, and export SHALL operate on the fallback output unchanged.
 
 ### Requirement 3: Select attributes and clustering level
 
@@ -160,6 +161,8 @@ The Streamlit front end is designed for a CRM manager or campaign planner who is
 8. THE Persona_Core SHALL contain no Streamlit imports.
 9. THE Persona_Page SHALL contain the Streamlit composition and session-state wiring and SHALL delegate all clustering and profile computation to the Persona_Core and Persona_Pipeline.
 10. WHEN the Persona_Page presents a group that the Persona_Pipeline flagged "too small to cluster" (Requirement 3.10), THE Persona_Page SHALL show an actionable instruction that states the group's lead count and tells the user how to proceed (for example "This segment has only 12 leads. Pick a larger segment or combine segments."), rather than a bare status flag.
+11. WHERE the user's selected attributes (after the same numeric/categorical classification the Persona_Pipeline applies) are only numeric or only categorical, THE Persona_Page SHALL display a non-blocking warning above the Run control stating that only numeric (or only categorical) attributes are selected, that personas will be based on those alone, and that adding an attribute of the other type gives richer personas; THE Persona_Page SHALL NOT require confirmation before the run, SHALL NOT claim that k-prototypes gives better results, and SHALL show no such warning for a mixed selection; an empty selection SHALL keep the existing "pick at least one attribute" error (Requirement 6.2).
+12. WHEN a persona run completes on a numeric-only or categorical-only selection, THE Persona_Page SHALL display a short caption stating which kind of clustering was used (for example "Clustered on numeric attributes only"), and SHALL display no such caption for a mixed selection.
 
 ### Requirement 7: Integrate personas with existing decision cards
 

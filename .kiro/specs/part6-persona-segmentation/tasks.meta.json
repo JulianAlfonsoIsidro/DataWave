@@ -783,6 +783,25 @@
         "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
         "timestamp": 1793942533166
       }
+    ],
+    "5.5 Add a seeded single-type fallback for numeric-only and categorical-only selections (`cluster.py`)": [
+      {
+        "executionId": "3ab24c84-1f06-4155-823c-aaca1c13830b",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793948186958
+      },
+      {
+        "executionId": "3ab24c84-1f06-4155-823c-aaca1c13830b",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793953171920
+      }
+    ],
+    "14.9 Warn on single-type attribute selections and caption the clustering kind (`app/persona_page.py`)": [
+      {
+        "executionId": "3ab24c84-1f06-4155-823c-aaca1c13830b",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793953172125
+      }
     ]
   }
 }

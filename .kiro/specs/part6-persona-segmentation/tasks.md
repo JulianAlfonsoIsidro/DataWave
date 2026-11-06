@@ -72,6 +72,11 @@ The build order follows the design's module breakdown: dependency → config →
     - **Validates: Requirements 2.1, 5.4, 8.1**
     - hypothesis, minimum 100 iterations, tagged `# Feature: persona-segmentation, Property 2: Every clustered lead is assigned exactly one persona` and `# Feature: persona-segmentation, Property 11: Sampling-then-assign covers all leads`
     - _Requirements: 2.1, 5.4, 8.1_
+  - [x] 5.5 Add a seeded single-type fallback for numeric-only and categorical-only selections (`cluster.py`)
+    - Reproduced crashes: numeric-only raises `NotImplementedError: No categorical data selected, effectively doing k-means`; categorical-only raises `AssertionError: All columns are categorical, use k-modes instead of k-prototypes` (both from `KPrototypes.fit`), so a Persona_Page run on such a selection ends in "Could not build personas"
+    - Write the failing tests FIRST: cluster unit tests for both degenerate cases (label contract 0..k-1 with every lead labeled once, `validate_k` behavior, determinism under seed 42, sampling cap with full-population assignment, elbow costs for each feasible k, k-cap on a small group, mixed selections unchanged) in `tests/test_part5_personas_cluster_single_type_unit.py`, plus one integration case each (numeric-only and categorical-only `run_personas` on the real sample data: every lead assigned, names unique with no "(cluster", exports built, deterministic) in `tests/test_part5_personas_single_type_integration.py`; use `deadline=None` for any hypothesis test that fits real models
+    - Then apply the smallest fix in `cluster.py`: numeric-only -> seeded `sklearn.cluster.KMeans` (cost = `inertia_`), categorical-only -> seeded `kmodes.kmodes.KModes` (cost = `cost_`), mixed -> `KPrototypes` unchanged; reuse `validate_k`, the subsample, `predict` for the full group, and the elbow sweep; no new dependency; do not change profiling, naming, grouping, or export
+    - _Requirements: 2.1, 2.8, 2.9, 2.10, 2.11, 2.12, 2.13, 3.11_
 
 - [ ] 6. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
@@ -239,6 +244,13 @@ The build order follows the design's module breakdown: dependency → config →
   - [x] 14.8 Write group-filter unit tests in `tests/test_part5_personas_group_filter_unit.py`
     - Unit-test the pure group-filtering helpers from 14.7 (no Streamlit UI): selecting one group yields only that group's persona set / labels / mix inputs / download rows and filename; "All groups" is the unfiltered view; a too-small group surfaces its message; and the group selection does NOT alter the underlying persona assignments (same labels for a client regardless of the selected view)
     - _Requirements: 3.8, 3.10, 7.1, 8.8_
+  - [-] 14.9 Warn on single-type attribute selections and caption the clustering kind (`app/persona_page.py`)
+    - NOTE: requested as "task 14.5 after 14.2", but 14.5 already exists (completed elbow removal) and earlier tasks are not renumbered, so this is 14.9
+    - Add a pure function that classifies the current selection (using the pipeline's `classify_types`, so it matches what the backend runs) as `numeric` / `categorical` / `mixed` / `none`, and a pure function mapping that to the warning text; show a non-blocking `st.warning` above the Run button for numeric-only ("Only numeric attributes selected. Personas will be based on those alone. Adding a categorical attribute (such as marital status or a product owned) gives richer personas.") and categorical-only ("Only categorical attributes selected. Personas will be based on those alone. Adding a numeric attribute (such as age or spend) gives richer personas."); no confirmation step; nothing for mixed; an empty selection keeps the existing "pick at least one attribute" error
+    - Do NOT claim k-prototypes gives better results; the copy may only say mixing both types gives richer personas
+    - After a run, show a short caption stating the kind of clustering used (e.g. "Clustered on numeric attributes only"); no caption for mixed selections
+    - Unit-test the pure functions in `tests/test_part5_personas_selection_kind_unit.py` (numeric-only, categorical-only, mixed, empty; warning/caption text; no Streamlit UI)
+    - _Requirements: 6.2, 6.11, 6.12_
 
 - [ ] 15. Shared test strategies and end-to-end verification
   - [x] 15.1 Add shared hypothesis strategies in `tests/strategies_part5_personas.py`
@@ -264,6 +276,8 @@ The build order follows the design's module breakdown: dependency → config →
 
 ## Task Dependency Graph
 
+Order reflects what actually ran. Tasks 14.3 and 14.4 were deliberately deferred (left unstarted) and sit in the last wave; they do not block 15.3.
+
 ```json
 {
   "waves": [
@@ -278,12 +292,17 @@ The build order follows the design's module breakdown: dependency → config →
     { "id": 8, "tasks": ["11.2", "13.1"] },
     { "id": 9, "tasks": ["13.2", "13.3", "14.1"] },
     { "id": 10, "tasks": ["14.2", "15.1"] },
-    { "id": 11, "tasks": ["7.2b", "14.1b", "8.1c"] },
-    { "id": 12, "tasks": ["8.1d", "14.5", "14.6", "14.7"] },
-    { "id": 13, "tasks": ["14.8", "14.3", "14.4"] },
-    { "id": 14, "tasks": ["15.2"] },
-    { "id": 15, "tasks": ["15.3"] }
+    { "id": 11, "tasks": ["7.2b", "14.1b"] },
+    { "id": 12, "tasks": ["8.1c"] },
+    { "id": 13, "tasks": ["8.1d", "14.5"] },
+    { "id": 14, "tasks": ["14.6"] },
+    { "id": 15, "tasks": ["14.7"] },
+    { "id": 16, "tasks": ["14.8"] },
+    { "id": 17, "tasks": ["15.2"] },
+    { "id": 18, "tasks": ["5.5"] },
+    { "id": 19, "tasks": ["14.9"] },
+    { "id": 20, "tasks": ["15.3"] },
+    { "id": 21, "tasks": ["14.3", "14.4"] }
   ]
 }
 ```
-

@@ -1,4 +1,4 @@
-"""k-prototypes clustering for the Persona_Pipeline.
+﻿"""k-prototypes (with single-type fallback) clustering for the Persona_Pipeline.
 
 Consumes the *preprocessed* clustering matrix produced by
 :mod:`part5_personas.preprocess` (numeric columns already standardized, zero
@@ -18,12 +18,18 @@ Responsibilities, in a deterministic order:
   ``max_sample_size`` rows, drawn with ``numpy.random.default_rng(random_seed)``
   over the group *sorted by* ``client_id`` so the subsample is a pure function of
   inputs and seed (Requirement 2.9). Otherwise the whole group is the subsample.
-- **Fit** (:func:`fit_kprototypes`): fit ``kmodes.kprototypes.KPrototypes`` seeded
-  with ``cfg.random_seed`` (42) so identical inputs and options yield identical
-  assignments (Requirements 2.1, 2.11).
-- **Elbow sweep** (:func:`elbow_costs`): fit k-prototypes for each k in
-  ``ELBOW_K_RANGE`` (2..6) on the *same* subsample, recording ``model.cost_`` per
-  k (Requirement 2.12).
+- **Model choice** (:func:`select_model_kind`, Requirement 2.13): ``KPrototypes``
+  rejects single-type selections, so a numeric-only selection uses seeded
+  ``sklearn.cluster.KMeans`` (cost = ``inertia_``), a categorical-only selection
+  uses seeded ``kmodes.kmodes.KModes`` (cost = ``cost_``), and a mixed selection
+  uses ``KPrototypes`` exactly as before.
+- **Fit** (:func:`fit_model`): fit the chosen model seeded with
+  ``cfg.random_seed`` (42) so identical inputs and options yield identical
+  assignments (Requirements 2.1, 2.11). The result exposes a uniform ``cost_`` and
+  ``predict``.
+- **Elbow sweep** (:func:`elbow_costs`): fit the chosen model for each k in
+  ``ELBOW_K_RANGE`` (2..6) on the *same* subsample, recording ``cost_`` per k
+  (Requirement 2.12); k larger than the subsample is skipped.
 - **Orchestration** (:func:`cluster`): validate k, pick the seeded subsample, fit
   at k on the subsample, then assign the *full* group to the nearest learned
   prototype so every row gets exactly one label (total coverage, Requirement 2.1),
@@ -45,7 +51,9 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+from kmodes.kmodes import KModes
 from kmodes.kprototypes import KPrototypes
+from sklearn.cluster import KMeans
 
 from part5_personas.config import ELBOW_K_RANGE, Config
 
@@ -129,38 +137,83 @@ def _to_matrix(frame: pd.DataFrame) -> np.ndarray:
     return frame.to_numpy(dtype=object)
 
 
+def select_model_kind(cat_indices: list[int], n_columns: int) -> str:
+    """Pick the clustering model for the selection's shape (Requirement 2.13).
+
+    ``KPrototypes`` rejects single-type selections, so: no categorical columns ->
+    ``"kmeans"``; every column categorical -> ``"kmodes"``; otherwise
+    ``"kprototypes"``. Uses the same type split as ``preprocess.classify_types``.
+    """
+    if not cat_indices:
+        return "kmeans"
+    if len(cat_indices) >= n_columns:
+        return "kmodes"
+    return "kprototypes"
+
+
+class _FittedModel:
+    """Uniform surface (``cost_``, ``predict``) over the three fitted models."""
+
+    def __init__(self, model, kind: str, cat_indices: list[int]) -> None:
+        self.model = model
+        self.kind = kind
+        self._cat = cat_indices or None
+        if kind == "kmeans":
+            self.cost_ = float(model.inertia_)
+        else:
+            self.cost_ = float(model.cost_)
+        if kind == "kprototypes":
+            # kmodes 0.12.x stores the fitted gamma as ``gamma``.
+            self.gamma_ = getattr(model, "gamma", None)
+
+    def predict(self, X: np.ndarray, categorical: list[int] | None = None) -> np.ndarray:
+        """Assign each row of ``X`` to its nearest fitted prototype."""
+        if self.kind == "kmeans":
+            return self.model.predict(np.asarray(X, dtype=float))
+        if self.kind == "kmodes":
+            return self.model.predict(X)
+        return self.model.predict(X, categorical=categorical or self._cat)
+
+
+def fit_model(
+    X: np.ndarray,
+    cat_indices: list[int],
+    k: int,
+    cfg: Config,
+) -> _FittedModel:
+    """Fit the seeded model matching the selection's shape.
+
+    Mixed -> ``KPrototypes`` (unchanged args); numeric-only -> ``KMeans``
+    (``n_init=1``, cost = ``inertia_``); categorical-only -> ``KModes``
+    (``init="Huang"``, ``n_init=1``, cost = ``cost_``). All are seeded with
+    ``cfg.random_seed`` (Requirements 2.1, 2.11, 2.13).
+    """
+    kind = select_model_kind(cat_indices, X.shape[1])
+    if kind == "kmeans":
+        model = KMeans(n_clusters=k, n_init=1, random_state=cfg.random_seed)
+        model.fit(np.asarray(X, dtype=float))
+    elif kind == "kmodes":
+        model = KModes(
+            n_clusters=k, init="Huang", n_init=1, random_state=cfg.random_seed
+        )
+        model.fit(X)
+    else:
+        model = KPrototypes(
+            n_clusters=k, init="Huang", n_init=1, random_state=cfg.random_seed
+        )
+        # fit_predict populates cost_, gamma_, cluster_centroids_, labels_.
+        model.fit_predict(X, categorical=cat_indices or None)
+    return _FittedModel(model, kind, cat_indices)
+
+
 def fit_kprototypes(
     X: np.ndarray,
     cat_indices: list[int],
     k: int,
     cfg: Config,
-) -> KPrototypes:
-    """Fit a seeded k-prototypes model on the given matrix.
-
-    Fits ``KPrototypes`` with ``n_clusters=k`` seeded by ``cfg.random_seed`` so
-    identical inputs and options yield identical assignments (Requirements 2.1,
-    2.11). ``categorical`` carries the positional indices of the categorical
-    columns within ``X`` (Requirement 2.7, as computed by ``preprocess``).
-
-    Args:
-        X: The mixed numeric/categorical matrix to cluster.
-        cat_indices: Positional indices of categorical columns within ``X``.
-        k: The validated cluster count.
-        cfg: Config carrying ``random_seed``.
-
-    Returns:
-        The fitted ``KPrototypes`` model (exposing ``cost_`` and ``gamma_``).
-    """
-    model = KPrototypes(
-        n_clusters=k,
-        init="Huang",
-        n_init=1,
-        random_state=cfg.random_seed,
-    )
-    # fit_predict populates cost_, gamma_, cluster_centroids_, labels_.
-    model.fit_predict(X, categorical=cat_indices or None)
-    return model
-
+) -> _FittedModel:
+    """Backward-compatible alias of :func:`fit_model`."""
+    return fit_model(X, cat_indices, k, cfg)
 
 def elbow_costs(
     X_sub: np.ndarray,
@@ -197,7 +250,7 @@ def elbow_costs(
         # small, k-capped group (Requirement 3.11) can still produce a sweep.
         if int(k) > n_points:
             continue
-        model = fit_kprototypes(X_sub, cat_indices, int(k), cfg)
+        model = fit_model(X_sub, cat_indices, int(k), cfg)
         costs[int(k)] = float(model.cost_)
     return costs
 
@@ -253,7 +306,7 @@ def cluster(
     sub_pos = subsample_indices(client_ids, cfg)
     X_sub = full_X[sub_pos]
 
-    model = fit_kprototypes(X_sub, cat_indices, validated_k, cfg)
+    model = fit_model(X_sub, cat_indices, validated_k, cfg)
 
     # Assign the full group to the nearest learned prototype (total coverage).
     labels = np.asarray(model.predict(full_X, categorical=categorical), dtype=int)
