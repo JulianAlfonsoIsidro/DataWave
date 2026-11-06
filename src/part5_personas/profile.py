@@ -39,6 +39,11 @@ Responsibilities, in a deterministic order:
   ``"flat"`` when there is no contrast. A pure function of the same across-persona
   stats, stored on :attr:`PersonaProfile.distinguishing_directions`; it does not
   change the distinguishing ranking (Requirement 4.3).
+- **Channel reach** (task 8.1e, Requirement 4.5): when :func:`build_profiles` is
+  given the optional ``reach_frame``, each persona's
+  :attr:`PersonaProfile.channel_reach` records, per channel in
+  :data:`CHANNEL_FLAGS`, the persona's flag share, the group-wide share, and the
+  persona size -- the data the namer uses to pick a channel.
 - **Zero-size omission** (:func:`build_profiles`): clusters with zero leads are
   omitted from the set entirely rather than profiled or named (Requirement 4.7).
 
@@ -55,6 +60,14 @@ from dataclasses import dataclass, field
 
 import numpy as np
 import pandas as pd
+
+# Channel -> reachability flag column, in the fixed channel order used by the
+# namer (task 8.1e, Requirement 4.5). The flags need NOT be clustering attributes.
+CHANNEL_FLAGS: tuple[tuple[str, str], ...] = (
+    ("In-app", "digital_app_user"),
+    ("Email", "email_valid"),
+    ("SMS", "mobile_valid"),
+)
 
 
 @dataclass(frozen=True)
@@ -90,6 +103,12 @@ class PersonaProfile:
     same across-persona stats that produce :attr:`distinguishing`; it does not
     change the distinguishing ranking (Requirement 4.3). Defaults to an empty dict
     so unrelated positional constructors stay backward-safe."""
+    channel_reach: dict[str, dict[str, float]] = field(default_factory=dict)
+    """Data-driven channel reach (task 8.1e, Requirement 4.5): per channel in
+    :data:`CHANNEL_FLAGS` order (only those whose flag column was supplied),
+    ``{"share": persona mean of the flag, "overall": mean over all of the group's
+    rows, "n": persona size}`` (NaN skipped). Empty when no ``reach_frame`` / flag
+    columns were supplied."""
 
 
 def _top_categories_for(column: pd.Series, top_n: int = 3) -> list[tuple[str, int]]:
@@ -117,10 +136,22 @@ def _top_categories_for(column: pd.Series, top_n: int = 3) -> list[tuple[str, in
     # Build a frame so we can sort by (descending count, ascending category value)
     # deterministically regardless of the original value_counts ordering.
     ordered = sorted(
-        counts.items(),
-        key=lambda item: (-int(item[1]), str(item[0])),
+        ((_category_key(category), int(count)) for category, count in counts.items()),
+        key=lambda item: (-item[1], item[0]),
     )
-    return [(str(category), int(count)) for category, count in ordered[:top_n]]
+    return ordered[:top_n]
+
+
+def _category_key(category: object) -> str:
+    """Render a category value as text, integral floats as integer text.
+
+    A flag stored as float (for example ``1.0`` because of missing values) renders
+    as ``"1"``/``"0"`` so string matching downstream (``dominant == "1"``) works;
+    non-integral floats and strings are unchanged.
+    """
+    if isinstance(category, (float, np.floating)) and float(category).is_integer():
+        return str(int(category))
+    return str(category)
 
 
 def profile_stats(
@@ -346,6 +377,27 @@ def _numeric_direction(
     return "flat"
 
 
+def _is_binary_flag_column(
+    col: str, stats: dict[int, dict], labels_sorted: list[int]
+) -> bool:
+    """True when every recorded category of ``col`` is ``"0"`` or ``"1"`` (task 4.6)."""
+    keys = {
+        str(cat)
+        for q in labels_sorted
+        for cat, _count in stats[q]["top_categories"].get(col, [])
+    }
+    return bool(keys) and keys <= {"0", "1"}
+
+
+def _count_of(persona_stats: dict, col: str, category: str) -> int:
+    """Recorded count of ``category`` for ``col`` in one persona (missing -> 0)."""
+    return sum(
+        int(count)
+        for cat, count in persona_stats["top_categories"].get(col, [])
+        if str(cat) == category
+    )
+
+
 def _categorical_direction(
     label: int,
     col: str,
@@ -361,6 +413,13 @@ def _categorical_direction(
     others, ``"fewer"`` when it under-indexes, and ``"flat"`` when equal or when no
     contrast is possible (a single persona, empty others, or no recorded category).
     A pure, deterministic function of ``stats`` (Requirement 4.4).
+
+    Binary flags (task 4.6): when every category of ``col`` across all personas is
+    within ``{"0", "1"}``, the comparison is the persona's share of ``"1"`` (yes;
+    missing counts as 0) against the other personas' pooled share of ``"1"``, so a
+    persona of mostly non-users reads ``"fewer"`` rather than ``"more"`` (its
+    dominant category is ``"0"``). Non-binary categoricals keep the
+    dominant-category comparison above.
     """
     size_p = stats[label]["size"]
     if size_p == 0:
@@ -369,6 +428,22 @@ def _categorical_direction(
     own_categories = stats[label]["top_categories"].get(col, [])
     if not own_categories:
         return "flat"
+
+    if _is_binary_flag_column(col, stats, labels_sorted):
+        others = [q for q in labels_sorted if q != label]
+        other_total = sum(stats[q]["size"] for q in others)
+        if not others or other_total == 0:
+            return "flat"
+        own_share = _count_of(stats[label], col, "1") / size_p
+        other_share = (
+            sum(_count_of(stats[q], col, "1") for q in others) / other_total
+        )
+        if own_share > other_share:
+            return "more"
+        if own_share < other_share:
+            return "fewer"
+        return "flat"
+
     top_category = own_categories[0][0]
     own_count = int(own_categories[0][1])
     own_share = own_count / size_p
@@ -436,13 +511,59 @@ def distinguishing_directions(
     return result
 
 
+def _channel_reach(
+    reach_frame: pd.DataFrame | None, labels: np.ndarray
+) -> dict[int, dict[str, dict[str, float]]]:
+    """Per-cluster ``channel_reach`` from the flag columns of ``reach_frame``.
+
+    For each channel in :data:`CHANNEL_FLAGS` whose flag column exists: ``share`` is
+    the cluster mean of the flag, ``overall`` the mean over every row (NaN skipped
+    in both), and ``n`` the cluster size. Returns ``{}`` for a missing frame or when
+    no flag column is present.
+    """
+    if reach_frame is None:
+        return {}
+    work = reach_frame.reset_index(drop=True)
+    if len(work) != len(labels):
+        raise ValueError(
+            f"reach_frame row count {len(work)} does not match labels length "
+            f"{len(labels)}"
+        )
+    present = [(ch, col) for ch, col in CHANNEL_FLAGS if col in work.columns]
+    if not present:
+        return {}
+
+    label_series = pd.Series(labels, index=work.index)
+    result: dict[int, dict[str, dict[str, float]]] = {}
+    for label in pd.unique(label_series):
+        mask = label_series == label
+        per_channel: dict[str, dict[str, float]] = {}
+        for ch, col in present:
+            values = pd.to_numeric(work[col], errors="coerce")
+            share = values[mask].mean()
+            overall = values.mean()
+            per_channel[ch] = {
+                "share": float(share) if pd.notna(share) else 0.0,
+                "overall": float(overall) if pd.notna(overall) else 0.0,
+                "n": float(int(mask.sum())),
+            }
+        result[int(label)] = per_channel
+    return result
+
+
 def build_profiles(
     frame: pd.DataFrame,
     labels: np.ndarray,
     numeric_cols: list[str],
     categorical_cols: list[str],
+    reach_frame: pd.DataFrame | None = None,
 ) -> list[PersonaProfile]:
     """Build one :class:`PersonaProfile` per non-empty cluster (Requirement 4).
+
+    ``reach_frame`` (optional, task 8.1e) is aligned row-for-row with ``frame`` and
+    carries the channel flag columns of :data:`CHANNEL_FLAGS`; when given, each
+    profile's :attr:`PersonaProfile.channel_reach` is computed from it (persona
+    share, group-wide overall share, persona size). ``None`` leaves it ``{}``.
 
     The public entry point for the profiling stage. It:
 
@@ -488,6 +609,8 @@ def build_profiles(
     distinguishing = distinguishing_attributes(stats, numeric_cols, categorical_cols)
     directions = distinguishing_directions(stats, distinguishing, numeric_cols)
 
+    reach = _channel_reach(reach_frame, labels_arr)
+
     profiles: list[PersonaProfile] = []
     for label in sorted(stats):
         s = stats[label]
@@ -501,6 +624,7 @@ def build_profiles(
                 top_categories=s["top_categories"],
                 distinguishing=distinguishing[label],
                 distinguishing_directions=directions[label],
+                channel_reach=reach.get(int(label), {}),
             )
         )
 

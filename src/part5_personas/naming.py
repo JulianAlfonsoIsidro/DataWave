@@ -10,6 +10,14 @@ function of the profile's fields so an identical profile always yields identical
 output (Requirement 4.6); the module holds no Streamlit imports and no
 modelling.
 
+Data-driven channel (task 8.1e, Requirement 4.5): when
+``PersonaProfile.channel_reach`` is present, a channel *stands out* if the
+persona's reach exceeds the group's by >= 3 pp and z >= 2; the strongest (highest
+z, ties In-app/Email/SMS) is "Best reached by {channel}". Otherwise the first
+action reads "Reachable on every channel about equally; lead with {channel}
+(widest reach). Offer angle: a {angle}." (task 8.1f). With empty ``channel_reach`` the previous
+category/flag/default precedence applies unchanged.
+
 Design D5 — the pipeline depends only on the narrow :class:`PersonaNamer`
 Protocol, never on a concrete namer type, so a future ``BedrockNamer`` living in
 its own module can implement the same ``name(profile, taken) -> PersonaNaming``
@@ -36,6 +44,7 @@ disambiguation is fully deterministic.
 
 from __future__ import annotations
 
+import math
 from typing import Protocol, TypedDict, runtime_checkable
 
 from part5_personas.labels import attribute_label, is_flag_attribute
@@ -148,6 +157,12 @@ _FLAG_CHANNEL_PRECEDENCE: tuple[tuple[str, str], ...] = (
     ("email_valid", "Email"),
     ("mobile_valid", "SMS"),
 )
+
+
+# Data-driven channel rule thresholds (task 8.1e, Requirement 4.5).
+CHANNEL_MIN_GAP_PP = 3.0
+CHANNEL_MIN_Z = 2.0
+_CHANNEL_ORDER = ("In-app", "Email", "SMS")
 
 
 class RuleBasedNamer:
@@ -367,12 +382,23 @@ class RuleBasedNamer:
 
         The list is capped at 3 (Requirement 4.5).
         """
-        channel = self._suggested_channel(profile)
         angle = self._offer_angle(profile)
 
-        actions: list[str] = [
-            f"Best reached by {channel} with a {angle}"
-        ]
+        if profile.channel_reach:
+            # Data-driven rule (task 8.1e); see :meth:`_reach_channel`.
+            channel, stands_out = self._reach_channel(profile)
+            if stands_out:
+                first = f"Best reached by {channel} with a {angle}"
+            else:
+                first = (
+                    "Reachable on every channel about equally; lead with "
+                    f"{channel} (widest reach). Offer angle: a {angle}."
+                )
+        else:
+            channel = self._suggested_channel(profile)
+            first = f"Best reached by {channel} with a {angle}"
+
+        actions: list[str] = [first]
 
         for attr in profile.distinguishing[:3]:
             if len(actions) >= 3:
@@ -395,8 +421,44 @@ class RuleBasedNamer:
         # Never more than 3 actions (Requirement 4.5).
         return actions[:3]
 
+    def _reach_channel(self, profile: PersonaProfile) -> tuple[str, bool]:
+        """Choose the channel from ``profile.channel_reach`` (task 8.1e, Req 4.5).
+
+        For each channel (order In-app, Email, SMS) with ``gap = (share - overall)``
+        in percentage points and ``z = (share - overall) / sqrt(overall *
+        (1 - overall) / n)`` (``z = 0`` when the standard error is 0), the channel
+        *stands out* when ``gap >= CHANNEL_MIN_GAP_PP`` and ``z >= CHANNEL_MIN_Z``.
+        Returns ``(channel, True)`` for the highest-z stand-out (ties by channel
+        order), else ``(widest-reach channel, False)`` (highest persona share, ties
+        by channel order). Pure and deterministic.
+        """
+        stand_outs: list[tuple[float, int, str]] = []
+        widest: list[tuple[float, int, str]] = []
+        for order, channel in enumerate(_CHANNEL_ORDER):
+            entry = profile.channel_reach.get(channel)
+            if not entry:
+                continue
+            share = float(entry["share"])
+            overall = float(entry["overall"])
+            n = float(entry["n"])
+            variance = overall * (1.0 - overall) / n if n > 0 else 0.0
+            se = math.sqrt(variance) if variance > 0 else 0.0
+            z = (share - overall) / se if se > 0 else 0.0
+            gap_pp = (share - overall) * 100.0
+            widest.append((-share, order, channel))
+            if gap_pp >= CHANNEL_MIN_GAP_PP and z >= CHANNEL_MIN_Z:
+                stand_outs.append((-z, order, channel))
+        if stand_outs:
+            return min(stand_outs)[2], True
+        if widest:
+            return min(widest)[2], False
+        return _DEFAULT_CHANNEL, False
+
     def _suggested_channel(self, profile: PersonaProfile) -> str:
         """Pick one channel from {In-app, Email, SMS} deterministically (Req 4.5).
+
+        Used only when ``profile.channel_reach`` is empty; otherwise the
+        data-driven :meth:`_reach_channel` applies.
 
         The channel is a pure function of the profile, chosen by a fixed,
         documented precedence so an identical profile always yields the same

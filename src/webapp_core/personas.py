@@ -101,7 +101,8 @@ class PersonaRunSpec:
     must be non-empty (Requirements 3.2, 3.3); ``k`` is an integer in ``[2, 6]``
     (Requirements 2.9, 2.10). ``grouping_attributes`` is the optional two-step
     partition ([] when unused, Requirement 3.8). ``business_segment_field`` names
-    the business-segment column at ``business-segment`` level (Requirement 3.5).
+    the business-segment column at ``business-segment`` level; only ``segment``
+    (``customer_dna.segment``) is valid (Requirements 3.5, 3.20).
     ``campaign_pool`` is ``"live"`` (the New Promo session leads) or a ``promo_id``
     in ``{P001, P002, P003}`` at ``campaign`` level (Requirements 5.1, 5.3).
     """

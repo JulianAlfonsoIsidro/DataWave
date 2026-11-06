@@ -24,9 +24,15 @@ _CATEGORIES = ["a", "b", "c", "d"]
 # Finite numeric values: no NaN/inf from the float strategy itself -- missing
 # numeric cells are injected explicitly below so the generator stays in control
 # of the "at least one non-missing per column" precondition.
+#
+# Numeric columns in this property are deliberately NON-BINARY floats: under the
+# revised Requirement 2.2 a column whose non-missing values are all in {0, 1} is a
+# binary flag and classifies as categorical, so 0.0 / 1.0 are excluded here to keep
+# these columns genuinely numeric (the property is about imputation, not about the
+# flag rule, which has its own tests in test_part5_personas_classify_types_unit.py).
 _NUMERIC_VALUE = st.floats(
     min_value=-1e6, max_value=1e6, allow_nan=False, allow_infinity=False
-)
+).filter(lambda v: v not in (0.0, 1.0))
 
 
 def _inject_missing(draw, values: list, sentinel) -> list:

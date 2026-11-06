@@ -14,9 +14,10 @@ Levels (Requirement 3.4; default ``all``):
   with ``group_key == ""`` (Requirement 3.4).
 - ``business-segment`` (:data:`LEVEL_BUSINESS_SEGMENT`) -- one :class:`PersonaSet`
   per distinct non-null value of the chosen ``Business_Segment_Field`` column
-  (``customer_dna.segment`` or the Part 3 ``Segment_Label``); the field name is a
-  parameter and must already be present as a column on ``frame`` (Requirements 3.5,
-  3.6). If the field has no usable (non-null) values, a :class:`ValueError` naming
+  (``customer_dna.segment``, :data:`BUSINESS_SEGMENT_FIELD`, the only supported
+  field; the Part 3 ``Segment_Label`` is per client and per promo and is rejected
+  with :class:`InvalidSegmentFieldError`); the field name is a parameter and must
+  already be present as a column on ``frame`` (Requirements 3.5, 3.6, 3.20). If the field has no usable (non-null) values, a :class:`ValueError` naming
   the field is raised and no assignments are produced (Requirement 3.7).
 - ``campaign`` (:data:`LEVEL_CAMPAIGN`) -- cluster only the chosen campaign pool,
   excluding every lead outside the pool, and never use any ``Business_Segment_Field``
@@ -59,12 +60,18 @@ from part5_personas.cluster import cluster, validate_k
 from part5_personas.config import Config
 from part5_personas.naming import PersonaNamer, RuleBasedNamer
 from part5_personas.preprocess import classify_types, preprocess
-from part5_personas.profile import PersonaProfile, build_profiles
+from part5_personas.profile import CHANNEL_FLAGS, PersonaProfile, build_profiles
 
 # --- level identifiers (Requirement 3.4) -------------------------------------
 LEVEL_ALL = "all"
 LEVEL_BUSINESS_SEGMENT = "business-segment"
 LEVEL_CAMPAIGN = "campaign"
+
+# The only supported business-segment grouping field (Requirements 3.5, 3.20):
+# customer_dna.segment. The Part 3 Segment_Label is per (client, promo) and is
+# not a grouping field.
+BUSINESS_SEGMENT_FIELD = "segment"
+BUSINESS_SEGMENT_FIELD_OPTIONS = (BUSINESS_SEGMENT_FIELD,)
 
 # The column carrying each lead's identifier across every source frame.
 CLIENT_ID_COLUMN = "client_id"
@@ -128,6 +135,31 @@ class EmptyAudienceError(ValueError):
     halt, while callers that want the specific empty-audience behaviour can catch it
     by type.
     """
+
+
+class InvalidSegmentFieldError(ValueError):
+    """Raised when the ``business-segment`` grouping field is missing or unusable.
+
+    The only supported Business_Segment_Field is ``customer_dna.segment``
+    (:data:`BUSINESS_SEGMENT_FIELD`); the Part 3 Segment_Label is per client and
+    per promo, so it cannot group customers (Requirements 3.5, 3.20).
+    """
+
+
+def _segment_field_message(field: str | None) -> str:
+    """Actionable message for an unusable business-segment field (Req 3.5, 3.20)."""
+    valid = (
+        f"Valid option: {BUSINESS_SEGMENT_FIELD!r} (the customer_dna.segment "
+        "field: Affluent-Gold, Affluent-Preferred, Mass, Mid-Market). "
+        "The Part 3 segment label is assigned per client and per promo, "
+        "so it cannot group customers."
+    )
+    if field:
+        return (
+            f"business_segment_field {field!r} is not available in the joined "
+            f"data. {valid}"
+        )
+    return f"business-segment level needs a business_segment_field, but none was given. {valid}"
 
 
 def _group_key_str(value: object) -> str:
@@ -203,6 +235,11 @@ def _assemble_personas(
         labels,
         numeric_cols,
         categorical_cols,
+        # Channel flags come from the group's full joined rows so they are present
+        # even when they are not clustering attributes (task 8.1e).
+        reach_frame=raw_group[
+            [c for _, c in CHANNEL_FLAGS if c in raw_group.columns]
+        ],
     )
 
     # Name in ascending cluster-label order (build_profiles already orders that
@@ -523,15 +560,9 @@ def _build_level_business_segment(
     it is never also a clustering feature within its own partition.
     """
     if not business_segment_field:
-        raise ValueError(
-            "business-segment level requires business_segment_field naming the "
-            "customer_dna segment or Part 3 Segment_Label column (Requirement 3.5)"
-        )
+        raise InvalidSegmentFieldError(_segment_field_message(None))
     if business_segment_field not in frame.columns:
-        raise ValueError(
-            f"business_segment_field {business_segment_field!r} is not a column "
-            f"of the joined attribute set (Requirement 3.5)"
-        )
+        raise InvalidSegmentFieldError(_segment_field_message(business_segment_field))
 
     # Reject a field with no usable (non-null) values (Requirement 3.7).
     if frame[business_segment_field].notna().sum() == 0:

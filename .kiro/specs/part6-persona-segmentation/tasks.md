@@ -51,6 +51,24 @@ The build order follows the design's module breakdown: dependency → config →
     - **Validates: Requirements 2.5**
     - hypothesis, minimum 100 iterations, tagged `# Feature: persona-segmentation, Property 6: Imputation leaves zero missing values`
     - _Requirements: 2.5_
+  - [x] 4.4 Classify binary flag columns as categorical (`preprocess.py`)
+    - Conflict being resolved: Requirement 1.3 says every Product_Ownership_Flag is categorical, but `classify_types` classified by dtype only, so the 0/1 integer flags (`owns_*`, `digital_app_user`, `frugal_flag`, `email_valid`, `mobile_valid`) were treated as numeric (standardized, clustered with k-means distance, profiled with high/low) -- and the channel suggestion, which reads the dominant "1" category of those flags, never fired
+    - Write the failing tests FIRST: flag columns classified categorical; other int/float columns (counts, ratios, amounts, a column with values outside {0, 1}) stay numeric; a float column holding only 0.0/1.0 with NaN is a flag; boolean dtype is a flag; a `type_overrides` entry still wins in both directions; the `preprocess()` orchestrator reports the flag's positional index as categorical; and (with 14.9) `age_band` (a text column) + `owns_Deposit` is categorical-only, `tenure_years` (numeric) + `owns_Deposit` is mixed, and `digital_app_user` + `frugal_flag` is categorical-only; also note that `inflow_share_business_receipts` holds only 0.0/1.0 in the sample data and therefore classifies as a flag
+    - Apply the smallest fix in `classify_types` only; update Requirement 2.2, `design.md` Preprocessing and traceability. Update ONLY existing test expectations that changed because of the classification, listing each with the reason
+    - _Requirements: 1.3, 2.2, 2.3, 2.7_
+    - NOTE (spec revision): the float 0.0/1.0 flag rule above is narrowed by task 4.5 (integer/boolean dtypes and known flag names only); this task's completed status is not altered
+  - [x] 4.5 Restrict the binary-flag rule to integer/boolean dtypes and known flag names (`preprocess.py`, `profile.py`)
+    - NOTE (follow-up to 4.4, whose completed status is unchanged): 4.4's "float 0.0/1.0 is a flag" rule over-matched -- `inflow_share_business_receipts` is a float share that holds only 0.0 and 1.0 in the sample data and was reclassified as categorical
+    - Write the failing tests FIRST: every `inflow_share_*` column stays numeric on the real sample data; a float column holding only 0.0/1.0 stays numeric; an integer or boolean column holding only {0, 1} is categorical; `owns_*` columns and the explicit names `digital_app_user`, `frugal_flag`, `email_valid`, `mobile_valid` are categorical even when stored as float with missing values; an unnamed float 0/1 column stays numeric (documented limit); overrides still win both ways; and a float-stored known flag reports its categories as `"1"`/`"0"` (not `"1.0"`/`"0.0"`)
+    - Apply the smallest fix: in `classify_types` keep the `owns_*` prefix and the explicit known-name list, limit the value rule to integer/boolean dtypes; in `profile._top_categories_for` normalise integral floats to integer text. Update ONLY existing test expectations changed by the narrower rule (the 4.4 tests that expected float 0/1 columns to be flags), listing each with the reason
+    - Report whether any flag stored as float would now be misclassified
+    - _Requirements: 1.3, 2.2, 2.3, 2.7_
+  - [x] 4.6 Fix the direction of binary flags (compare the share of "yes", not of the dominant category) (`profile.py`, `app/persona_page.py`)
+    - Bug (introduced when 4.4 made 0/1 flags categorical, found while prototyping 8.1e): `profile._categorical_direction` compares the share of a persona's DOMINANT category with the other personas'. For a 0/1 flag whose dominant category is "0" that means "more non-users", yet the name and trait tag read "More App Users" (real example: a 215-person persona with 145 non-app and 70 app users was named "Low Payroll Income / More App Users"). The page's plain sentences (`_standardized_direction`) have the same defect
+    - Write the failing tests FIRST: a persona whose members are mostly non-users must be "fewer", never "more"; the persona with the highest "1" share is "more"; equal shares are "flat"; a non-binary categorical attribute (for example `age_band`) keeps the dominant-category comparison; the name, the trait tag and the plain sentence for the mostly-non-user persona all read Fewer/fewer, never More/more
+    - Fix: for a binary flag (category values within {"0","1"}) compare the persona's share of "1" with the other personas' pooled share of "1"; make the page's sentence logic read `PersonaProfile.distinguishing_directions` (one source of truth) instead of re-deriving it; make flag-style sentence wording read naturally ("use the mobile app", "shop online")
+    - Show 2-3 before/after names from the same runs; keep names unique and deterministic; the distinguishing-attribute ranking is unchanged
+    - _Requirements: 4.3, 4.4, 4.10, 6.4_
 
 - [x] 5. Implement clustering (`cluster.py`)
   - [x] 5.1 Implement seeded k-prototypes fit, k validation, sampling cap, assignment, and elbow sweep
@@ -104,7 +122,7 @@ The build order follows the design's module breakdown: dependency → config →
     - hypothesis, minimum 100 iterations, tagged `# Feature: persona-segmentation, Property 12: Percentage bounds and size consistency`
     - _Requirements: 4.1, 4.7_
 
-- [ ] 8. Implement persona naming (`naming.py`)
+- [x] 8. Implement persona naming (`naming.py`)
   - [x] 8.1 Implement the `PersonaNamer` interface and `RuleBasedNamer`
     - Define the `PersonaNaming` TypedDict (`name`, `description`, `actions`) and the `PersonaNamer` Protocol with `name(profile, taken) -> PersonaNaming`
     - Implement `RuleBasedNamer` deriving name, one-line description, and 2–3 recommended actions purely from the `PersonaProfile` so identical profiles yield identical output
@@ -137,6 +155,18 @@ The build order follows the design's module breakdown: dependency → config →
   - [x] 8.1d Update naming tests for the direction-aware format
     - Update `tests/test_part5_personas_naming_unit.py` and the Property 7 test `tests/test_part5_personas_naming_unique_property.py` to match the new name format; add a test that two personas with the same top attributes but opposite directions receive different names; keep determinism and uniqueness assertions
     - _Requirements: 4.6, 4.9_
+  - [x] 8.1e Data-driven channel suggestion from persona-vs-group channel reach (`profile.py`, `grouping.py`, `naming.py`)
+    - Problem: with the flags categorical the channel rule read the dominant "1" category of `digital_app_user`, which is "1" for almost every persona, so 11 of 12 personas suggested In-app and the channel no longer differentiated
+    - Add a profile field (for example `channel_reach`) holding, per channel, the persona's share of members reachable on it, the group's overall share, and the persona size, using `digital_app_user` (In-app), `email_valid` (Email) and `mobile_valid` (SMS); compute it in `grouping.py` from the group's rows so it exists even when those flags are not clustering attributes; the `PersonaNamer` interface is unchanged; do NOT use Part 4 `best_channel`
+    - Rule: a channel stands out when the persona's share exceeds the group's by at least 3 percentage points AND by at least 2 standard errors; the strongest (highest z) wins, ties go In-app, then Email, then SMS; otherwise the first action reads "Reachable on every channel about equally; lead with SMS (widest reach)" (naming the widest-reach channel, ties In-app, Email, SMS) followed by the offer angle; an empty `channel_reach` keeps the previous behaviour
+    - Write the failing tests FIRST (stands out, strongest wins, tie precedence, 3-point gap not met, 2-standard-error test not met on a small persona, fallback wording and widest-reach choice, empty reach keeps the old rule, determinism, names still unique, profile-level shares and group overall computed correctly including flags that are not clustering attributes, and a real-data run)
+    - Show before/after channels for the same runs as before; keep names unique and deterministic
+    - _Requirements: 4.5, 4.6, 4.8, 4.9_
+  - [x] 8.1f Reword the channel fallback sentence (`naming.py`)
+    - Problem: the fallback action read "Reachable on every channel about equally; lead with SMS (widest reach) with a savings-bundle offer", with an awkward double "with"
+    - Write the failing tests FIRST (exact new wording, no double "with", still names the widest-reach channel with the In-app/Email/SMS tie order, still carries the offer angle, the stand-out wording "Best reached by {channel} with a {angle}" is unchanged, empty `channel_reach` behaviour unchanged, deterministic, names unchanged and unique)
+    - New fallback: "Reachable on every channel about equally; lead with {channel} (widest reach). Offer angle: a {angle}." (for example "... lead with SMS (widest reach). Offer angle: a savings-bundle offer."); update ONLY the existing 8.1e test expectations that assert the old fallback text, listing each with the reason
+    - _Requirements: 4.5, 4.6_
 
 - [x] 9. Implement levels and the two-step flow (`grouping.py`)
   - [x] 9.1 Implement clustering levels, two-step grouping, and group-size handling
@@ -147,6 +177,12 @@ The build order follows the design's module breakdown: dependency → config →
   - [x] 9.2 Write grouping edge tests in `tests/test_part5_personas_grouping_edge.py`
     - Verify the too-small group flag, k-cap-to-group-size, empty business-segment field rejection, and empty campaign pool handling
     - _Requirements: 3.7, 3.10, 3.11, 5.6_
+  - [x] 9.3 Restrict the business-segment grouping field to `customer_dna.segment` (`grouping.py`, `app/persona_page.py`)
+    - NOTE (numbering): requested as "3.13"; the 3.x tasks are the data-join tasks and this change belongs to grouping (Requirement 3.5), so it is 9.3. Earlier tasks' completed statuses are unchanged; 9.1's text offering "Part 3 `Segment_Label`" is superseded by this task
+    - Why: the Part 3 Segment_Label is per (client, promo), not a column of the joined data, so choosing it on the page failed; it is still used for decision-card cells and the Persona_Mix
+    - Write the failing tests FIRST: the group-field options offered to the user contain only `customer_dna.segment` (pure functions in the grouping module and the page module); the "By customer segment" level uses `segment` directly (no picker) and other levels use none; an unknown field (for example `segment_label`) raises `InvalidSegmentFieldError` naming the field and the valid option and mentioning the per-client/per-promo reason; a missing field (None) lists the valid option; the all-null-field error and valid runs are unchanged; the page source no longer offers a "Part 3 segment label" choice
+    - Apply: remove the dropdown from the page and use `segment` directly; add `BUSINESS_SEGMENT_FIELD` / `BUSINESS_SEGMENT_FIELD_OPTIONS` and `InvalidSegmentFieldError` in `grouping.py` with the actionable messages; the page shows that error message as-is; update docstrings and UI text that mention the Part 3 label as a grouping option; leave the Part 4 cell key, the Persona_Mix, the export `group` column, the group dropdown and the downloads untouched
+    - _Requirements: 3.5, 3.6, 3.7, 3.20_
 
 - [x] 10. Implement the leads export (`export.py`)
   - [x] 10.1 Implement `Persona_Labeled_Leads` construction and the default `Campaign_Leads_Export`
@@ -244,26 +280,36 @@ The build order follows the design's module breakdown: dependency → config →
   - [x] 14.8 Write group-filter unit tests in `tests/test_part5_personas_group_filter_unit.py`
     - Unit-test the pure group-filtering helpers from 14.7 (no Streamlit UI): selecting one group yields only that group's persona set / labels / mix inputs / download rows and filename; "All groups" is the unfiltered view; a too-small group surfaces its message; and the group selection does NOT alter the underlying persona assignments (same labels for a client regardless of the selected view)
     - _Requirements: 3.8, 3.10, 7.1, 8.8_
-  - [-] 14.9 Warn on single-type attribute selections and caption the clustering kind (`app/persona_page.py`)
+  - [x] 14.9 Warn on single-type attribute selections and caption the clustering kind (`app/persona_page.py`)
     - NOTE: requested as "task 14.5 after 14.2", but 14.5 already exists (completed elbow removal) and earlier tasks are not renumbered, so this is 14.9
-    - Add a pure function that classifies the current selection (using the pipeline's `classify_types`, so it matches what the backend runs) as `numeric` / `categorical` / `mixed` / `none`, and a pure function mapping that to the warning text; show a non-blocking `st.warning` above the Run button for numeric-only ("Only numeric attributes selected. Personas will be based on those alone. Adding a categorical attribute (such as marital status or a product owned) gives richer personas.") and categorical-only ("Only categorical attributes selected. Personas will be based on those alone. Adding a numeric attribute (such as age or spend) gives richer personas."); no confirmation step; nothing for mixed; an empty selection keeps the existing "pick at least one attribute" error
+    - Add a pure function that classifies the current selection (using the pipeline's `classify_types`, so it matches what the backend runs) as `numeric` / `categorical` / `mixed` / `none`, and a pure function mapping that to the warning text; show a non-blocking `st.warning` above the Run button for numeric-only ("Only numeric attributes selected. Personas will be based on those alone. Adding a categorical attribute (such as marital status or a product owned) gives richer personas.") and categorical-only ("Only categorical attributes selected. Personas will be based on those alone. Adding a numeric attribute (such as years with the bank or spend) gives richer personas."); no confirmation step; nothing for mixed; an empty selection keeps the existing "pick at least one attribute" error
     - Do NOT claim k-prototypes gives better results; the copy may only say mixing both types gives richer personas
     - After a run, show a short caption stating the kind of clustering used (e.g. "Clustered on numeric attributes only"); no caption for mixed selections
     - Unit-test the pure functions in `tests/test_part5_personas_selection_kind_unit.py` (numeric-only, categorical-only, mixed, empty; warning/caption text; no Streamlit UI)
     - _Requirements: 6.2, 6.11, 6.12_
+  - [x] 14.10 Name the dominant category in sentences for non-flag categorical attributes (`app/persona_page.py`)
+    - Problem: the persona-card sentence for a non-flag categorical said "more likely to be age band" (the attribute label, not the category); `online_shopper` is an ordinal text column (High / Medium / Low ...), so its flag-style wording is also wrong
+    - Write the failing tests FIRST: age_band reads "more likely to be in the 35-44 age band"; region, customer segment, socio-economic class, main money-in type and online shopper level each name the persona's dominant category in natural wording; an unknown categorical falls back to "have <label> of <category>"; binary 0/1 flags keep their wording ("fewer likely to use the mobile app"); numeric wording is unchanged; deterministic; names unchanged and unique
+    - Fix in the pure sentence helper only: for a non-binary categorical attribute the phrase names the persona's dominant category (`top_categories[column][0][0]`), the same category the recorded more/fewer direction compares
+    - _Requirements: 4.10_
+  - [x] 14.11 Say "less likely" instead of "fewer likely" in persona sentences (`app/persona_page.py`)
+    - Problem: the plain sentence for a "fewer" direction read "fewer likely to use the mobile app" / "fewer likely to be in the 25-34 age band", which is ungrammatical
+    - Write the failing tests FIRST: a flag with direction fewer reads "less likely to use the mobile app"; a non-flag categorical reads "less likely to be in the 55+ age band"; owns/has/shops flag wording uses "less likely"; "more likely" is unchanged; the word "fewer" never appears in a sentence's "likely" phrase; numeric wording ("higher"/"lower") is unchanged; the trait tags ("Fewer app users") and the persona names are unchanged; deterministic
+    - Fix only the sentence phrase composition (map the "fewer" direction to "less" in the "<direction> likely ..." phrases); update ONLY the sentence expectations that asserted "fewer likely", listing each with the reason
+    - _Requirements: 4.10_
 
-- [ ] 15. Shared test strategies and end-to-end verification
+- [x] 15. Shared test strategies and end-to-end verification
   - [x] 15.1 Add shared hypothesis strategies in `tests/strategies_part5_personas.py`
     - Provide generators for joined attribute sets, run specs, and lead pools shared by the property tests; rely on `tests/conftest.py` for `sys.path` (never hardcode it)
     - _Requirements: 2.1, 4.1, 8.1_
   - [x] 15.2 Write the integration test in `tests/test_part5_personas_integration.py`
     - Run an end-to-end persona run over the sample `data/` + `outputs/` producing a labeled-leads CSV and per-cell mixes; confirm `run_pipeline.py` behavior and `outputs/` byte-identity are unaffected by the presence of `src/part5_personas`
     - _Requirements: 9.2, 9.3, 9.4_
-  - [ ] 15.3 Run `pytest` and confirm the existing pipeline is unchanged
+  - [x] 15.3 Run `pytest` and confirm the existing pipeline is unchanged
     - Run the full `pytest` suite; confirm all persona tests pass and that the existing stages still produce byte-identical `outputs/` artifacts
     - _Requirements: 9.2, 9.3_
 
-- [ ] 16. Final checkpoint - Ensure all tests pass
+- [x] 16. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
@@ -300,9 +346,16 @@ Order reflects what actually ran. Tasks 14.3 and 14.4 were deliberately deferred
     { "id": 16, "tasks": ["14.8"] },
     { "id": 17, "tasks": ["15.2"] },
     { "id": 18, "tasks": ["5.5"] },
-    { "id": 19, "tasks": ["14.9"] },
-    { "id": 20, "tasks": ["15.3"] },
-    { "id": 21, "tasks": ["14.3", "14.4"] }
+    { "id": 19, "tasks": ["4.4"] },
+    { "id": 20, "tasks": ["14.9"] },
+    { "id": 21, "tasks": ["15.3"] },
+    { "id": 22, "tasks": ["4.5"] },
+    { "id": 23, "tasks": ["4.6"] },
+    { "id": 24, "tasks": ["8.1e"] },
+    { "id": 25, "tasks": ["8.1f", "14.10"] },
+    { "id": 26, "tasks": ["14.11"] },
+    { "id": 27, "tasks": ["9.3"] },
+    { "id": 28, "tasks": ["14.3", "14.4"] }
   ]
 }
 ```

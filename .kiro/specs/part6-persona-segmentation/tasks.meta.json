@@ -601,6 +601,16 @@
         "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
         "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
         "timestamp": 1793874002642
+      },
+      {
+        "executionId": "566cb8e8-9c54-4cf5-adaa-45f638054087",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793957287975
+      },
+      {
+        "executionId": "566cb8e8-9c54-4cf5-adaa-45f638054087",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793961184732
       }
     ],
     "16. Final checkpoint - Ensure all tests pass": [
@@ -613,6 +623,11 @@
         "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
         "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
         "timestamp": 1793874002724
+      },
+      {
+        "executionId": "ff05b694-8233-4b7d-8d0c-cb05647c780b",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793981629959
       }
     ],
     "5. Implement clustering (`cluster.py`)": [
@@ -665,6 +680,11 @@
         "executionId": "28d65b7a-3e56-48d6-88b5-83d392908e45",
         "chatSessionId": "sess_5780e688-2837-4234-b44f-081ff42b3512",
         "timestamp": 1793883730000
+      },
+      {
+        "executionId": "ff05b694-8233-4b7d-8d0c-cb05647c780b",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793981629890
       }
     ],
     "14.1 Build the CRM-friendly page composition and session-state wiring": [
@@ -801,6 +821,129 @@
         "executionId": "3ab24c84-1f06-4155-823c-aaca1c13830b",
         "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
         "timestamp": 1793953172125
+      },
+      {
+        "executionId": "566cb8e8-9c54-4cf5-adaa-45f638054087",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793954083224
+      },
+      {
+        "executionId": "566cb8e8-9c54-4cf5-adaa-45f638054087",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793956474252
+      },
+      {
+        "executionId": "566cb8e8-9c54-4cf5-adaa-45f638054087",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793956999341
+      }
+    ],
+    "4.4 Classify binary flag columns as categorical (`preprocess.py`)": [
+      {
+        "executionId": "566cb8e8-9c54-4cf5-adaa-45f638054087",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793954184673
+      },
+      {
+        "executionId": "566cb8e8-9c54-4cf5-adaa-45f638054087",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793956473880
+      }
+    ],
+    "15. Shared test strategies and end-to-end verification": [
+      {
+        "executionId": "566cb8e8-9c54-4cf5-adaa-45f638054087",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793961184817
+      }
+    ],
+    "4.5 Restrict the binary-flag rule to integer/boolean dtypes and known flag names (`preprocess.py`, `profile.py`)": [
+      {
+        "executionId": "49ed6d74-3ff0-4387-94ac-63c7d1c6fba7",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793961800706
+      },
+      {
+        "executionId": "49ed6d74-3ff0-4387-94ac-63c7d1c6fba7",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793974196658
+      }
+    ],
+    "4.6 Fix the direction of binary flags (compare the share of \"yes\", not of the dominant category) (`profile.py`, `app/persona_page.py`)": [
+      {
+        "executionId": "8ae926c7-9c18-4467-867e-9242b654bfff",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793976346567
+      },
+      {
+        "executionId": "8ae926c7-9c18-4467-867e-9242b654bfff",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793977209870
+      }
+    ],
+    "8.1e Data-driven channel suggestion from persona-vs-group channel reach (`profile.py`, `grouping.py`, `naming.py`)": [
+      {
+        "executionId": "8ae926c7-9c18-4467-867e-9242b654bfff",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793977209411
+      },
+      {
+        "executionId": "8ae926c7-9c18-4467-867e-9242b654bfff",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793978897514
+      },
+      {
+        "executionId": "ff05b694-8233-4b7d-8d0c-cb05647c780b",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793980294611
+      }
+    ],
+    "8.1f Reword the channel fallback sentence (`naming.py`)": [
+      {
+        "executionId": "fa8380fa-403f-435f-be97-85c9dca2c144",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793979376771
+      },
+      {
+        "executionId": "fa8380fa-403f-435f-be97-85c9dca2c144",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793979870028
+      }
+    ],
+    "14.10 Name the dominant category in sentences for non-flag categorical attributes (`app/persona_page.py`)": [
+      {
+        "executionId": "fa8380fa-403f-435f-be97-85c9dca2c144",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793979377474
+      },
+      {
+        "executionId": "fa8380fa-403f-435f-be97-85c9dca2c144",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793979869910
+      }
+    ],
+    "14.11 Say \"less likely\" instead of \"fewer likely\" in persona sentences (`app/persona_page.py`)": [
+      {
+        "executionId": "ff05b694-8233-4b7d-8d0c-cb05647c780b",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793980294683
+      },
+      {
+        "executionId": "ff05b694-8233-4b7d-8d0c-cb05647c780b",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793981017170
+      }
+    ],
+    "9.3 Restrict the business-segment grouping field to `customer_dna.segment` (`grouping.py`, `app/persona_page.py`)": [
+      {
+        "executionId": "ad6e1177-adb2-4857-9bf0-351c646d8072",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793982777755
+      },
+      {
+        "executionId": "ad6e1177-adb2-4857-9bf0-351c646d8072",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793983222059
       }
     ]
   }

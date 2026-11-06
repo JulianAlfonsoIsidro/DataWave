@@ -43,7 +43,9 @@ Pure helpers (importable without a running Streamlit server, unit-tested in task
   Attribute_Group headings in display order.
 - :func:`distinguishing_sentences` -- render a persona's distinguishing
   attributes as plain business sentences over :class:`PersonaProfile` values
-  (Requirement 4.10).
+  (Requirement 4.10). A non-flag categorical names the persona's dominant
+  category via :func:`categorical_phrase` ("more likely to be in the 35-44 age
+  band", task 14.10); binary flags and numeric attributes keep their wording.
 - :func:`validation_error` -- the actionable validation message for an invalid
   configuration (Requirement 6.2).
 - :func:`too_small_message` -- the actionable "too small to cluster" instruction
@@ -66,6 +68,15 @@ the "By customer segment" level, which likewise produces one set per segment):
 - :func:`group_download_filename` / :func:`group_download_caption` -- the group
   named in the download filename and a caption stating what the file contains.
 
+Single-type pure helpers (Requirements 6.11, 6.12; task 14.9):
+
+- :func:`selection_kind` -- numeric / categorical / mixed / none for a selection,
+  given the pipeline's own column kinds (unknown columns ignored).
+- :func:`effective_clustering_attributes` -- the selection minus the
+  business-segment field at the business-segment / campaign levels.
+- :func:`single_type_warning` / :func:`clustering_kind_caption` -- the
+  non-blocking warning text and the post-run caption.
+
 ``streamlit`` is imported lazily inside the render functions so importing
 ``app.persona_page`` never requires a running Streamlit server (task 14.1
 verification bar / task 14.3 testability).
@@ -87,9 +98,12 @@ from part5_personas.export import (
     campaign_leads_export,
 )
 from part5_personas.grouping import (
+    BUSINESS_SEGMENT_FIELD,
+    BUSINESS_SEGMENT_FIELD_OPTIONS,
     LEVEL_ALL,
     LEVEL_BUSINESS_SEGMENT,
     LEVEL_CAMPAIGN,
+    InvalidSegmentFieldError,
     PersonaSet,
 )
 from part5_personas.labels import attribute_label as _pipeline_attribute_label
@@ -301,61 +315,28 @@ def _standardized_direction(
 ) -> str | None:
     """Return "higher"/"lower"/"more"/"fewer"/None for a persona's attribute.
 
-    A pure display transform over already-computed profile values
-    (Requirement 4.10): it compares this persona's value for ``column`` against the
-    across-persona average, exactly mirroring the design D2 standardization
-    direction (sign of ``value - mean``), and returns a direction word. It never
-    recomputes any clustering or ranking.
+    A pure display transform with a single source of truth (Requirement 4.10): it
+    reads :attr:`PersonaProfile.distinguishing_directions` -- computed once by the
+    profiling stage, which compares a binary flag on its share of "yes" -- and
+    maps ``high`` -> "higher", ``low`` -> "lower", ``more`` -> "more", ``fewer`` ->
+    "fewer". ``flat``, a missing entry, or a profile with no recorded directions
+    returns ``None`` so the caller omits the phrase. It never re-derives a
+    direction and never recomputes any clustering or ranking.
 
-    For a numeric attribute it compares the persona's ``numeric_mean[column]`` to
-    the across-persona mean of those means and returns "higher"/"lower". For a
-    categorical/ownership attribute it compares the persona's share of its top
-    category to the other personas' and returns "more"/"fewer". Returns ``None``
-    when the direction is flat (no contrast) so the caller can omit the phrase.
+    ``all_profiles`` is kept for call-site compatibility and is not used.
     """
-    numeric_means = [
-        p.numeric_mean[column] for p in all_profiles if column in p.numeric_mean
-    ]
-    if column in profile.numeric_mean and numeric_means:
-        avg = sum(numeric_means) / len(numeric_means)
-        value = profile.numeric_mean[column]
-        if value > avg:
-            return "higher"
-        if value < avg:
-            return "lower"
-        return None
+    direction = profile.distinguishing_directions.get(column)
+    return {
+        "high": "higher",
+        "low": "lower",
+        "more": "more",
+        "fewer": "fewer",
+    }.get(direction or "")
 
-    # Categorical: compare this persona's dominant-category share vs the pooled
-    # others. top_categories holds (category, count) pairs; the persona's size is
-    # the sum of its own counts for the attribute.
-    if column in profile.top_categories:
-        own_cats = profile.top_categories[column]
-        if not own_cats:
-            return None
-        top_cat = own_cats[0][0]
-        own_total = sum(c for _cat, c in own_cats) or 1
-        own_share = own_cats[0][1] / own_total
 
-        other_share_values: list[float] = []
-        for other in all_profiles:
-            if other is profile:
-                continue
-            cats = other.top_categories.get(column, [])
-            total = sum(c for _cat, c in cats)
-            if total == 0:
-                continue
-            match = next((c for cat, c in cats if cat == top_cat), 0)
-            other_share_values.append(match / total)
-        if not other_share_values:
-            return None
-        other_avg = sum(other_share_values) / len(other_share_values)
-        if own_share > other_avg:
-            return "more"
-        if own_share < other_avg:
-            return "fewer"
-        return None
-
-    return None
+def _likelihood_word(direction: str) -> str:
+    """Word before "likely": "fewer" -> "less", anything else -> "more" (task 14.11)."""
+    return "less" if direction == "fewer" else direction
 
 
 def _phrase_for(direction: str, label: str) -> str:
@@ -363,24 +344,80 @@ def _phrase_for(direction: str, label: str) -> str:
 
     Numeric directions ("higher"/"lower") read naturally before a lower-cased
     label ("higher total outflows"). Categorical directions ("more"/"fewer") are
-    rephrased into "more/fewer likely to <be/have ...>" so they stay readable:
+    rephrased into "more/less likely to <be/have ...>" ("fewer" reads "less
+    likely"; task 14.11) so they stay readable:
     an "Owns ... account" label becomes "more likely to own ... account", a
-    "Has ..." label becomes "more likely to have ...", and any other categorical
-    label is prefixed with "more likely to be ...". Kept simple and deterministic
-    (Requirement 4.10).
+    "Has ..." label becomes "more likely to have ...", a "Uses ..." / "Shops ..."
+    label becomes "less likely to use the mobile app" / "... shop online", and
+    any other categorical label is prefixed with "more likely to be ...". Kept
+    simple and deterministic (Requirement 4.10).
+
+    This label-based wording is used for numeric attributes, binary flags, and as
+    the fallback for a non-binary categorical with no recorded top category; a
+    non-binary categorical with a dominant category uses
+    :func:`categorical_phrase` instead (task 14.10).
     """
     low = label.lower()
     if direction in ("higher", "lower"):
         return f"{direction} {low}"
 
-    # Categorical "more"/"fewer" -> a readable "<more/fewer> likely to ..." phrase.
+    # Categorical "more"/"fewer" -> a readable "<more/less> likely to ..." phrase.
+    word = _likelihood_word(direction)
     if low.startswith("owns "):
         subject = low[len("owns ") :]
-        return f"{direction} likely to own {subject}"
+        return f"{word} likely to own {subject}"
     if low.startswith("has "):
         subject = low[len("has ") :]
-        return f"{direction} likely to have {subject}"
-    return f"{direction} likely to be {low}"
+        return f"{word} likely to have {subject}"
+    if low.startswith("uses "):
+        return f"{word} likely to use {low[len('uses ') :]}"
+    if low.startswith("shops "):
+        return f"{word} likely to shop {low[len('shops ') :]}"
+    return f"{word} likely to be {low}"
+
+
+def categorical_phrase(column: str, category: str, direction: str) -> str:
+    """Phrase naming a persona's dominant category for a non-flag categorical.
+
+    Returns the text that follows the direction word, so the sentence reads
+    ``"<more|less> likely <phrase>"`` (tasks 14.10/14.11, Requirement 4.10), e.g.
+    ``categorical_phrase("age_band", "35-44", "more")`` ->
+    ``"more likely to be in the 35-44 age band"``. ``direction`` is "more" or
+    "fewer" (rendered "less likely"). Known columns have natural wording; ``online_shopper`` is an ordinal
+    text level (not a yes/no flag); any other categorical reads
+    "to have <label> of <category>". Pure and deterministic.
+    """
+    cat = str(category)
+    if column == "age_band":
+        tail = f"to be in the {cat} age band"
+    elif column == "region":
+        tail = f"to be in the {cat} region"
+    elif column == "segment":
+        tail = f"to be in the {cat} customer segment"
+    elif column == "sec_class":
+        tail = f"to be in socio-economic class {cat}"
+    elif column == "inflow_type":
+        tail = f"to have {cat} as their main money-in type"
+    elif column == "online_shopper":
+        tail = f"to be a {cat.lower()} online shopper"
+    else:
+        label = re.sub(r"\s*\([^)]*\)\s*$", "", attribute_display_label(column))
+        tail = f"to have {label.lower()} of {cat}"
+    return f"{_likelihood_word(direction)} likely {tail}"
+
+
+def _dominant_category(profile: PersonaProfile, column: str) -> str | None:
+    """Dominant category of a NON-binary categorical column, else ``None``.
+
+    ``None`` for a binary 0/1 flag, a numeric attribute, or a categorical with no
+    recorded top category (callers then keep the label-based wording).
+    """
+    top = profile.top_categories.get(column) or []
+    if not top:
+        return None
+    if {str(cat) for cat, _count in top} <= {"0", "1"}:
+        return None
+    return str(top[0][0])
 
 
 def distinguishing_sentences(
@@ -411,6 +448,14 @@ def distinguishing_sentences(
     for column in profile.distinguishing:
         direction = _standardized_direction(column, profile, all_profiles)
         if direction is None:
+            continue
+        dominant = (
+            _dominant_category(profile, column)
+            if direction in ("more", "fewer")
+            else None
+        )
+        if dominant is not None:
+            fragments.append(categorical_phrase(column, dominant, direction))
             continue
         label = attribute_display_label(column)
         fragments.append(_phrase_for(direction, label))
@@ -523,6 +568,89 @@ def validation_error(
         )
     if not level:
         return "Choose how to group leads: all leads, by customer segment, or by campaign."
+    return None
+
+
+# --------------------------------------------------------------------------- #
+# Single-type warning and clustering-kind caption (Requirements 6.11, 6.12)   #
+# --------------------------------------------------------------------------- #
+SELECTION_NUMERIC = "numeric"
+SELECTION_CATEGORICAL = "categorical"
+SELECTION_MIXED = "mixed"
+SELECTION_NONE = "none"
+
+_NUMERIC_ONLY_WARNING = (
+    "Only numeric attributes selected. Personas will be based on those alone. "
+    "Adding a categorical attribute (such as marital status or a product owned) "
+    "gives richer personas."
+)
+_CATEGORICAL_ONLY_WARNING = (
+    "Only categorical attributes selected. Personas will be based on those alone. "
+    "Adding a numeric attribute (such as years with the bank or spend) gives richer personas."
+)
+
+
+def selection_kind(selected: list[str], kinds: dict[str, str]) -> str:
+    """Classify a selection as numeric / categorical / mixed / none (Req 6.11).
+
+    ``kinds`` maps raw column -> ``"numeric"`` / ``"categorical"`` (the pipeline's
+    own ``classify_types`` result). Selected columns missing from ``kinds`` are
+    IGNORED for the decision; if no known column remains the result is ``none``.
+    """
+    known = [kinds[c] for c in selected if kinds.get(c) in ("numeric", "categorical")]
+    if not known:
+        return SELECTION_NONE
+    if all(k == "numeric" for k in known):
+        return SELECTION_NUMERIC
+    if all(k == "categorical" for k in known):
+        return SELECTION_CATEGORICAL
+    return SELECTION_MIXED
+
+
+def business_segment_field_options() -> list[str]:
+    """Grouping fields offered at the business-segment level (Requirement 3.5).
+
+    Only ``customer_dna.segment``. The Part 3 label is per client and per promo,
+    so it is not offered.
+    """
+    return list(BUSINESS_SEGMENT_FIELD_OPTIONS)
+
+
+def business_segment_field_for_level(level: str | None) -> str | None:
+    """The grouping field a level uses: ``segment`` for business-segment, else None."""
+    return BUSINESS_SEGMENT_FIELD if level == LEVEL_BUSINESS_SEGMENT else None
+
+
+def effective_clustering_attributes(
+    level: str | None,
+    attributes: list[str],
+    business_segment_field: str | None,
+) -> list[str]:
+    """Attributes the pipeline actually clusters on (mirrors the backend).
+
+    At the ``business-segment`` and ``campaign`` levels the business-segment field
+    is not a clustering feature, so it is dropped; level ``all`` is unchanged.
+    """
+    if level in (LEVEL_BUSINESS_SEGMENT, LEVEL_CAMPAIGN) and business_segment_field:
+        return [c for c in attributes if c != business_segment_field]
+    return list(attributes)
+
+
+def single_type_warning(kind: str) -> str | None:
+    """Non-blocking warning text for a single-type selection (Req 6.11)."""
+    if kind == SELECTION_NUMERIC:
+        return _NUMERIC_ONLY_WARNING
+    if kind == SELECTION_CATEGORICAL:
+        return _CATEGORICAL_ONLY_WARNING
+    return None
+
+
+def clustering_kind_caption(kind: str | None) -> str | None:
+    """Caption shown with results of a single-type run (Req 6.12)."""
+    if kind == SELECTION_NUMERIC:
+        return "Clustered on numeric attributes only"
+    if kind == SELECTION_CATEGORICAL:
+        return "Clustered on categorical attributes only"
     return None
 
 
@@ -696,6 +824,9 @@ PERSONA_FLASH_KEY = "persona_flash_messages"
 # {group_key: lead_count} for the last non-campaign run, used by the too-small
 # message (Requirement 6.10). Empty for the campaign level.
 PERSONA_GROUP_COUNTS_KEY = "persona_group_counts"
+# The selection kind (numeric/categorical/mixed/none) of the run that produced the
+# displayed results, used for the clustering-kind caption (Requirement 6.12).
+PERSONA_KIND_KEY = "persona_clustering_kind"
 
 
 @dataclass(frozen=True)
@@ -849,6 +980,39 @@ def _joined_attribute_columns() -> list[str]:
         return [c for c in joined.columns if c != "client_id"]
 
     return _columns()
+
+
+_ATTRIBUTE_KINDS_FN = None
+
+
+def _joined_attribute_kinds() -> dict[str, str]:
+    """``{column: "numeric"|"categorical"}`` from the pipeline's ``classify_types``.
+
+    Cached once (module singleton). Returns ``{}`` on any failure so the page shows
+    no warning rather than a wrong one.
+    """
+    global _ATTRIBUTE_KINDS_FN
+    if _ATTRIBUTE_KINDS_FN is None:
+        import streamlit as st
+
+        @st.cache_data(show_spinner=False)
+        def _kinds() -> dict[str, str]:
+            try:
+                from part5_personas.config import Config
+                from part5_personas.join import build_joined_attributes
+                from part5_personas.preprocess import classify_types
+
+                joined, _report = build_joined_attributes(Config())
+                cols = [c for c in joined.columns if c != "client_id"]
+                numeric, categorical = classify_types(joined, cols)
+                out = {c: "numeric" for c in numeric}
+                out.update({c: "categorical" for c in categorical})
+                return out
+            except Exception:  # noqa: BLE001 - no warning beats a wrong warning
+                return {}
+
+        _ATTRIBUTE_KINDS_FN = _kinds
+    return _ATTRIBUTE_KINDS_FN()
 
 
 def _available_promo_meta() -> dict[str, str]:
@@ -1309,9 +1473,10 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
     composes, in order:
 
     1. the **Clustering_Level** selector (plain labels, default "All leads"), the
-       **Number of personas** k selector (2-6, default 3), and -- depending on the
-       level -- the **Business_Segment_Field** selector or the **campaign pool**
-       selector (Requirements 3.4, 3.5, 5.1-5.3, 6.1);
+       **Number of personas** k selector (2-6, default 3), and -- at the campaign
+       level -- the **campaign pool** selector; the "By customer segment" level
+       groups by ``customer_dna.segment`` directly with no field picker
+       (Requirements 3.4, 3.5, 5.1-5.3, 6.1);
     2. the grouped **Attribute_Picker** with readable labels and a preselected
        Default_Attribute_Set (Requirements 3.1, 3.13);
     3. the optional **two-step** control "Split by ... first ..." (Requirement 3.8);
@@ -1382,18 +1547,8 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
     campaign_pool: str | None = None
 
     if level == LEVEL_BUSINESS_SEGMENT:
-        # Choose the Business_Segment_Field (Requirement 3.5). The two supported
-        # fields are the customer_dna segment and the Part 3 Segment_Label.
-        field_label = st.selectbox(
-            "Segment field",
-            options=["Customer segment (customer_dna)", "Part 3 segment label"],
-            index=0,
-            key="persona_segment_field",
-            help="Build one set of personas per value of this field.",
-        )
-        business_segment_field = (
-            "segment" if field_label.startswith("Customer segment") else "segment_label"
-        )
+        # Group by customer_dna.segment directly; no picker (Requirements 3.5, 3.20).
+        business_segment_field = business_segment_field_for_level(level)
 
     if level == LEVEL_CAMPAIGN:
         campaign_pool = _render_campaign_pool_selector(run_result_key)
@@ -1434,6 +1589,18 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
             key="persona_grouping_attrs",
             help='Reads as "Split by [these] first, then create personas within each group".',
         )
+
+    # --- single-type warning (Requirement 6.11): non-blocking, above Run ---
+    _warning = single_type_warning(
+        selection_kind(
+            effective_clustering_attributes(
+                level, selected_attributes, business_segment_field
+            ),
+            _joined_attribute_kinds(),
+        )
+    )
+    if _warning is not None:
+        st.warning(_warning)
 
     # --- Run control + validation (Requirements 6.1, 6.2) ---
     run_clicked = st.button("Build Personas", type="primary", key="persona_run")
@@ -1479,6 +1646,9 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
         scoped = scope_result_to_group(result, selected_group)
 
         st.subheader("Personas")
+        _caption = clustering_kind_caption(st.session_state.get(PERSONA_KIND_KEY))
+        if _caption is not None:
+            st.caption(_caption)
         _render_summary_cards(scoped)
         # How the Personas Differ comparison table (Requirement 6.4).
         _render_persona_comparison(scoped)
@@ -1571,12 +1741,19 @@ def _handle_run(
         try:
             result = _run_personas_cached(spec, live_leads)
             exports = _build_exports(result)
+        except InvalidSegmentFieldError as exc:
+            st.error(str(exc))
+            return
         except Exception as exc:  # noqa: BLE001 - surface any backend halt as a message
             st.error(f"Could not build personas: {exc}")
             return
 
     st.session_state[PERSONA_RESULT_KEY] = result
     st.session_state[PERSONA_EXPORTS_KEY] = exports
+    st.session_state[PERSONA_KIND_KEY] = selection_kind(
+        effective_clustering_attributes(level, attributes, business_segment_field),
+        _joined_attribute_kinds(),
+    )
 
     # Per-group lead counts for the too-small message (Req 6.10). Campaign-level
     # membership is restricted by the pool, so no count is derived there.

@@ -7,8 +7,11 @@ Streamlit imports.
 The stage performs four responsibilities, in a deterministic order:
 
 - **Type classification** (:func:`classify_types`): each selected column is
-  numeric when its declared schema dtype is integer/float, categorical otherwise
-  (Requirement 2.2); a user ``type_overrides`` entry wins over auto-detection
+  categorical when it is a binary flag (``owns_*``, a name in
+  :data:`KNOWN_FLAG_COLUMNS`, boolean dtype, or an integer dtype with all
+  non-missing values in {0, 1}; floats are never reclassified from their values;
+  see :func:`is_binary_flag`, Requirements 1.3, 2.2), numeric
+  for any other integer/float column, categorical otherwise (Requirement 2.2); a user ``type_overrides`` entry wins over auto-detection
   (Requirement 2.3).
 - **Imputation** (:func:`impute`): every missing numeric value becomes the column
   mean of the non-missing values and every missing categorical value becomes the
@@ -40,6 +43,36 @@ import pandas as pd
 NUMERIC = "numeric"
 CATEGORICAL = "categorical"
 
+# Known binary flags, categorical regardless of dtype/values (Requirement 2.2).
+KNOWN_FLAG_COLUMNS = ("digital_app_user", "frugal_flag", "email_valid", "mobile_valid")
+
+
+def is_binary_flag(series: pd.Series, name: str) -> bool:
+    """Whether a column is a binary flag, hence categorical (Requirements 1.3, 2.2).
+
+    True when ``name`` starts with ``owns_``, ``name`` is in
+    :data:`KNOWN_FLAG_COLUMNS` (both regardless of dtype/values, so a known flag
+    stored as float because of missing values is still a flag), the dtype is
+    boolean, or the dtype is INTEGER (kind ``i``/``u``) with at least one
+    non-missing value and every non-missing value within ``{0, 1}``. Floating-point
+    columns are never reclassified from their values, so a float share that happens
+    to hold only 0.0/1.0 (e.g. ``inflow_share_business_receipts``) stays numeric;
+    the documented limit is that an unnamed float 0/1 flag is not detected. A
+    column with zero non-missing values is not a flag by value (it keeps the
+    dtype-based answer so :func:`impute` still rejects it). Non-numeric dtypes are
+    never flagged here (they are categorical anyway).
+    """
+    if name.startswith("owns_") or name in KNOWN_FLAG_COLUMNS:
+        return True
+    if series.dtype.kind == "b":
+        return True
+    if series.dtype.kind not in "iu":
+        return False
+    non_missing = series.dropna()
+    if non_missing.empty:
+        return False
+    return bool(non_missing.isin([0, 1]).all())
+
 
 def classify_types(
     frame: pd.DataFrame,
@@ -48,9 +81,12 @@ def classify_types(
 ) -> tuple[list[str], list[str]]:
     """Split the selected columns into numeric and categorical lists.
 
-    A column is classified numeric when its pandas dtype kind is integer,
-    unsigned-integer, or float (``i``/``u``/``f``), and categorical otherwise
-    (Requirement 2.2). A ``type_overrides`` entry for a column wins over the
+    A column is categorical when it is a binary flag (:func:`is_binary_flag`:
+    ``owns_*`` or known flag name, boolean dtype, or an integer dtype with all
+    non-missing values within ``{0, 1}``; float values never make a flag)
+    or has a non-numeric dtype; every other integer/unsigned/float column is
+    numeric (Requirement 2.2). A column with zero non-missing values keeps the
+    dtype-based answer. A ``type_overrides`` entry for a column wins over the
     auto-detected type (Requirement 2.3); it maps an attribute name onto either
     ``"numeric"`` or ``"categorical"``.
 
@@ -75,6 +111,8 @@ def classify_types(
         if override == NUMERIC:
             numeric_cols.append(col)
         elif override == CATEGORICAL:
+            categorical_cols.append(col)
+        elif is_binary_flag(frame[col], col):
             categorical_cols.append(col)
         elif frame[col].dtype.kind in "iuf":
             numeric_cols.append(col)
