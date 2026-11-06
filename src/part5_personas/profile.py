@@ -32,6 +32,13 @@ Responsibilities, in a deterministic order:
   ties broken by ascending attribute name, so the ranking is a pure deterministic
   function of the profiles. When fewer than 3 attributes were clustered on, all of
   them are reported.
+- **Distinguishing directions** (:func:`distinguishing_directions`, design D5 /
+  Requirement 4.4): for each already-ranked distinguishing attribute, the
+  direction of its contrast against the across-persona baseline --
+  ``"high"``/``"low"`` for numeric, ``"more"``/``"fewer"`` for categorical/flag,
+  ``"flat"`` when there is no contrast. A pure function of the same across-persona
+  stats, stored on :attr:`PersonaProfile.distinguishing_directions`; it does not
+  change the distinguishing ranking (Requirement 4.3).
 - **Zero-size omission** (:func:`build_profiles`): clusters with zero leads are
   omitted from the set entirely rather than profiled or named (Requirement 4.7).
 
@@ -44,7 +51,7 @@ cluster label, which fixes a stable naming order for the later naming stage.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
 import pandas as pd
@@ -75,6 +82,14 @@ class PersonaProfile:
     than 3 are present (Requirements 4.1, 4.2)."""
     distinguishing: list[str]
     """Top-3 distinguishing attribute names (design D2 / Requirement 4.3)."""
+    distinguishing_directions: dict[str, str] = field(default_factory=dict)
+    """Per distinguishing attribute, the direction of its contrast against the
+    across-persona baseline (design D5, Requirement 4.4): ``"high"``/``"low"`` for
+    a numeric attribute, ``"more"``/``"fewer"`` for a categorical/flag attribute,
+    and ``"flat"`` when there is no contrast. A pure, deterministic function of the
+    same across-persona stats that produce :attr:`distinguishing`; it does not
+    change the distinguishing ranking (Requirement 4.3). Defaults to an empty dict
+    so unrelated positional constructors stay backward-safe."""
 
 
 def _top_categories_for(column: pd.Series, top_n: int = 3) -> list[tuple[str, int]]:
@@ -301,6 +316,126 @@ def distinguishing_attributes(
     return result
 
 
+def _numeric_direction(
+    label: int,
+    col: str,
+    stats: dict[int, dict],
+    labels_sorted: list[int],
+) -> str:
+    """Direction of a numeric attribute's contrast for one persona (design D5).
+
+    Compares this persona's mean for ``col`` against the across-persona average of
+    the per-persona means (the same signal :func:`_numeric_score` standardizes).
+    Returns ``"high"`` when the persona sits above that average, ``"low"`` when
+    below, and ``"flat"`` when equal or when every persona shares the same mean
+    (population std 0), mirroring the ``sigma == 0 -> no contrast`` rule of design
+    D2. A pure, deterministic function of ``stats`` (Requirement 4.4).
+    """
+    means = np.array(
+        [stats[q]["numeric_mean"][col] for q in labels_sorted], dtype=float
+    )
+    mu = float(means.mean())
+    sigma = float(means.std(ddof=0))
+    if sigma == 0:
+        return "flat"
+    value = float(stats[label]["numeric_mean"][col])
+    if value > mu:
+        return "high"
+    if value < mu:
+        return "low"
+    return "flat"
+
+
+def _categorical_direction(
+    label: int,
+    col: str,
+    stats: dict[int, dict],
+    labels_sorted: list[int],
+) -> str:
+    """Direction of a categorical/flag attribute's contrast (design D5).
+
+    Compares this persona's share of its dominant category for ``col`` against the
+    pooled other-personas share of that same category (the same signal
+    :func:`_categorical_score` takes a max absolute difference of). Returns
+    ``"more"`` when the persona over-indexes on its dominant category versus the
+    others, ``"fewer"`` when it under-indexes, and ``"flat"`` when equal or when no
+    contrast is possible (a single persona, empty others, or no recorded category).
+    A pure, deterministic function of ``stats`` (Requirement 4.4).
+    """
+    size_p = stats[label]["size"]
+    if size_p == 0:
+        return "flat"
+
+    own_categories = stats[label]["top_categories"].get(col, [])
+    if not own_categories:
+        return "flat"
+    top_category = own_categories[0][0]
+    own_count = int(own_categories[0][1])
+    own_share = own_count / size_p
+
+    others = [q for q in labels_sorted if q != label]
+    other_total = sum(stats[q]["size"] for q in others)
+    if not others or other_total == 0:
+        return "flat"
+
+    other_count = 0
+    for q in others:
+        for cat, count in stats[q]["top_categories"].get(col, []):
+            if str(cat) == str(top_category):
+                other_count += int(count)
+    other_share = other_count / other_total
+
+    if own_share > other_share:
+        return "more"
+    if own_share < other_share:
+        return "fewer"
+    return "flat"
+
+
+def distinguishing_directions(
+    stats: dict[int, dict],
+    distinguishing: dict[int, list[str]],
+    numeric_cols: list[str],
+) -> dict[int, dict[str, str]]:
+    """Direction word per distinguishing attribute, per persona (design D5).
+
+    For every persona, maps each of its *already-ranked* distinguishing attributes
+    (from :func:`distinguishing_attributes`) to a direction word computed from the
+    same across-persona baseline: :func:`_numeric_direction` (``high``/``low``/
+    ``flat``) for a numeric attribute, :func:`_categorical_direction` (``more``/
+    ``fewer``/``flat``) for a categorical/flag attribute. The distinguishing
+    *ranking* is untouched (Requirement 4.3); this only adds the direction signal
+    the namer uses (Requirement 4.4). A pure, deterministic function of ``stats``
+    and ``distinguishing``.
+
+    Args:
+        stats: The per-persona stats from :func:`profile_stats`.
+        distinguishing: The ``{cluster_label: [attribute, ...]}`` ranking from
+            :func:`distinguishing_attributes`.
+        numeric_cols: The numeric attribute names (an attribute not in this set is
+            treated as categorical/flag).
+
+    Returns:
+        A ``{cluster_label: {attribute: direction}}`` mapping covering exactly the
+        attributes in ``distinguishing`` for each persona.
+    """
+    labels_sorted = sorted(stats)
+    numeric_set = set(numeric_cols)
+
+    result: dict[int, dict[str, str]] = {}
+    for label in labels_sorted:
+        directions: dict[str, str] = {}
+        for col in distinguishing.get(label, []):
+            if col in numeric_set:
+                directions[col] = _numeric_direction(label, col, stats, labels_sorted)
+            else:
+                directions[col] = _categorical_direction(
+                    label, col, stats, labels_sorted
+                )
+        result[label] = directions
+    return result
+
+
 def build_profiles(
     frame: pd.DataFrame,
     labels: np.ndarray,
@@ -351,6 +486,7 @@ def build_profiles(
         return []
 
     distinguishing = distinguishing_attributes(stats, numeric_cols, categorical_cols)
+    directions = distinguishing_directions(stats, distinguishing, numeric_cols)
 
     profiles: list[PersonaProfile] = []
     for label in sorted(stats):
@@ -364,6 +500,7 @@ def build_profiles(
                 numeric_median=s["numeric_median"],
                 top_categories=s["top_categories"],
                 distinguishing=distinguishing[label],
+                distinguishing_directions=directions[label],
             )
         )
 

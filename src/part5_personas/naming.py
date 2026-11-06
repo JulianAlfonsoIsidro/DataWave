@@ -16,18 +16,29 @@ its own module can implement the same ``name(profile, taken) -> PersonaNaming``
 signature and be swapped in at the call site with no pipeline or page changes
 (Requirement 4.8). :class:`RuleBasedNamer` is the default implementation.
 
+Direction-aware names (design D5 / Requirement 4.4): the base name composes the
+persona's top distinguishing attributes rendered in shared plain-language labels
+(from :mod:`part5_personas.labels`, so this module never imports ``app/``) plus a
+direction word — High/Low for numeric attributes, More/Fewer for categorical or
+flag attributes — read from ``PersonaProfile.distinguishing_directions``. Two
+personas sharing the same top attributes but differing in direction therefore get
+different names.
+
 Uniqueness contract (Requirement 4.9): :meth:`RuleBasedNamer.name` takes a
 ``taken`` set of names already assigned within the current Persona_Set. If the
-derived base name is already in ``taken``, a deterministic suffix is appended
-until the name is unique. The *caller* is responsible for adding each returned
-name to ``taken`` before naming the next persona, and personas must be named in
-ascending cluster-label order, so disambiguation is fully deterministic.
+derived base name is already in ``taken``, the name is first extended with the
+persona's third distinguishing attribute and, only if that still collides, a
+letter suffix (" (A)", " (B)", ...) is appended until the name is unique. The
+*caller* is responsible for adding each returned name to ``taken`` before naming
+the next persona, and personas must be named in ascending cluster-label order, so
+disambiguation is fully deterministic.
 """
 
 from __future__ import annotations
 
 from typing import Protocol, TypedDict, runtime_checkable
 
+from part5_personas.labels import attribute_label, is_flag_attribute
 from part5_personas.profile import PersonaProfile
 
 
@@ -83,6 +94,41 @@ def _title_phrase(attr: str) -> str:
     return _prettify_attribute(attr).title()
 
 
+# Direction word -> the human-facing prefix used inside a persona name
+# (design D5 / Requirement 4.4). Numeric contrasts read "High"/"Low"; categorical
+# or flag contrasts read "More"/"Fewer"; a "flat" (no-contrast) direction omits
+# the prefix entirely so the label stands alone.
+_DIRECTION_WORDS: dict[str, str] = {
+    "high": "High",
+    "low": "Low",
+    "more": "More",
+    "fewer": "Fewer",
+    "flat": "",
+}
+
+
+# For flag attributes, numeric-style directions are remapped to More/Fewer.
+_FLAG_DIRECTION_MAP: dict[str, str] = {"high": "more", "low": "fewer"}
+
+
+def _name_fragment(attr: str, direction: str | None) -> str:
+    """Compose one "<Direction> <label>" fragment for a persona name (design D5).
+
+    Renders a single distinguishing attribute as a plain-language fragment: the
+    shared business label from :func:`part5_personas.labels.attribute_label`
+    (title-cased for the name) prefixed by the direction word mapped from
+    ``direction`` (``high``/``low`` -> "High"/"Low", ``more``/``fewer`` ->
+    "More"/"Fewer"). A ``"flat"``, unknown, or missing direction drops the prefix
+    so the label stands on its own. Pure and deterministic (Requirement 4.6).
+    """
+    label = attribute_label(attr).title()
+    if is_flag_attribute(attr):
+        # Flag attributes read More/Fewer, never High/Low.
+        direction = _FLAG_DIRECTION_MAP.get(direction or "", direction)
+    prefix = _DIRECTION_WORDS.get(direction or "", "")
+    return f"{prefix} {label}".strip()
+
+
 # The domain's only valid channel labels (must match these spellings exactly, or
 # leads become unreachable downstream). The namer never emits anything outside
 # this set (Requirement 4.5).
@@ -127,11 +173,12 @@ class RuleBasedNamer:
         is a pure function of ``profile`` (Requirement 4.6).
 
         Uniqueness (Requirement 4.9): if the derived base name already appears in
-        ``taken``, a deterministic suffix is appended — first the cluster index
-        (``" (cluster N)"``) and, only if that too collides, an ascending integer
-        — until the name is unique. The caller must add the returned name to
-        ``taken`` before naming the next persona, and must name personas in
-        ascending cluster-label order, so the disambiguation is deterministic.
+        ``taken``, the name is first *extended* with the persona's third
+        distinguishing attribute (direction + label) and, only if that too
+        collides, a letter suffix (``" (A)"``, ``" (B)"``, ...) is appended until
+        the name is unique. The caller must add the returned name to ``taken``
+        before naming the next persona, and must name personas in ascending
+        cluster-label order, so the disambiguation is deterministic.
 
         Args:
             profile: The persona's computed profile (raw-scale stats plus
@@ -144,7 +191,7 @@ class RuleBasedNamer:
             ``description``, and 2 or 3 ``actions``.
         """
         base_name = self._base_name(profile)
-        unique_name = self._disambiguate(base_name, profile.cluster_label, taken)
+        unique_name = self._disambiguate(base_name, profile, taken)
         description = self._description(profile)
         actions = self._actions(profile)
         return PersonaNaming(
@@ -156,46 +203,96 @@ class RuleBasedNamer:
     # -- name -------------------------------------------------------------
 
     def _base_name(self, profile: PersonaProfile) -> str:
-        """Derive a base persona name from the top distinguishing attributes.
+        """Compose a direction-aware base name from distinguishing attributes (D5).
 
-        Uses the first one or two entries of ``profile.distinguishing`` (already
-        ranked and tie-broken deterministically by the profiling stage) to form
-        a readable label such as ``"Monthly Income & Investment Ownership
-        Persona"``. Falls back to a cluster-indexed label when no distinguishing
-        attributes are available, keeping the result total and deterministic.
+        Reads the first two entries of ``profile.distinguishing`` (already ranked
+        and tie-broken by the profiling stage) and renders each as a
+        ``"<Direction> <plain label>"`` fragment — High/Low for numeric
+        attributes, More/Fewer for categorical/flag attributes — using the
+        direction word stored on ``profile.distinguishing_directions`` and the
+        shared business label from :func:`part5_personas.labels.attribute_label`.
+        The two fragments are joined with " / " (e.g.
+        ``"High Total Outflows / Fewer App Users"``); the redundant trailing
+        "Persona" is dropped (Requirement 4.4). Two personas sharing the same top
+        attributes but differing in direction therefore get different names.
+
+        Falls back to a cluster-indexed label (``"Persona N"``) when no
+        distinguishing attributes are available, keeping the result total and a
+        pure deterministic function of the profile (Requirement 4.6).
         """
         distinguishing = list(profile.distinguishing)
         if not distinguishing:
             return f"Persona {profile.cluster_label + 1}"
 
-        lead = [_title_phrase(attr) for attr in distinguishing[:2]]
-        joined = " & ".join(lead)
-        return f"{joined} Persona"
+        directions = profile.distinguishing_directions
+        fragments = [
+            _name_fragment(attr, directions.get(attr)) for attr in distinguishing[:2]
+        ]
+        return " / ".join(fragment for fragment in fragments if fragment)
 
     def _disambiguate(
-        self, base_name: str, cluster_label: int, taken: set[str]
+        self, base_name: str, profile: PersonaProfile, taken: set[str]
     ) -> str:
-        """Return ``base_name`` made unique against ``taken`` deterministically.
+        """Return ``base_name`` made unique against ``taken`` deterministically (D5).
 
-        When ``base_name`` is free it is returned unchanged. Otherwise the
-        cluster index is appended (``"<base> (cluster N)"``); if that is also
-        taken, an ascending integer suffix is tried until a free name is found.
-        The procedure depends only on ``base_name``, ``cluster_label``, and
-        ``taken`` (Requirement 4.9).
+        When ``base_name`` is free it is returned unchanged. Otherwise, in order
+        (Requirement 4.9):
+
+        1. **Extend** the name with the persona's *third* distinguishing attribute
+           rendered as a direction + label fragment (``"<base> / <third>"``) and
+           retry — two personas that share their top two distinguishing attributes
+           often differ on the third.
+        2. **Letter suffix.** If the extended name is still taken (or there is no
+           usable third attribute), append an ascending letter suffix
+           (``" (A)"``, ``" (B)"``, ..., then ``" (AA)"`` and onward) to whichever
+           name was built until a free name is found — never a ``"(cluster N)"``
+           suffix.
+
+        The procedure depends only on ``base_name``, ``profile``, and ``taken``,
+        so it is deterministic (Requirement 4.6).
         """
         if base_name not in taken:
             return base_name
 
-        candidate = f"{base_name} (cluster {cluster_label})"
-        if candidate not in taken:
-            return candidate
+        # 1. Extend with the third distinguishing attribute, if any.
+        distinguishing = list(profile.distinguishing)
+        candidate = base_name
+        if len(distinguishing) >= 3:
+            third_attr = distinguishing[2]
+            third = _name_fragment(
+                third_attr, profile.distinguishing_directions.get(third_attr)
+            )
+            if third:
+                extended = f"{base_name} / {third}"
+                if extended not in taken:
+                    return extended
+                candidate = extended
 
-        suffix = 2
+        # 2. Letter suffix on whichever name we built (base or extended).
+        index = 0
         while True:
-            numbered = f"{base_name} (cluster {cluster_label}) {suffix}"
-            if numbered not in taken:
-                return numbered
-            suffix += 1
+            suffix = self._letter_suffix(index)
+            lettered = f"{candidate} ({suffix})"
+            if lettered not in taken:
+                return lettered
+            index += 1
+
+    @staticmethod
+    def _letter_suffix(index: int) -> str:
+        """Map ``0, 1, 2, ...`` to ``"A", "B", ..., "Z", "AA", "AB", ...``.
+
+        A deterministic bijective base-26 letter sequence used for the
+        last-resort disambiguation suffix (Requirement 4.9), so an unbounded number
+        of collisions still resolves to a unique, letter-based name.
+        """
+        letters = ""
+        n = index
+        while True:
+            letters = chr(ord("A") + n % 26) + letters
+            n = n // 26 - 1
+            if n < 0:
+                break
+        return letters
 
     # -- description ------------------------------------------------------
 

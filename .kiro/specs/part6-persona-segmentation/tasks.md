@@ -88,6 +88,11 @@ The build order follows the design's module breakdown: dependency → config →
     - **Validates: Requirements 2.11, 4.3, 4.6**
     - hypothesis, minimum 100 iterations, tagged `# Feature: persona-segmentation, Property 4: Determinism under fixed seed` and `# Feature: persona-segmentation, Property 10: Distinguishing-metric determinism and standardization`
     - _Requirements: 2.11, 4.3, 4.6_
+  - [x] 7.2b Fix the degenerate sigma=0 case in the distinguishing-metric scale-invariance test (`tests/test_part5_personas_determinism_property.py`)
+    - In `test_distinguishing_metric_deterministic_and_standardized`, exclude the degenerate case where every persona shares the same mean for a column (across-persona population std == 0) from the affine scale-invariance assertion, because `a*mean + b` can introduce ~1e-13 floating-point noise that makes the rescaled std non-zero and the z-score spurious
+    - Keep the determinism checks; add an explicit assertion that when the across-persona std is 0 the numeric distinctiveness score is exactly 0.0 (the design's `sigma == 0 -> 0.0` rule, Requirement 4.3)
+    - Do NOT change `profile.py`; this is a test-only correction to an over-broad property assertion
+    - _Requirements: 4.3, 4.6_
   - [x] 7.3 Write the profile-bounds property test in `tests/test_part5_personas_profile_bounds_property.py`
     - **Property 12: Percentage bounds and size consistency**
     - **Validates: Requirements 4.1, 4.7**
@@ -116,6 +121,17 @@ The build order follows the design's module breakdown: dependency → config →
     - **Validates: Requirements 4.9**
     - hypothesis, minimum 100 iterations, tagged `# Feature: persona-segmentation, Property 7: Persona names are unique within a set`
     - _Requirements: 4.9_
+  - [x] 8.1c Revise persona naming to be direction-aware and readable (`naming.py`, `profile.py`)
+    - Add a `distinguishing_directions: dict[str, str]` field to `PersonaProfile` computed in the profiling stage from the across-persona average (per distinguishing attribute: `high`/`low` for numeric, `more`/`fewer` for categorical, `flat` when there is no contrast), a pure deterministic function of the already-computed stats; do NOT change the distinguishing-attribute ranking (Requirement 4.3)
+    - Rewrite `RuleBasedNamer._base_name` to compose the name from the top distinguishing attributes using their plain-language labels plus a direction word, reading only `profile.distinguishing` and the new `profile.distinguishing_directions`; keep the `PersonaNamer.name(profile, taken)` Protocol signature unchanged (Requirement 4.8) and the output deterministic (Requirement 4.6)
+    - Flag-phrasing refinement (approved): for boolean/flag-style attributes render "More/Fewer <plural label>" (e.g. "More app users") rather than an awkward "High <verb-phrase label>"; reserve High/Low for genuinely numeric attributes (e.g. "High total outflows", "Low payroll income"); drop the redundant trailing "Persona"
+    - Use the same plain-language attribute labels the Attribute_Picker uses; move that raw-column -> label map into a shared location importable by the pure pipeline (so `naming.py` does not import `app/`), or duplicate a minimal map in the pipeline with a title-cased fallback — keep it a pure function
+    - Disambiguation: when the composed base name is still taken, extend to the third distinguishing attribute before falling back; as a last resort replace " (cluster N)" with a letter suffix (" (A)", " (B)"). Keep names unique within a set (Requirement 4.9)
+    - Keep the recommended actions unchanged
+    - _Requirements: 4.3, 4.4, 4.6, 4.8, 4.9_
+  - [x] 8.1d Update naming tests for the direction-aware format
+    - Update `tests/test_part5_personas_naming_unit.py` and the Property 7 test `tests/test_part5_personas_naming_unique_property.py` to match the new name format; add a test that two personas with the same top attributes but opposite directions receive different names; keep determinism and uniqueness assertions
+    - _Requirements: 4.6, 4.9_
 
 - [x] 9. Implement levels and the two-step flow (`grouping.py`)
   - [x] 9.1 Implement clustering levels, two-step grouping, and group-size handling
@@ -180,16 +196,22 @@ The build order follows the design's module breakdown: dependency → config →
     - Render one summary card per persona (name, description, integer size, one-decimal percentage, distinguishing attributes as plain sentences, and recommended actions as campaign guidance); default the download control to the `Campaign_Leads_Export` and offer the full `Persona_Labeled_Leads` as a clearly labeled optional second download, both disabled until a run completes in the session
     - Delegate all clustering and profile computation to `Persona_Core` / `Persona_Pipeline`; own the `st.cache_data` wrappers in this layer; keep all label/mapping/message/standardization helpers as pure functions so they can be unit-tested (see 14.3)
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.8, 3.13, 3.14, 3.15, 4.5, 4.10, 5.1, 5.2, 5.3, 6.1, 6.2, 6.3, 6.6, 6.7, 6.9, 6.10, 8.8, 8.9, 8.10_
+  - [x] 14.1b Fix the Persona_Page `st.cache_data` key so changing the spec refits (`app/persona_page.py`)
+    - Root cause of the "changing level / split-first / attributes / k returns the same personas" bug: the `st.cache_data`-wrapped run function was defined nested inside its caller and closed over the spec instead of taking it as an argument, and a later variant named every cached parameter with a leading underscore (which tells Streamlit to skip hashing it), so the cache key collapsed to a constant and every run served a stale hit
+    - Fix: define the cached run function ONCE at module scope (`_run_personas_impl`), keyed on a full `_spec_fingerprint` (level, sorted clustering_attributes, sorted grouping_attributes, k, business_segment_field, campaign_pool, type_overrides, seed) plus a `_live_leads_fingerprint`, with the two fingerprint parameters NOT underscore-prefixed (so Streamlit hashes them) and only the pass-through spec/live_leads underscore-prefixed; build/memoize the `st.cache_data` wrapper lazily so the module still imports without Streamlit
+    - Add a pure-Python regression test `tests/test_part5_personas_run_varies_unit.py` asserting that `run_personas` outputs differ when the spec differs only in level, only in attributes, only in k, or only in the two-step grouping, and that `_spec_fingerprint` differs for each pair (no Streamlit UI)
+    - _Requirements: 6.1, 6.9_
   - [x] 14.2 Render the charts and the persona mix on cards using Streamlit built-ins only
     - Render the cluster comparison chart with a Streamlit built-in chart (`st.bar_chart`) comparing standardized differences per attribute (each persona shown as above/below the across-persona average), not raw values on mixed scales; compute the standardization in the `app/` layer from the already-returned per-persona numeric means (center on the across-persona mean, divide by the across-persona std, 0 when std is 0)
     - Render the Elbow_Plot with a Streamlit built-in chart (`st.line_chart`) inside a collapsed "Advanced" expander titled "How many personas fit best?" with the caption "Pick the point where the line starts to flatten."; rendering inside the expander counts as displaying the Elbow_Plot (Requirement 6.5). Do NOT introduce matplotlib or plotly so Requirement 9.9's "no dependency other than kmodes and existing chart libs" holds
     - Render each existing Part 4 card with its Persona_Mix as a visually distinct badge/tab adjacent to the card without overwriting, hiding, or reordering any field; when the mix is unavailable for a cell, render that card intact plus a "persona context unavailable" indication while the remaining cards still render
     - _Requirements: 6.4, 6.5, 7.1, 7.2, 7.5, 9.9_
+    - NOTE (spec revision): the standardized `st.bar_chart` and the Elbow_Plot expander described above are SUPERSEDED. Task 14.5 removed the Elbow_Plot from the page (backend sweep kept) and task 14.6 replaced the bar chart with the "How the Personas Differ" comparison table (revised Requirements 6.4 and 6.5). The persona-mix-on-cards part of this task is unchanged. This task's completed status is not altered.
 
   - [ ] 14.3 Write Persona_Page helper unit tests in `tests/test_part5_personas_page_unit.py`
-    - Unit-test the pure presentation helpers from 14.1/14.2: the raw-column → (Attribute_Group, Attribute_Display_Label) mapping and the Default_Attribute_Set; the plain-label ↔ internal-value level mapping; the plain-sentence rendering of distinguishing attributes; the standardized cluster-comparison transform (above/below average); the `Campaign_Leads_Export` column projection (exactly client_id, persona label, group, best_channel, p_join, control, one row per lead); and the actionable too-small / validation message strings
+    - Unit-test the pure presentation helpers from 14.1/14.2: the raw-column → (Attribute_Group, Attribute_Display_Label) mapping and the Default_Attribute_Set; the plain-label ↔ internal-value level mapping; the plain-sentence rendering of distinguishing attributes; the "How the Personas Differ" comparison helpers (`persona_trait_tags` / `persona_comparison_frame`: plain tags, no z-scores or costs, flag attributes read More/Fewer); the `Campaign_Leads_Export` column projection (exactly client_id, persona label, group, best_channel, p_join, control, one row per lead); and the actionable too-small / validation message strings
     - Keep these helpers importable without launching Streamlit (test the pure functions, not the rendered widgets)
-    - _Requirements: 3.1, 3.4, 3.8, 3.13, 3.14, 4.10, 6.2, 6.4, 6.5, 6.10, 8.8_
+    - _Requirements: 3.1, 3.4, 3.8, 3.13, 3.14, 4.10, 6.2, 6.4, 6.10, 8.8_
 
   - [ ] 14.4 (Optional) Add a downloadable one-page Persona_Brief
     - Implement a pure Persona_Brief builder (in the `app/` layer or a small pure helper beside `webapp_core/personas.py`) that renders, per persona in a `PersonaSet`, the persona name, size (integer lead count), key traits as plain sentences (Requirement 4.10), and a recommended campaign angle derived from the recommended actions (Requirement 4.5); the brief is a deterministic function of the `PersonaSet`
@@ -197,6 +219,26 @@ The build order follows the design's module breakdown: dependency → config →
     - This task is OPTIONAL and may be skipped if time is short; skipping it does not affect any other task
     - Write `tests/test_part5_personas_brief_unit.py` asserting the brief carries each persona's name/size/key-traits/campaign-angle and that an identical `PersonaSet` yields an identical brief (determinism)
     - _Requirements: 10.1, 10.2, 10.3, 10.4_
+
+  - [x] 14.5 Remove the Elbow_Plot from the Persona_Page (`app/persona_page.py`)
+    - Delete the "Advanced" elbow expander and the page-side `elbow_frame` helper (and any page unit test that only covers it) so the page no longer renders the Elbow_Plot, per revised Requirement 6.5
+    - KEEP the backend elbow computation in `cluster.py` and its tests unchanged (`PersonaSet.elbow_costs` still populated; Requirement 2.12 is unaffected)
+    - _Requirements: 6.5_
+  - [x] 14.6 Replace the standardized comparison chart with a CRM-friendly comparison table (`app/persona_page.py`)
+    - Replace the `st.bar_chart` standardized-difference chart with a "How the Personas Differ" side-by-side comparison TABLE: one row per persona with the persona name, size, share, and plain-language trait tags (e.g. "Higher inflows", "Fewer products", "Mostly SMS-reachable"); never show z-scores or clustering cost values, per revised Requirement 6.4
+    - Derive the trait tags from the same distinguishing-attribute ranking and direction signal (reuse the `distinguishing_directions` from 8.1c) using the plain-language labels; keep the tag/table builder a pure, unit-testable function
+    - Remove `standardized_comparison_frame` and its unit tests if they become unused
+    - _Requirements: 6.4_
+  - [x] 14.7 Add a group selector that filters the whole page to one group (`app/persona_page.py`)
+    - When the user checks "Split into groups first, then build personas within each group", render a dropdown listing each resulting group (e.g. each age band), defaulting to the first group, with an "All groups" option at the end
+    - When one group is selected, scope EVERYTHING on the page to that group only: the persona cards, the "How the Personas Differ" comparison, the Decision Cards With Persona Mix (compute the mix from only that group's leads), and the download (the file contains only that group's leads, with the group named in the filename); add a caption stating what the download contains
+    - Groups flagged "too small to cluster" still appear in the dropdown, showing the actionable message instead of personas
+    - Switching groups must NOT refit the clustering (serve from the existing `st.cache_data` result) and must NOT reset the other settings
+    - Keep the group-filtering logic as pure functions (filter a `PersonaRunResult`/labels to a group, scope the mix inputs, project the per-group download frame + filename) so they are unit-testable without Streamlit
+    - _Requirements: 3.8, 3.10, 6.3, 6.4, 6.10, 7.1, 8.8, 8.10_
+  - [x] 14.8 Write group-filter unit tests in `tests/test_part5_personas_group_filter_unit.py`
+    - Unit-test the pure group-filtering helpers from 14.7 (no Streamlit UI): selecting one group yields only that group's persona set / labels / mix inputs / download rows and filename; "All groups" is the unfiltered view; a too-small group surfaces its message; and the group selection does NOT alter the underlying persona assignments (same labels for a client regardless of the selected view)
+    - _Requirements: 3.8, 3.10, 7.1, 8.8_
 
 - [ ] 15. Shared test strategies and end-to-end verification
   - [x] 15.1 Add shared hypothesis strategies in `tests/strategies_part5_personas.py`
@@ -216,7 +258,7 @@ The build order follows the design's module breakdown: dependency → config →
 
 - All test tasks are required except the optional Persona_Brief task 14.4 and its test, which may be skipped if time is short.
 - Each task references specific requirements for traceability, and property-test tasks name the correctness property they verify.
-- The Streamlit page uses only Streamlit built-in charts (`st.bar_chart` / `st.line_chart`) for both the cluster comparison chart and the Elbow_Plot, keeping `kmodes` the only new dependency.
+- The Streamlit page uses only Streamlit built-ins (`st.dataframe` for the "How the Personas Differ" table); the earlier bar chart and Elbow_Plot were removed from the page (tasks 14.5, 14.6), keeping `kmodes` the only new dependency.
 - No module under the existing `run_pipeline.py` stages is modified, and `src/part5_personas` is never added to the stage sequence.
 - Checkpoints ensure incremental validation at the end of the pure pipeline, after the CLI, and at the end.
 
@@ -236,8 +278,11 @@ The build order follows the design's module breakdown: dependency → config →
     { "id": 8, "tasks": ["11.2", "13.1"] },
     { "id": 9, "tasks": ["13.2", "13.3", "14.1"] },
     { "id": 10, "tasks": ["14.2", "15.1"] },
-    { "id": 11, "tasks": ["14.3", "14.4", "15.2"] },
-    { "id": 12, "tasks": ["15.3"] }
+    { "id": 11, "tasks": ["7.2b", "14.1b", "8.1c"] },
+    { "id": 12, "tasks": ["8.1d", "14.5", "14.6", "14.7"] },
+    { "id": 13, "tasks": ["14.8", "14.3", "14.4"] },
+    { "id": 14, "tasks": ["15.2"] },
+    { "id": 15, "tasks": ["15.3"] }
   ]
 }
 ```

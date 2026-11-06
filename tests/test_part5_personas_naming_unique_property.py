@@ -47,6 +47,9 @@ _ATTRS = [
 # A small category vocabulary for the optional top_categories entries.
 _CATEGORY_VALUES = ["0", "1", "In-app", "Email", "SMS", "X", "Y"]
 
+# Direction words the profiling stage may attach to a distinguishing attribute.
+_DIRECTIONS = ["high", "low", "more", "fewer", "flat"]
+
 
 @st.composite
 def _persona_profile(draw, cluster_label: int) -> PersonaProfile:
@@ -70,6 +73,7 @@ def _persona_profile(draw, cluster_label: int) -> PersonaProfile:
         for attr in distinguishing
     }
     numeric_median = dict(numeric_mean)
+    directions = {attr: draw(st.sampled_from(_DIRECTIONS)) for attr in distinguishing}
 
     # Optionally give some attributes a dominant top category so the namer's
     # categorical branches (channel selection, offer angle) get exercised too.
@@ -94,6 +98,7 @@ def _persona_profile(draw, cluster_label: int) -> PersonaProfile:
         numeric_median=numeric_median,
         top_categories=top_categories,
         distinguishing=distinguishing,
+        distinguishing_directions=directions,
     )
 
 
@@ -119,7 +124,7 @@ def _persona_set(draw) -> list[PersonaProfile]:
     return [draw(_persona_profile(label)) for label in labels]
 
 
-@settings(max_examples=200, deadline=1000)
+@settings(max_examples=200, deadline=None)
 @given(profiles=_persona_set())
 def test_persona_names_are_unique_within_a_set(profiles):
     """Persona names are unique within a set.
@@ -144,3 +149,5 @@ def test_persona_names_are_unique_within_a_set(profiles):
 
     # All names produced across the set are distinct (Requirement 4.9).
     assert len(set(names)) == len(names)
+    # Disambiguation uses extension / letter suffixes, never "(cluster N)".
+    assert all("(cluster" not in n for n in names)

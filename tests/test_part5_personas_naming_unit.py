@@ -45,6 +45,7 @@ def _profile(
     numeric_median: dict[str, float] | None = None,
     top_categories: dict[str, list[tuple[str, int]]] | None = None,
     distinguishing: list[str] | None = None,
+    directions: dict[str, str] | None = None,
 ) -> PersonaProfile:
     """Construct a PersonaProfile with light, overridable defaults."""
     return PersonaProfile(
@@ -55,6 +56,7 @@ def _profile(
         numeric_median=numeric_median or {},
         top_categories=top_categories or {},
         distinguishing=distinguishing or [],
+        distinguishing_directions=directions or {},
     )
 
 
@@ -200,19 +202,20 @@ def test_offer_angle_tailored_fallback():
 # 5. name + description content for a representative profile (Req 4.4)        #
 # --------------------------------------------------------------------------- #
 def test_name_and_description_content():
-    """Name derives from top distinguishing attrs; description cites the lead."""
+    """Name is direction-aware over the top-2 attrs; description cites the lead."""
     profile = _profile(
         cluster_label=1,
         pct_of_leads=32.5,
         distinguishing=["monthly_income", "owns_investment"],
+        directions={"monthly_income": "high", "owns_investment": "fewer"},
         numeric_mean={"monthly_income": 4200.0},
         top_categories={"owns_investment": [("1", 70), ("0", 30)]},
     )
 
     result = RuleBasedNamer().name(profile, taken=set())
 
-    # Name is built from the first two distinguishing attributes, title-cased.
-    assert result["name"] == "Monthly Income & Investment Ownership Persona"
+    assert result["name"] == "High Monthly Income / Fewer Investment Account"
+    assert not result["name"].endswith("Persona")
 
     # Description opens with the lead share and names the top distinguishing
     # trait together with its backing numeric mean.
@@ -294,38 +297,116 @@ def test_determinism_identical_inputs_equal_output():
 # --------------------------------------------------------------------------- #
 # 8. disambiguation suffix path (Req 4.9)                                     #
 # --------------------------------------------------------------------------- #
-def test_disambiguation_appends_cluster_suffix_on_collision():
-    """A base name already taken gets the deterministic cluster suffix."""
+def test_disambiguation_extends_with_third_attribute_on_collision():
+    """A taken base name is extended with the third attribute fragment."""
     profile = _profile(
         cluster_label=4,
-        distinguishing=["monthly_income", "owns_investment"],
-        numeric_mean={"monthly_income": 4200.0},
-        top_categories={"owns_investment": [("1", 70), ("0", 30)]},
+        distinguishing=["monthly_income", "owns_investment", "total_out"],
+        directions={
+            "monthly_income": "high",
+            "owns_investment": "more",
+            "total_out": "low",
+        },
     )
-    base_name = "Monthly Income & Investment Ownership Persona"
+    base_name = "High Monthly Income / More Investment Account"
 
-    # Base name free -> returned unchanged.
     assert RuleBasedNamer().name(profile, taken=set())["name"] == base_name
 
-    # Base name taken -> deterministic " (cluster N)" suffix using cluster_label.
-    taken = {base_name}
-    result = RuleBasedNamer().name(profile, taken=taken)
-    assert result["name"] == f"{base_name} (cluster 4)"
+    result = RuleBasedNamer().name(profile, taken={base_name})
+    assert result["name"] == f"{base_name} / Low Total Outflows"
+    assert "(cluster" not in result["name"]
 
 
-def test_disambiguation_falls_back_to_integer_suffix():
-    """When base and cluster-suffixed names both collide, an integer is added."""
+def test_disambiguation_letter_suffix_after_extension_collides():
+    """When the extended name is also taken, a letter suffix is appended."""
     profile = _profile(
         cluster_label=4,
-        distinguishing=["monthly_income", "owns_investment"],
-        numeric_mean={"monthly_income": 4200.0},
-        top_categories={"owns_investment": [("1", 70), ("0", 30)]},
+        distinguishing=["monthly_income", "owns_investment", "total_out"],
+        directions={
+            "monthly_income": "high",
+            "owns_investment": "more",
+            "total_out": "low",
+        },
     )
-    base_name = "Monthly Income & Investment Ownership Persona"
+    base_name = "High Monthly Income / More Investment Account"
+    extended = f"{base_name} / Low Total Outflows"
 
-    taken = {base_name, f"{base_name} (cluster 4)"}
+    result = RuleBasedNamer().name(profile, taken={base_name, extended})
+    assert result["name"] == f"{extended} (A)"
+
+    result = RuleBasedNamer().name(
+        profile, taken={base_name, extended, f"{extended} (A)"}
+    )
+    assert result["name"] == f"{extended} (B)"
+    assert "(cluster" not in result["name"]
+
+
+def test_disambiguation_letter_suffix_without_third_attribute():
+    """With only two attributes, a taken base name gets " (A)" directly."""
+    profile = _profile(
+        distinguishing=["monthly_income", "owns_investment"],
+        directions={"monthly_income": "high", "owns_investment": "more"},
+    )
+    base_name = "High Monthly Income / More Investment Account"
+    result = RuleBasedNamer().name(profile, taken={base_name})
+    assert result["name"] == f"{base_name} (A)"
+
+
+def test_disambiguation_letter_suffix_rolls_past_z_to_aa():
+    """Letter suffixes roll A..Z then AA, and never use "(cluster N)"."""
+    profile = _profile(
+        distinguishing=["monthly_income", "owns_investment"],
+        directions={"monthly_income": "high", "owns_investment": "more"},
+    )
+    base_name = "High Monthly Income / More Investment Account"
+    taken = {base_name}
+    taken.update(f"{base_name} ({chr(ord('A') + i)})" for i in range(26))
+
     result = RuleBasedNamer().name(profile, taken=taken)
-    assert result["name"] == f"{base_name} (cluster 4) 2"
+    assert result["name"] == f"{base_name} (AA)"
+    assert "(cluster" not in result["name"]
+
+
+def test_opposite_directions_give_different_names():
+    """Same top-two attrs with opposite directions yield different names."""
+    attrs = ["total_out", "monthly_income"]
+    high = _profile(
+        distinguishing=attrs,
+        directions={"total_out": "high", "monthly_income": "high"},
+    )
+    low = _profile(
+        distinguishing=attrs,
+        directions={"total_out": "low", "monthly_income": "high"},
+    )
+    namer = RuleBasedNamer()
+    high_name = namer.name(high, taken=set())["name"]
+    low_name = namer.name(low, taken=set())["name"]
+
+    assert high_name == "High Total Outflows / High Monthly Income"
+    assert low_name == "Low Total Outflows / High Monthly Income"
+    assert high_name != low_name
+
+    # Determinism: an identical profile yields the identical name.
+    assert namer.name(high, taken=set())["name"] == high_name
+
+
+def test_flag_attribute_renders_more_vs_fewer():
+    """Flag attrs render More/Fewer (even for high/low); flat drops the prefix."""
+    namer = RuleBasedNamer()
+
+    def name_for(direction: str) -> str:
+        profile = _profile(
+            distinguishing=["digital_app_user"],
+            directions={"digital_app_user": direction},
+        )
+        return namer.name(profile, taken=set())["name"]
+
+    assert name_for("more") == "More App Users"
+    assert name_for("fewer") == "Fewer App Users"
+    assert name_for("high") == "More App Users"
+    assert name_for("low") == "Fewer App Users"
+    assert name_for("flat") == "App Users"
+    assert name_for("more") != name_for("fewer")
 
 
 def test_name_matches_persona_naming_typeddict_shape():

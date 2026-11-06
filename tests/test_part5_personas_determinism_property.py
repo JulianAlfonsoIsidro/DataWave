@@ -325,6 +325,24 @@ def test_distinguishing_metric_deterministic_and_standardized(data, a, b):
     labels_sorted = sorted(stats)
     for label in labels_sorted:
         for col in numeric_cols:
+            # Across-persona population std of the RAW means for this column. When
+            # it is zero (every persona shares the same mean) the attribute is flat:
+            # the design defines its distinctiveness score as 0.0 (sigma == 0 guard
+            # in ``_numeric_score``), and the affine-invariance property does NOT
+            # apply -- a strictly-positive rescale of all-equal means is still
+            # all-equal in exact arithmetic, but ``a*mean + b`` can introduce tiny
+            # floating-point noise that makes the rescaled std a non-zero ~1e-13,
+            # so comparing the two scores is meaningless. Exclude that degenerate
+            # case from the invariance assertion and instead pin the documented
+            # sigma == 0 -> 0.0 behaviour directly.
+            raw_means = np.array(
+                [stats[other]["numeric_mean"][col] for other in labels_sorted]
+            )
+            if raw_means.std(ddof=0) == 0:
+                # Flat attribute: the raw score must be exactly 0.0 (Requirement 4.3).
+                assert _numeric_score(label, col, stats, labels_sorted) == 0.0
+                continue
+
             raw_score = _numeric_score(label, col, stats, labels_sorted)
             rescaled_score = _numeric_score(label, col, transformed, labels_sorted)
             assert rescaled_score == pytest.approx(raw_score, rel=1e-9, abs=1e-9)

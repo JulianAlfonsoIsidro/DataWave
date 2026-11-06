@@ -701,6 +701,78 @@
         "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
         "timestamp": 1793887580089
       }
+    ],
+    "8.1c Revise persona naming to be direction-aware and readable (`naming.py`, `profile.py`)": [
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793901804870
+      },
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793939767519
+      }
+    ],
+    "8.1d Update naming tests for the direction-aware format": [
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793939773801
+      },
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793940582417
+      }
+    ],
+    "14.5 Remove the Elbow_Plot from the Persona_Page (`app/persona_page.py`)": [
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793939774508
+      },
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793940583601
+      }
+    ],
+    "14.6 Replace the standardized comparison chart with a CRM-friendly comparison table (`app/persona_page.py`)": [
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793940588353
+      },
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793941165482
+      }
+    ],
+    "14.7 Add a group selector that filters the whole page to one group (`app/persona_page.py`)": [
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793941165973
+      },
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793942354292
+      }
+    ],
+    "14.8 Write group-filter unit tests in `tests/test_part5_personas_group_filter_unit.py`": [
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793942360083
+      },
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793942533166
+      }
     ]
   }
 }

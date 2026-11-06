@@ -17,20 +17,18 @@ Scope note: task 14.1 built the **page composition + session-state wiring** --
 the Clustering_Level / k / Run controls, the grouped Attribute_Picker, the
 optional two-step control, the campaign-pool selector, validation, the
 per-persona summary cards, and the two download controls. Task 14.2 adds, after
-a successful run, three Streamlit **built-in** renders (no new chart dependency,
-Requirement 9.9): the cluster comparison ``st.bar_chart`` of standardized
-differences (Requirement 6.4), the Elbow_Plot ``st.line_chart`` inside the
-collapsed Advanced expander (Requirement 6.5), and the existing Part 4 cards
-rendered read-only with an adjacent Persona_Mix badge and the unavailable
-fallback (Requirements 7.1, 7.2, 7.5).
+a successful run, Streamlit **built-in** renders (no new chart dependency,
+Requirement 9.9): the "How the Personas Differ" comparison table
+(``st.dataframe`` of plain-language trait tags, Requirement 6.4), and the existing Part 4 cards rendered read-only
+with an adjacent Persona_Mix badge and the unavailable fallback (Requirements
+7.1, 7.2, 7.5). The Elbow_Plot is intentionally not shown on the page (revised
+Requirement 6.5); the backend still computes it (Requirement 2.12).
 
-Chart/mix pure helpers (importable without Streamlit, unit-tested in task 14.3)
-also live at module level:
+Comparison-table pure helpers (importable without Streamlit, unit-tested in task
+14.3) also live at module level:
 
-- :func:`standardized_comparison_frame` -- the standardized per-attribute
-  comparison frame behind the bar chart (Requirement 6.4).
-- :func:`elbow_frame` -- the k-vs-cost frame behind the elbow line chart
-  (Requirement 6.5).
+- :func:`persona_trait_tags` / :func:`persona_comparison_frame` -- the plain-language
+  trait tags and the one-row-per-persona comparison table frame (Requirement 6.4).
 
 Pure helpers (importable without a running Streamlit server, unit-tested in task
 14.3) live at module level:
@@ -56,6 +54,18 @@ Pure helpers (importable without a running Streamlit server, unit-tested in task
   projection (Requirement 8.8), delegating to
   :func:`part5_personas.export.campaign_leads_export`.
 
+Group-selector pure helpers (Requirements 3.16-3.19; task 14.7). The selector
+appears when a run yields more than one persona set (the two-step flow, and also
+the "By customer segment" level, which likewise produces one set per segment):
+
+- :data:`ALL_GROUPS_LABEL`, :func:`group_options`, :func:`default_group` -- the
+  selector options (too-small groups included, "All groups" last) and default.
+- :func:`scope_result_to_group` / :func:`scope_export_frame` -- filter an already
+  computed run / download frame to one group; never mutate input, never change a
+  lead's persona label, never refit.
+- :func:`group_download_filename` / :func:`group_download_caption` -- the group
+  named in the download filename and a caption stating what the file contains.
+
 ``streamlit`` is imported lazily inside the render functions so importing
 ``app.persona_page`` never requires a running Streamlit server (task 14.1
 verification bar / task 14.3 testability).
@@ -64,7 +74,8 @@ verification bar / task 14.3 testability).
 from __future__ import annotations
 
 import html
-from dataclasses import dataclass
+import re
+from dataclasses import dataclass, replace
 
 import pandas as pd
 
@@ -81,6 +92,8 @@ from part5_personas.grouping import (
     LEVEL_CAMPAIGN,
     PersonaSet,
 )
+from part5_personas.labels import attribute_label as _pipeline_attribute_label
+from part5_personas.labels import is_flag_attribute as _is_flag_attribute
 from part5_personas.profile import PersonaProfile
 from webapp_core.personas import (
     PersonaMix,
@@ -212,12 +225,17 @@ DEFAULT_ATTRIBUTE_SET: list[str] = [
 
 
 def _humanize(column: str) -> str:
-    """Title-case a raw column name for the graceful unmapped-column fallback.
+    """Title-case the shared plain label for an unmapped column (Requirement 3.1).
 
-    Turns ``snake_case`` into "Title Case Words" ("some_new_col" -> "Some New
-    Col"), used only when a column has no explicit mapping (Requirement 3.1).
+    Delegates to the pipeline's canonical raw-column -> plain-label map
+    (:func:`part5_personas.labels.attribute_label`) and title-cases the result, so
+    a column with no explicit picker entry in :data:`_ATTRIBUTE_MAP` still reads in
+    the same business language the persona names use. Columns the shared map does
+    not know fall through to its own title-cased "words" fallback ("some_new_col"
+    -> "Some New Col"). Keeping one label source avoids drift between the picker
+    and the generated persona names.
     """
-    return column.replace("_", " ").strip().title()
+    return _pipeline_attribute_label(column).title()
 
 
 def attribute_group_and_label(column: str) -> tuple[str, str]:
@@ -410,101 +428,68 @@ def distinguishing_sentences(
 
 
 # --------------------------------------------------------------------------- #
-# Chart-shaping pure helpers (Requirements 6.4, 6.5) -- no Streamlit import    #
+# Persona comparison table pure helpers (Requirement 6.4) -- no Streamlit      #
 # --------------------------------------------------------------------------- #
-def standardized_comparison_frame(persona_set: PersonaSet) -> pd.DataFrame:
-    """Standardized per-attribute comparison across a set's personas (Req 6.4).
+_NO_CONTRAST_TAG = "Broadly average"
+_MAX_TRAIT_TAGS = 3
+COMPARISON_COLUMNS: list[str] = ["Persona", "Size", "Share", "What makes them stand out"]
 
-    Builds the frame behind the cluster comparison chart: for every numeric
-    attribute, each persona's mean is expressed as a **standardized difference**
-    from the across-persona average -- how far above or below the typical persona
-    it sits -- rather than a raw value on a mixed scale (Requirement 6.4). This is
-    a pure display transform over the already-returned
-    :attr:`PersonaProfile.numeric_mean` values; it refits nothing.
 
-    The standardization matches design D2 and the :func:`_standardized_direction`
-    helper exactly: for each numeric attribute ``f`` with persona means
-    ``m_1..m_K``, let ``mu`` be their average and ``sigma`` the **population**
-    standard deviation of those means (dividing by ``K``). Each persona's cell is
-    ``(m_p - mu) / sigma``; when ``sigma == 0`` (every persona identical on ``f``)
-    the cell is ``0.0`` so a flat attribute reads as "no difference" rather than
-    dividing by zero. A positive value is above the across-persona average, a
-    negative value below -- exactly the "each persona shown as above/below the
-    across-persona average" framing of Requirement 6.4.
+def persona_trait_tags(profile: PersonaProfile) -> list[str]:
+    """Plain-language trait tags for one persona (Requirement 6.4).
 
-    Only numeric attributes are charted (categorical attributes have no mean to
-    standardize); the surfaced columns are the readable Attribute_Display_Labels
-    (:func:`attribute_display_label`) so the chart axis is business-readable. A
-    ``too_small`` set, a set with no personas, or a set whose personas carry no
-    numeric means yields an empty frame so the caller can skip the chart.
-
-    Args:
-        persona_set: The :class:`PersonaSet` whose personas to compare.
-
-    Returns:
-        A ``pandas.DataFrame`` indexed by persona name with one column per numeric
-        attribute (labeled with its display label), holding standardized
-        differences; empty when there is nothing numeric to compare.
+    Reads :attr:`PersonaProfile.distinguishing_directions` (the same source the
+    persona names use) for up to three of the persona's top distinguishing
+    attributes: numeric ``high``/``low`` -> "Higher/Lower <label>"; flag or
+    categorical ``more``/``fewer`` -> "More/Fewer <label>"; ``flat`` (no contrast)
+    is skipped. Labels are the plain lower-case
+    :func:`part5_personas.labels.attribute_label`. No numbers are shown. When no
+    tag results the single tag "Broadly average" is returned.
     """
-    if persona_set.too_small or not persona_set.personas:
-        return pd.DataFrame()
-
-    personas = persona_set.personas
-    # The numeric attributes charted are those every persona carries a mean for,
-    # in a stable (sorted) order so the chart columns are deterministic.
-    attribute_sets = [set(p.profile.numeric_mean.keys()) for p in personas]
-    common = set.intersection(*attribute_sets) if attribute_sets else set()
-    attributes = sorted(common)
-    if not attributes:
-        return pd.DataFrame()
-
-    data: dict[str, list[float]] = {}
-    for column in attributes:
-        means = [p.profile.numeric_mean[column] for p in personas]
-        mu = sum(means) / len(means)
-        # Population std (divide by K), matching design D2's convention.
-        variance = sum((m - mu) ** 2 for m in means) / len(means)
-        sigma = variance ** 0.5
-        if sigma == 0:
-            standardized = [0.0 for _ in means]
-        else:
-            standardized = [(m - mu) / sigma for m in means]
-        data[attribute_display_label(column)] = standardized
-
-    index = [p.name for p in personas]
-    return pd.DataFrame(data, index=index)
+    directions = profile.distinguishing_directions
+    tags: list[str] = []
+    for column in profile.distinguishing[:_MAX_TRAIT_TAGS]:
+        direction = directions.get(column)
+        label = _pipeline_attribute_label(column)
+        if _is_flag_attribute(column):
+            # 0/1 flags may be profiled as numeric; read them as More/Fewer.
+            direction = {"high": "more", "low": "fewer"}.get(direction, direction)
+        if direction == "high":
+            tags.append(f"Higher {label}")
+        elif direction == "low":
+            tags.append(f"Lower {label}")
+        elif direction == "more":
+            tags.append(f"More {label}")
+        elif direction == "fewer":
+            tags.append(f"Fewer {label}")
+        # "flat" / unknown: no contrast, skip.
+    return tags or [_NO_CONTRAST_TAG]
 
 
-def elbow_frame(persona_set: PersonaSet) -> pd.DataFrame:
-    """Shape a persona set's elbow sweep for the Elbow_Plot line chart (Req 6.5).
+def persona_comparison_frame(persona_set: PersonaSet) -> pd.DataFrame:
+    """Side-by-side "How the Personas Differ" table for one set (Requirement 6.4).
 
-    Turns :attr:`PersonaSet.elbow_costs` (a ``{k: cost}`` mapping over the
-    candidate k range, Requirement 2.12) into a small frame indexed by ``k`` in
-    ascending order with a single ``Clustering cost`` column, ready for
-    ``st.line_chart`` to plot cost against k. A pure shaping helper that reads only
-    the already-computed costs and adds no modelling.
-
-    A ``too_small`` set (or any set with no elbow costs) yields an empty frame so
-    the caller can skip the plot.
-
-    Args:
-        persona_set: The :class:`PersonaSet` whose elbow sweep to shape.
-
-    Returns:
-        A ``pandas.DataFrame`` indexed by ``k`` (named ``"k"``) with one
-        ``Clustering cost`` column, in ascending k order; empty when there is no
-        sweep to plot.
+    One row per persona with columns ``Persona`` (name), ``Size`` (integer leads),
+    ``Share`` (one-decimal percentage text) and ``What makes them stand out``
+    (trait tags joined with " \u00b7 "). Shows no z-scores, standardized values or
+    clustering costs. A ``too_small`` or empty set yields an empty frame (with the
+    standard columns) so the caller can skip it.
     """
-    costs = persona_set.elbow_costs
-    if not costs:
-        return pd.DataFrame()
-
-    ks = sorted(costs)
-    frame = pd.DataFrame(
-        {"Clustering cost": [float(costs[k]) for k in ks]},
-        index=pd.Index(ks, name="k"),
-    )
-    return frame
+    rows: list[dict[str, object]] = []
+    if not persona_set.too_small:
+        for persona in persona_set.personas:
+            profile = persona.profile
+            rows.append(
+                {
+                    "Persona": persona.name,
+                    "Size": int(profile.size),
+                    "Share": f"{profile.pct_of_leads:.1f}%",
+                    "What makes them stand out": " \u00b7 ".join(
+                        persona_trait_tags(profile)
+                    ),
+                }
+            )
+    return pd.DataFrame(rows, columns=COMPARISON_COLUMNS)
 
 
 # --------------------------------------------------------------------------- #
@@ -541,15 +526,42 @@ def validation_error(
     return None
 
 
-def too_small_message(group_key: str, lead_count: int) -> str:
+def group_lead_counts(joined: pd.DataFrame, group_columns: list[str]) -> dict[str, int]:
+    """Count leads per group key using the pipeline's key convention.
+
+    Mirrors ``part5_personas.grouping._combination_key``: one column -> ``str(value)``;
+    several -> ``" | ".join(str(v) ...)`` in ``group_columns`` order. Rows with a
+    null in any group column are dropped. Returns ``{}`` when there are no group
+    columns, no data, or a column is missing. Pure (Requirement 6.10).
+    """
+    if joined is None or joined.empty or not group_columns:
+        return {}
+    if any(c not in joined.columns for c in group_columns):
+        return {}
+    sub = joined[list(group_columns)].dropna()
+    counts: dict[str, int] = {}
+    for values in sub.itertuples(index=False, name=None):
+        key = " | ".join(str(v) for v in values)
+        counts[key] = counts.get(key, 0) + 1
+    return counts
+
+
+def too_small_message(group_key: str, lead_count: int | None) -> str:
     """Return the actionable "too small to cluster" instruction (Requirement 6.10).
 
     States the group's lead count and tells the user how to proceed, rather than a
     bare status flag -- e.g. "This segment has only 12 leads. Pick a larger segment
-    or combine segments." When ``group_key`` is empty (level ``all``) the message
-    refers to "this audience" instead of a named segment.
+    or combine segments." When ``lead_count`` is ``None`` the sentence carries no
+    number. When ``group_key`` is empty (level ``all``) the message refers to
+    "this audience" instead of a named segment.
     """
     where = f'"{group_key}"' if group_key else "this audience"
+    if lead_count is None:
+        return (
+            f"{where} has too few leads to build personas. "
+            "Pick a larger segment or combine segments, or lower the number of "
+            "personas."
+        )
     return (
         f"{where} has only {lead_count:,} leads, too few to build personas. "
         "Pick a larger segment or combine segments, or lower the number of "
@@ -593,6 +605,83 @@ def campaign_leads_export_frame(full_labeled_leads: pd.DataFrame) -> pd.DataFram
 
 
 # --------------------------------------------------------------------------- #
+# Group selector pure helpers (Requirements 3.16-3.19) -- no Streamlit         #
+# --------------------------------------------------------------------------- #
+ALL_GROUPS_LABEL = "All groups"
+GROUP_SELECT_KEY = "persona_group_select"
+
+
+def group_options(result: PersonaRunResult) -> list[str]:
+    """Options for the group selector (Requirements 3.16, 3.18).
+
+    The group keys of ``result.persona_sets`` in their existing order -- too-small
+    groups included -- followed by :data:`ALL_GROUPS_LABEL`. Returns ``[]`` when the
+    run has zero or one persona set (the selector is then not shown).
+    """
+    sets = list(result.persona_sets)
+    if len(sets) <= 1:
+        return []
+    return [ps.group_key for ps in sets] + [ALL_GROUPS_LABEL]
+
+
+def default_group(options: list[str]) -> str:
+    """The default selection: the first group (Requirement 3.16)."""
+    return options[0]
+
+
+def _is_all_groups(selected: str | None) -> bool:
+    return selected is None or selected == ALL_GROUPS_LABEL
+
+
+def scope_result_to_group(result: PersonaRunResult, selected: str | None) -> PersonaRunResult:
+    """Scope a run result to one group without altering any assignment (Req 3.17, 3.19).
+
+    ``None`` / "All groups" returns ``result`` itself. Otherwise returns a NEW
+    result holding only the persona set(s) whose ``group_key == selected`` and the
+    ``labels`` rows of that group (index reset); ``joined_attributes`` is unchanged.
+    The input is never mutated and no lead's persona label is changed.
+    """
+    if _is_all_groups(selected):
+        return result
+    sets = [ps for ps in result.persona_sets if ps.group_key == selected]
+    labels = result.labels
+    if labels is not None and GROUP_COLUMN in labels.columns:
+        labels = labels[labels[GROUP_COLUMN] == selected].reset_index(drop=True)
+    return replace(result, persona_sets=sets, labels=labels)
+
+
+def scope_export_frame(frame: pd.DataFrame, selected: str | None) -> pd.DataFrame:
+    """Rows of a download frame belonging to the selected group (Req 3.17).
+
+    The frame is returned unchanged for "All groups" (or when it has no group
+    column); otherwise only rows whose group equals ``selected`` are kept.
+    """
+    if _is_all_groups(selected) or GROUP_COLUMN not in frame.columns:
+        return frame
+    return frame[frame[GROUP_COLUMN] == selected].reset_index(drop=True)
+
+
+def group_download_filename(base: str, selected: str | None) -> str:
+    """CSV filename naming the group, e.g. ``campaign_leads_mid-market.csv`` (Req 3.17)."""
+    if _is_all_groups(selected):
+        return f"{base}.csv"
+    slug = re.sub(r"[^a-z0-9]+", "-", str(selected).lower()).strip("-") or "group"
+    return f"{base}_{slug}.csv"
+
+
+def group_download_caption(selected: str | None, n_rows: int, kind: str = "leads") -> str:
+    """Plain sentence stating what the download contains (Req 3.17, 3.18)."""
+    if _is_all_groups(selected):
+        return f"This file contains the {kind} from all groups ({n_rows:,} {kind})."
+    if n_rows == 0:
+        return (
+            f'There are no personas to export for the "{selected}" group because it '
+            "is too small to cluster."
+        )
+    return f'This file contains only the {n_rows:,} {kind} in the "{selected}" group.'
+
+
+# --------------------------------------------------------------------------- #
 # Session-state keys                                                          #
 # --------------------------------------------------------------------------- #
 # The persona run result stashed after a successful Run, consumed by the summary
@@ -604,6 +693,9 @@ PERSONA_RESULT_KEY = "persona_run_result"
 PERSONA_EXPORTS_KEY = "persona_exports"
 # Flash messages (level, text) surviving the post-Run rerun.
 PERSONA_FLASH_KEY = "persona_flash_messages"
+# {group_key: lead_count} for the last non-campaign run, used by the too-small
+# message (Requirement 6.10). Empty for the campaign level.
+PERSONA_GROUP_COUNTS_KEY = "persona_group_counts"
 
 
 @dataclass(frozen=True)
@@ -906,91 +998,63 @@ def _render_summary_cards(result: PersonaRunResult) -> None:
                     )
 
 
-def _group_lead_count(result: PersonaRunResult, group_key: str) -> int:
+def _group_lead_count(result: PersonaRunResult, group_key: str) -> int | None:
     """Best-effort lead count for a group, for the too-small message (Req 6.10).
 
-    A too-small :class:`PersonaSet` carries no personas and no size, so the count
-    is recovered from the run's ``labels`` frame when it carries the group column;
-    otherwise 0 is returned (the message still reads sensibly). This is a display
-    helper only.
+    A too-small :class:`PersonaSet` carries no personas and no size. The count is
+    read first from the per-group counts stored at run time
+    (:data:`PERSONA_GROUP_COUNTS_KEY`, built by :func:`group_lead_counts`), then
+    from the run's ``labels`` frame. Returns ``None`` when it cannot be determined
+    (never a misleading 0). This is a display helper only.
     """
+    try:
+        import streamlit as st
+
+        stored = st.session_state.get(PERSONA_GROUP_COUNTS_KEY) or {}
+        if group_key in stored:
+            return int(stored[group_key])
+    except Exception:  # noqa: BLE001 - display helper must never crash
+        pass
+
     labels = result.labels
-    if labels is None or labels.empty or GROUP_COLUMN not in labels.columns:
-        return 0
-    return int((labels[GROUP_COLUMN] == group_key).sum())
+    if (
+        labels is not None
+        and not labels.empty
+        and GROUP_COLUMN in labels.columns
+    ):
+        count = int((labels[GROUP_COLUMN] == group_key).sum())
+        if count:
+            return count
+
+    return None
 
 
 # --------------------------------------------------------------------------- #
-# Cluster comparison chart (Requirement 6.4) -- st.bar_chart                   #
+# How the Personas Differ comparison table (Requirement 6.4)                   #
 # --------------------------------------------------------------------------- #
-def _render_comparison_charts(result: PersonaRunResult) -> None:
-    """Render one standardized cluster comparison chart per set (Req 6.4).
+def _render_persona_comparison(result: PersonaRunResult) -> None:
+    """Render the "How the Personas Differ" table, one per clustered set (Req 6.4).
 
-    For each clustered :class:`PersonaSet` draws a Streamlit **built-in**
-    ``st.bar_chart`` of the standardized per-attribute differences from
-    :func:`standardized_comparison_frame` -- each persona shown as above/below the
-    across-persona average, never raw values on mixed scales (Requirement 6.4). No
-    matplotlib/plotly/altair is imported, so Requirement 9.9's "no dependency other
-    than kmodes and the existing chart libs" holds.
-
-    ``too_small`` sets and sets with nothing numeric to compare are skipped (the
-    helper returns an empty frame), so the chart renders only when it is meaningful.
+    Uses only Streamlit built-ins (``st.dataframe``), so no new dependency is added
+    (Requirement 9.9). ``too_small`` and empty sets are skipped.
     """
     import streamlit as st
 
     rendered_any = False
     for persona_set in result.persona_sets:
-        frame = standardized_comparison_frame(persona_set)
+        frame = persona_comparison_frame(persona_set)
         if frame.empty:
             continue
         if not rendered_any:
-            st.subheader("How Personas Differ")
+            st.subheader("How the Personas Differ")
             st.caption(
-                "Each bar shows how far a persona sits above or below the typical "
-                "persona on an attribute. Taller bars mean a bigger difference."
+                "Each row is one persona. The tags show what sets it apart from "
+                "the others."
             )
             rendered_any = True
         if persona_set.group_key:
             st.markdown(f"**Segment: {persona_set.group_key}**")
-        # Transpose so the x-axis is the attribute and each persona is a series,
-        # which reads as "this attribute, how each persona compares".
-        st.bar_chart(frame.T)
-
-
-# --------------------------------------------------------------------------- #
-# Elbow_Plot inside the Advanced expander (Requirement 6.5) -- st.line_chart   #
-# --------------------------------------------------------------------------- #
-def _render_elbow(result: PersonaRunResult) -> None:
-    """Render the Elbow_Plot inside the collapsed Advanced expander (Req 6.5).
-
-    Draws a Streamlit **built-in** ``st.line_chart`` of clustering cost against k
-    (from :func:`elbow_frame`) inside a **collapsed** ``st.expander`` titled exactly
-    "How many personas fit best?" with the caption exactly "Pick the point where
-    the line starts to flatten." Rendering inside that expander satisfies
-    Requirement 6.5. Only built-in charts are used (no matplotlib/plotly),
-    honouring Requirement 9.9.
-
-    One line chart is drawn per clustered set with an elbow sweep; ``too_small``
-    sets (empty sweep) are skipped. The expander renders even when no sweep is
-    available, carrying the caption, so the Advanced area is consistently present.
-    """
-    import streamlit as st
-
-    frames = [
-        (ps.group_key, elbow_frame(ps))
-        for ps in result.persona_sets
-    ]
-    plottable = [(key, frame) for key, frame in frames if not frame.empty]
-
-    with st.expander("How many personas fit best?", expanded=False):
-        st.caption("Pick the point where the line starts to flatten.")
-        if not plottable:
-            st.info("No cost curve is available for this run.")
-            return
-        for group_key, frame in plottable:
-            if group_key:
-                st.markdown(f"**Segment: {group_key}**")
-            st.line_chart(frame)
+        st.dataframe(frame, hide_index=True, use_container_width=True)
 
 
 # --------------------------------------------------------------------------- #
@@ -1143,7 +1207,7 @@ def _part4_card_readonly_html(card: dict) -> str:
     return f'<div style="margin-bottom:12px;">{chips}</div>{items}'
 
 
-def _render_downloads() -> None:
+def _render_downloads(selected_group: str | None = None) -> None:
     """Render the two download controls, disabled until a run completes (Req 8.10).
 
     Defaults to the Campaign_Leads_Export and offers the full Persona_Labeled_Leads
@@ -1181,14 +1245,18 @@ def _render_downloads() -> None:
             )
         return
 
-    campaign_bytes = exports.campaign_leads.to_csv(index=False).encode("utf-8")
-    full_bytes = exports.labeled_leads.to_csv(index=False).encode("utf-8")
+    # Scope both files to the selected group (Requirement 3.17); All groups = full.
+    campaign_frame = scope_export_frame(exports.campaign_leads, selected_group)
+    labeled_frame = scope_export_frame(exports.labeled_leads, selected_group)
+    campaign_bytes = campaign_frame.to_csv(index=False).encode("utf-8")
+    full_bytes = labeled_frame.to_csv(index=False).encode("utf-8")
     with dl_cols[0]:
         st.download_button(
-            f"Download Campaign Leads ({len(exports.campaign_leads):,})",
+            f"Download Campaign Leads ({len(campaign_frame):,})",
             data=campaign_bytes,
-            file_name="campaign_leads.csv",
+            file_name=group_download_filename("campaign_leads", selected_group),
             mime="text/csv",
+            disabled=campaign_frame.empty,
             key="persona_dl_campaign",
             help=(
                 "The CRM-ready list: client id, persona, group, best channel, "
@@ -1197,13 +1265,15 @@ def _render_downloads() -> None:
         )
     with dl_cols[1]:
         st.download_button(
-            f"Download Full Labeled Leads ({len(exports.labeled_leads):,}, optional)",
+            f"Download Full Labeled Leads ({len(labeled_frame):,}, optional)",
             data=full_bytes,
-            file_name="persona_labeled_leads.csv",
+            file_name=group_download_filename("persona_labeled_leads", selected_group),
             mime="text/csv",
+            disabled=labeled_frame.empty,
             key="persona_dl_full",
             help="The full list with every joined attribute, for deeper analysis.",
         )
+    st.caption(group_download_caption(selected_group, len(campaign_frame), "leads"))
 
 
 def _build_spec(
@@ -1249,18 +1319,18 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
        cached backend, and stashes the result + exports in session state;
     5. one **summary card** per persona (Requirement 6.3) with the too-small
        instruction for flagged groups (Requirement 6.10);
-    6. after a successful run, the **cluster comparison chart** (``st.bar_chart``
-       of standardized differences, Requirement 6.4), the **Elbow_Plot**
-       (``st.line_chart``) inside the collapsed Advanced expander
-       (Requirement 6.5), and the existing Part 4 **cards with their Persona_Mix**
-       badge, unavailable fallback included (Requirements 7.1, 7.2, 7.5); and
+    6. after a successful run, the **"How the Personas Differ" table**
+       (``st.dataframe`` of plain trait tags, Requirement 6.4), and the existing Part 4
+       **cards with their Persona_Mix** badge, unavailable fallback included
+       (Requirements 7.1, 7.2, 7.5); the Elbow_Plot is not shown on the page
+       (revised Requirement 6.5); and
     7. the two **download** controls, default Campaign_Leads_Export + optional full
        Persona_Labeled_Leads, disabled until a run completes (Requirements 8.8-8.10).
 
     All clustering/profiling is delegated to the cached
     :func:`webapp_core.personas.run_personas`; this function only wires widgets and
-    session state (Requirement 6.9). The task-14.2 charts and on-card persona mix
-    use Streamlit built-in charts only, adding no dependency (Requirement 9.9).
+    session state (Requirement 6.9). The task-14.2 comparison table and on-card persona mix
+    use Streamlit built-ins only, adding no dependency (Requirement 9.9).
 
     Args:
         run_result_key: The session-state key under which ``main.py`` stashes the
@@ -1288,6 +1358,7 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
             "How to group leads",
             options=LEVEL_LABEL_ORDER,
             index=0,
+            key="persona_level_select",
             help=(
                 "All leads builds one set of personas. By customer segment builds "
                 "a set per segment. By campaign uses one campaign's audience."
@@ -1302,6 +1373,7 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
                 max_value=6,
                 value=3,
                 step=1,
+                key="persona_k_input",
                 help="Between 2 and 6. Start at 3 and adjust.",
             )
         )
@@ -1316,6 +1388,7 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
             "Segment field",
             options=["Customer segment (customer_dna)", "Part 3 segment label"],
             index=0,
+            key="persona_segment_field",
             help="Build one set of personas per value of this field.",
         )
         business_segment_field = (
@@ -1346,6 +1419,7 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
     two_step = st.checkbox(
         "Split into groups first, then build personas within each group",
         value=False,
+        key="persona_two_step",
         help=(
             "Optional. Choose attributes to split leads into groups first; "
             "personas are then built within each group."
@@ -1386,19 +1460,33 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
     # existing in the session (task 14.2: the charts and the on-card persona mix
     # render only after a successful persona run).
     result: PersonaRunResult | None = st.session_state.get(PERSONA_RESULT_KEY)
+    selected_group: str | None = None
     if result is not None:
+        # Group selector (Requirements 3.16-3.19): shown only when the run yields
+        # more than one group. Filters already-computed data -- never refits.
+        options = group_options(result)
+        if options:
+            if st.session_state.get(GROUP_SELECT_KEY) not in options:
+                st.session_state[GROUP_SELECT_KEY] = default_group(options)
+            selected_group = st.selectbox(
+                "Show group",
+                options,
+                index=options.index(st.session_state[GROUP_SELECT_KEY]),
+                key=GROUP_SELECT_KEY,
+                help="Show the personas, comparison, decision cards and download "
+                "for one group, or all groups together.",
+            )
+        scoped = scope_result_to_group(result, selected_group)
+
         st.subheader("Personas")
-        _render_summary_cards(result)
-        # Cluster comparison chart (Requirement 6.4, st.bar_chart).
-        _render_comparison_charts(result)
-        # Elbow_Plot inside the collapsed Advanced expander (Requirement 6.5,
-        # st.line_chart).
-        _render_elbow(result)
+        _render_summary_cards(scoped)
+        # How the Personas Differ comparison table (Requirement 6.4).
+        _render_persona_comparison(scoped)
         # Existing Part 4 cards rendered read-only with the Persona_Mix badge
         # adjacent, with the unavailable fallback (Requirements 7.1, 7.2, 7.5).
-        _render_cards_with_mix(result)
+        _render_cards_with_mix(scoped)
 
-    _render_downloads()
+    _render_downloads(selected_group)
 
 
 def _render_campaign_pool_selector(run_result_key: str) -> str | None:
@@ -1489,6 +1577,21 @@ def _handle_run(
 
     st.session_state[PERSONA_RESULT_KEY] = result
     st.session_state[PERSONA_EXPORTS_KEY] = exports
+
+    # Per-group lead counts for the too-small message (Req 6.10). Campaign-level
+    # membership is restricted by the pool, so no count is derived there.
+    group_counts: dict[str, int] = {}
+    if level != LEVEL_CAMPAIGN:
+        if level == LEVEL_BUSINESS_SEGMENT:
+            group_columns = [business_segment_field] if business_segment_field else []
+        else:
+            group_columns = list(grouping_attributes or [])
+        try:
+            group_counts = group_lead_counts(result.joined_attributes, group_columns)
+        except Exception:  # noqa: BLE001 - display helper must never block a run
+            group_counts = {}
+    st.session_state[PERSONA_GROUP_COUNTS_KEY] = group_counts
+
     n_personas = sum(len(ps.personas) for ps in result.persona_sets)
     st.session_state[PERSONA_FLASH_KEY] = [
         ("success", f"Built {n_personas} personas across {len(result.persona_sets)} group(s).")
