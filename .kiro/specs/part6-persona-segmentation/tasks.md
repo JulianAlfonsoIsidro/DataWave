@@ -244,7 +244,7 @@ The build order follows the design's module breakdown: dependency → config →
   - [x] 15.1 Add shared hypothesis strategies in `tests/strategies_part5_personas.py`
     - Provide generators for joined attribute sets, run specs, and lead pools shared by the property tests; rely on `tests/conftest.py` for `sys.path` (never hardcode it)
     - _Requirements: 2.1, 4.1, 8.1_
-  - [ ] 15.2 Write the integration test in `tests/test_part5_personas_integration.py`
+  - [x] 15.2 Write the integration test in `tests/test_part5_personas_integration.py`
     - Run an end-to-end persona run over the sample `data/` + `outputs/` producing a labeled-leads CSV and per-cell mixes; confirm `run_pipeline.py` behavior and `outputs/` byte-identity are unaffected by the presence of `src/part5_personas`
     - _Requirements: 9.2, 9.3, 9.4_
   - [ ] 15.3 Run `pytest` and confirm the existing pipeline is unchanged
