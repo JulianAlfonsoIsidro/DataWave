@@ -344,6 +344,22 @@ The build order follows the design's module breakdown: dependency → config →
     - Remove the "Decision Cards With Persona Mix" section built on `outputs/cards.json`; the group selector no longer scopes card output
     - Tests: pure render helpers unit-tested; extend the AppTest smoke test for the no-run message and for the breakdown after a New Promo run placed in session state; update ONLY the expectations that changed, listing each
     - _Requirements: 3.17, 7.1, 7.2, 7.6, 7.8, 7.9_
+  - [x] 13.5 Scope the breakdown to one group and add the per-group summary (`src/webapp_core/personas.py`)
+    - Pure functions, no Streamlit: a group-scoped breakdown per card (the card's Sendable_Leads whose label is in that group; total = the group's expected joiners; the card's overall expected joiners carried for the note; empty cards dropped; an all-folded card flagged for the one-line message), and an "All groups" summary per card (one row per group with leads, share and expected joiners; a no-group row only when non-empty; total equals the card)
+    - Expose the takeaway persona (or none) so the page can show only its action; keep `expected_joiners_by_persona` and `persona_mix_by_cell` behaviour and tests unchanged
+    - Write the failing tests FIRST (group totals sum to the card total across groups, only the selected group's personas appear, empty cards dropped, all-folded flag, no-group row only when non-empty, takeaway persona, inputs not mutated, determinism)
+    - _Requirements: 7.1, 7.3, 7.5, 7.6a, 7.6b, 7.6c, 7.7_
+  - [x] 14.17 Offer one way to group: two levels plus the split control (`app/persona_page.py`)
+    - Level selector offers only "All leads" and "By campaign"; backend `business-segment` level, CLI and their tests unchanged
+    - Split control above the Attribute_Picker, at both levels, listing `split_columns` (categorical, 2-12 distinct values, no `client_id`, no constant columns, no numerics) with a short caption naming what is offered and each left-out categorical column with its reason
+    - Chosen split columns removed from the Attribute_Picker options and defaults, with a short caption; too-small groups keep the existing message
+    - Write the failing pure-function tests FIRST (split columns on real-shaped data, reasons, the 12-value cutoff, picker filtering incl. defaults); run "By campaign" with a split once on real data and report what happens
+    - _Requirements: 3.4, 3.5, 3.8, 3.10, 3.22, 3.23_
+  - [x] 14.18 Render the group-scoped, compact breakdown (`app/persona_page.py`)
+    - Single group: that group's personas only, total for the group and the note "This card's Joiners across all groups: X (group is Y of it)."; "All groups": the visible instruction "Pick a group above to see the persona detail." and one row per group per card
+    - Default columns Persona, Leads (share), Expected joiners and the takeaway; rates in a collapsed "Details"; the takeaway persona's action (or the equal-response line) in a collapsed "How to message this"; hide empty cards; one-line message for all-folded cards; "Not in this persona run" only when non-empty; Part 4 fields unchanged
+    - Tests: pure render helpers first; AppTest smoke test updated (level options, split by customer segment replacing the old level test, split at "By campaign", single-group and All-groups views); list every changed expectation
+    - _Requirements: 3.17, 7.6a, 7.6b, 7.6c, 7.8_
 
 - [x] 15. Shared test strategies and end-to-end verification
   - [x] 15.1 Add shared hypothesis strategies in `tests/strategies_part5_personas.py`
@@ -410,7 +426,9 @@ Order reflects what actually ran. Tasks 14.3 and 14.4 were deliberately deferred
     { "id": 33, "tasks": ["14.15"] },
     { "id": 34, "tasks": ["8.1h", "13.4"] },
     { "id": 35, "tasks": ["14.16"] },
-    { "id": 36, "tasks": ["14.3", "14.4"] }
+    { "id": 36, "tasks": ["13.5", "14.17"] },
+    { "id": 37, "tasks": ["14.18"] },
+    { "id": 38, "tasks": ["14.3", "14.4"] }
   ]
 }
 ```

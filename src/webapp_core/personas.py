@@ -584,6 +584,10 @@ class CardPersonaBreakdown:
     total_leads: int
     total_expected_joiners: float
     takeaway: str
+    # Task 13.5: the persona the takeaway names (None for the equal / empty case)
+    # and the action to show for it (the equal line when there is no such persona).
+    takeaway_persona: str | None = None
+    takeaway_action: str = ""
 
 
 def _rate_pct(joiners: float, leads: int) -> float:
@@ -645,11 +649,104 @@ def _takeaway(shown: list[PersonaJoinerRow], total_joiners: float) -> str:
     )
 
 
+
+NO_GROUP_NAME = "Not in a clustered group"
+ALL_LEADS_GROUP_NAME = "All leads"
+TOO_FEW_TEMPLATE = (
+    "Only {n} leads from {group} in this card; too few for a persona breakdown."
+)
+
+
+def _takeaway_parts(
+    shown: list[PersonaJoinerRow], total_joiners: float
+) -> tuple[str, PersonaJoinerRow | None]:
+    """The takeaway text and the persona row it names (None for the equal case)."""
+    text = _takeaway(shown, total_joiners)
+    if text == EQUAL_TAKEAWAY:
+        return text, None
+    top = sorted(shown, key=lambda r: (-r.rate_pct, -r.expected_joiners, r.name))[0]
+    return text, top
+
+
+def _build_rows(
+    frame: pd.DataFrame,
+    label_by_client: Mapping[str, tuple[str, str]],
+    lookup: Mapping[tuple[str, str], str],
+    multi_group: bool,
+    with_unlabeled: bool = True,
+) -> tuple[list[PersonaJoinerRow], list[PersonaJoinerRow], dict[str, tuple[str, str]]]:
+    """Build the persona rows for ``frame`` (shared by the 13.4 and 13.5 functions).
+
+    Returns ``(all rows, persona rows only, display name -> (group, name))``.
+    """
+    n_leads = len(frame)
+    counts: dict[tuple[str, str], int] = {}
+    sums: dict[tuple[str, str], float] = {}
+    un_n, un_sum = 0, 0.0
+    for cid, p in zip(frame[CLIENT_ID_COLUMN].tolist(), frame["p_join"].tolist()):
+        key = label_by_client.get(str(cid))
+        p = float(p)
+        if key is None:
+            un_n += 1
+            un_sum += p
+        else:
+            counts[key] = counts.get(key, 0) + 1
+            sums[key] = sums.get(key, 0.0) + p
+
+    shown: list[tuple[str, int, float, str, tuple[str, str]]] = []
+    other_n, other_sum = 0, 0.0
+    for key in counts:
+        n, s = counts[key], sums[key]
+        if n * 100 < FOLD_MIN_SHARE_PCT * n_leads or n < FOLD_MIN_LEADS:
+            other_n += n
+            other_sum += s
+            continue
+        group, name = key
+        display = f"{group}: {name}" if multi_group else name
+        shown.append((display, n, s, lookup.get(key, ""), key))
+    shown.sort(key=lambda t: (-t[2], t[0]))
+
+    rows: list[PersonaJoinerRow] = []
+    keys: dict[str, tuple[str, str]] = {}
+    used_actions: set[str] = set()
+    for display, n, s, action, key in shown:
+        if action and action in used_actions:
+            action = SAME_MESSAGE_ACTION
+        elif action:
+            used_actions.add(action)
+        keys[display] = key
+        rows.append(
+            PersonaJoinerRow(display, n, n / n_leads * 100.0, s, _rate_pct(s, n), action)
+        )
+    persona_rows = list(rows)
+    if other_n:
+        rows.append(
+            PersonaJoinerRow(
+                OTHER_PERSONAS_NAME, other_n, other_n / n_leads * 100.0, other_sum,
+                _rate_pct(other_sum, other_n), "", ROW_KIND_OTHER, False,
+            )
+        )
+    if un_n and with_unlabeled:
+        rows.append(
+            PersonaJoinerRow(
+                UNLABELED_NAME, un_n, un_n / n_leads * 100.0, un_sum,
+                _rate_pct(un_sum, un_n), "", ROW_KIND_UNLABELED, True,
+            )
+        )
+    return rows, persona_rows, keys
+
+
+def _n_groups(persona_sets: Sequence, label_by_client: Mapping) -> int:
+    n = len({str(ps.group_key) for ps in persona_sets})
+    return n or len({g for g, _ in label_by_client.values()})
+
+
 def expected_joiners_by_persona(
     cards: Sequence[Mapping],
     sendable_by_segment: Mapping[str, pd.DataFrame],
     labels: pd.DataFrame,
     persona_sets: Sequence[PersonaSet],
+    drop_empty: bool = False,
 ) -> list[CardPersonaBreakdown]:
     """Per-card expected joiners split by persona (Requirements 7.1-7.5, 7.7, 7.8).
 
@@ -659,16 +756,14 @@ def expected_joiners_by_persona(
     never merged; the display name is prefixed ``"<group>: "`` only when the
     persona run has more than one group. Personas under 5% of the card's leads or
     under 5 leads fold into one "Other personas" row (lead count only in the UI);
-    unlabeled leads form a final "Not in this persona run" row. The total over all
-    rows equals the sum of ``p_join`` over the card's sendable leads. Pure; inputs
-    are never mutated.
+    unlabeled leads form a final "Not in this persona run" row, present only when
+    non-empty. The total over all rows equals the sum of ``p_join`` over the
+    card's sendable leads. ``drop_empty=True`` omits cards with no sendable leads
+    (Requirement 7.6c). Pure; inputs are never mutated.
     """
     lookup = _persona_action_lookup(persona_sets)
-    n_groups = len({str(ps.group_key) for ps in persona_sets})
     label_by_client = _first_labels_per_client(labels)
-    if n_groups == 0:
-        n_groups = len({g for g, _ in label_by_client.values()})
-    multi_group = n_groups > 1
+    multi_group = _n_groups(persona_sets, label_by_client) > 1
 
     out: list[CardPersonaBreakdown] = []
     for card in cards:
@@ -676,11 +771,153 @@ def expected_joiners_by_persona(
         segment = str(card["segment"])
         frame = sendable_by_segment.get(segment)
         if frame is None or len(frame) == 0:
-            out.append(CardPersonaBreakdown(promo_id, segment, (), 0, 0.0, NO_SENDABLE_TAKEAWAY))
+            if not drop_empty:
+                out.append(
+                    CardPersonaBreakdown(
+                        promo_id, segment, (), 0, 0.0, NO_SENDABLE_TAKEAWAY
+                    )
+                )
             continue
+        rows, persona_rows, keys = _build_rows(frame, label_by_client, lookup, multi_group)
+        total = float(sum(r.expected_joiners for r in rows))
+        text, top = _takeaway_parts(persona_rows, total)
+        if top is None:
+            t_name, t_action = None, EQUAL_TAKEAWAY
+        else:
+            t_name, t_action = top.name, lookup.get(keys[top.name], "")
+        out.append(
+            CardPersonaBreakdown(
+                promo_id, segment, tuple(rows), len(frame), total, text, t_name, t_action
+            )
+        )
+    return out
 
-        counts: dict[tuple[str, str], int] = {}
-        sums: dict[tuple[str, str], float] = {}
+
+# --------------------------------------------------------------------------- #
+# Group-scoped breakdown and all-groups summary (task 13.5)                   #
+# --------------------------------------------------------------------------- #
+@dataclass(frozen=True)
+class GroupCardBreakdown:
+    """One card's persona breakdown restricted to a single group's leads.
+
+    ``total_*`` cover only the group's leads; ``card_expected_joiners`` and
+    ``card_leads`` carry the card's overall figures (all sendable leads) for the
+    note. ``too_few`` is ``True`` when every persona row folded into "Other
+    personas", so the page shows :attr:`too_few_message` instead of a table.
+    Persona names carry no group prefix.
+    """
+
+    promo_id: str
+    segment: str
+    group: str
+    rows: tuple[PersonaJoinerRow, ...]
+    total_leads: int
+    total_expected_joiners: float
+    card_expected_joiners: float
+    card_leads: int
+    takeaway: str
+    takeaway_persona: str | None
+    takeaway_action: str
+    too_few: bool
+
+    @property
+    def too_few_message(self) -> str:
+        return TOO_FEW_TEMPLATE.format(n=self.total_leads, group=self.group)
+
+
+def expected_joiners_for_group(
+    cards: Sequence[Mapping],
+    sendable_by_segment: Mapping[str, pd.DataFrame],
+    labels: pd.DataFrame,
+    persona_sets: Sequence[PersonaSet],
+    group: str,
+) -> list[GroupCardBreakdown]:
+    """Per-card breakdown of the sendable leads labelled into ``group``.
+
+    Same fold / ordering / takeaway rules as :func:`expected_joiners_by_persona`,
+    using only ``group``'s personas. Cards with no sendable leads in the group are
+    dropped (including cards with no sendable leads at all). There is no
+    "Not in this persona run" row: every lead considered is in the group.
+    """
+    group = str(group)
+    lookup = _persona_action_lookup(persona_sets)
+    in_group = {
+        cid: key for cid, key in _first_labels_per_client(labels).items()
+        if key[0] == group
+    }
+    out: list[GroupCardBreakdown] = []
+    for card in cards:
+        segment = str(card["segment"])
+        frame = sendable_by_segment.get(segment)
+        if frame is None or len(frame) == 0:
+            continue
+        mask = frame[CLIENT_ID_COLUMN].astype(str).isin(in_group.keys())
+        scoped = frame[mask]
+        if len(scoped) == 0:
+            continue
+        rows, persona_rows, keys = _build_rows(scoped, in_group, lookup, False, False)
+        total = float(sum(r.expected_joiners for r in rows))
+        text, top = _takeaway_parts(persona_rows, total)
+        if top is None:
+            t_name, t_action = None, EQUAL_TAKEAWAY
+        else:
+            t_name, t_action = top.name, lookup.get(keys[top.name], "")
+        out.append(
+            GroupCardBreakdown(
+                str(card.get("promo_id", "")), segment, group, tuple(rows),
+                len(scoped), total, float(frame["p_join"].astype(float).sum()),
+                len(frame), text, t_name, t_action, not persona_rows,
+            )
+        )
+    return out
+
+
+@dataclass(frozen=True)
+class GroupSummaryRow:
+    """One group's slice of a card. ``group`` is ``None`` for the no-group row."""
+
+    name: str
+    group: str | None
+    leads: int
+    lead_share_pct: float
+    expected_joiners: float
+
+
+@dataclass(frozen=True)
+class CardGroupSummary:
+    """The "All groups" summary of one card: one row per group."""
+
+    promo_id: str
+    segment: str
+    rows: tuple[GroupSummaryRow, ...]
+    total_leads: int
+    total_expected_joiners: float
+
+
+def group_summary_by_card(
+    cards: Sequence[Mapping],
+    sendable_by_segment: Mapping[str, pd.DataFrame],
+    labels: pd.DataFrame,
+    persona_sets: Sequence[PersonaSet],
+) -> list[CardGroupSummary]:
+    """Per-card leads, share and expected joiners by group (Requirement 7.6b).
+
+    Rows are ordered by group key ascending (a ``""`` single-group key is shown
+    as "All leads"). Too-small groups are never clustered, so
+    ``run_personas`` emits no label rows for their leads; those leads (and any
+    other unlabeled lead) form the single "Not in a clustered group" row, added
+    last and only when non-empty. Cards with no sendable leads are dropped. The
+    total equals the card's sum of ``p_join``.
+    """
+    label_by_client = _first_labels_per_client(labels)
+    out: list[CardGroupSummary] = []
+    for card in cards:
+        segment = str(card["segment"])
+        frame = sendable_by_segment.get(segment)
+        if frame is None or len(frame) == 0:
+            continue
+        counts: dict[str, int] = {}
+        sums: dict[str, float] = {}
         un_n, un_sum = 0, 0.0
         for cid, p in zip(frame[CLIENT_ID_COLUMN].tolist(), frame["p_join"].tolist()):
             key = label_by_client.get(str(cid))
@@ -689,55 +926,23 @@ def expected_joiners_by_persona(
                 un_n += 1
                 un_sum += p
             else:
-                counts[key] = counts.get(key, 0) + 1
-                sums[key] = sums.get(key, 0.0) + p
+                counts[key[0]] = counts.get(key[0], 0) + 1
+                sums[key[0]] = sums.get(key[0], 0.0) + p
         n_leads = len(frame)
-
-        shown: list[tuple[str, int, float, str]] = []  # name, n, joiners, action
-        other_n, other_sum = 0, 0.0
-        for key in counts:
-            n, s = counts[key], sums[key]
-            if n * 100 < FOLD_MIN_SHARE_PCT * n_leads or n < FOLD_MIN_LEADS:
-                other_n += n
-                other_sum += s
-                continue
-            group, name = key
-            display = f"{group}: {name}" if multi_group else name
-            shown.append((display, n, s, lookup.get(key, "")))
-        shown.sort(key=lambda t: (-t[2], t[0]))
-
-        rows: list[PersonaJoinerRow] = []
-        used_actions: set[str] = set()
-        for display, n, s, action in shown:
-            if action and action in used_actions:
-                action = SAME_MESSAGE_ACTION
-            elif action:
-                used_actions.add(action)
-            rows.append(
-                PersonaJoinerRow(
-                    display, n, n / n_leads * 100.0, s, _rate_pct(s, n), action
-                )
+        rows = [
+            GroupSummaryRow(
+                g or ALL_LEADS_GROUP_NAME, g, counts[g], counts[g] / n_leads * 100.0, sums[g]
             )
-        persona_rows = list(rows)
-        if other_n:
-            rows.append(
-                PersonaJoinerRow(
-                    OTHER_PERSONAS_NAME, other_n, other_n / n_leads * 100.0, other_sum,
-                    _rate_pct(other_sum, other_n), "", ROW_KIND_OTHER, False,
-                )
-            )
+            for g in sorted(counts)
+        ]
         if un_n:
             rows.append(
-                PersonaJoinerRow(
-                    UNLABELED_NAME, un_n, un_n / n_leads * 100.0, un_sum,
-                    _rate_pct(un_sum, un_n), "", ROW_KIND_UNLABELED, True,
-                )
+                GroupSummaryRow(NO_GROUP_NAME, None, un_n, un_n / n_leads * 100.0, un_sum)
             )
-        total = float(sum(r.expected_joiners for r in rows))
         out.append(
-            CardPersonaBreakdown(
-                promo_id, segment, tuple(rows), n_leads, total,
-                _takeaway(persona_rows, total),
+            CardGroupSummary(
+                str(card.get("promo_id", "")), segment, tuple(rows), n_leads,
+                float(sum(r.expected_joiners for r in rows)),
             )
         )
     return out

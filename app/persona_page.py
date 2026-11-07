@@ -110,10 +110,12 @@ from part5_personas.labels import is_flag_attribute as _is_flag_attribute
 from part5_personas.labels import is_text_category
 from part5_personas.profile import PersonaProfile
 from webapp_core.personas import (
-    CardPersonaBreakdown,
+    EQUAL_TAKEAWAY,
     PersonaRunResult,
     PersonaRunSpec,
     expected_joiners_by_persona,
+    expected_joiners_for_group,
+    group_summary_by_card,
     run_personas,
 )
 
@@ -132,6 +134,13 @@ LEVEL_LABELS: dict[str, str] = {
 LEVEL_LABEL_ORDER: list[str] = [
     LEVEL_LABELS[LEVEL_ALL],
     LEVEL_LABELS[LEVEL_BUSINESS_SEGMENT],
+    LEVEL_LABELS[LEVEL_CAMPAIGN],
+]
+# The level selector on the page offers only these two (task 14.17, Requirement
+# 3.4): "By customer segment" is now reached through the split control. The
+# business-segment level stays in LEVEL_LABELS for the backend/CLI mapping.
+PAGE_LEVEL_LABEL_ORDER: list[str] = [
+    LEVEL_LABELS[LEVEL_ALL],
     LEVEL_LABELS[LEVEL_CAMPAIGN],
 ]
 _LABEL_TO_LEVEL: dict[str, str] = {label: value for value, label in LEVEL_LABELS.items()}
@@ -329,6 +338,88 @@ def group_attributes_by_theme(columns: list[str]) -> dict[str, list[str]]:
         group, _label = attribute_group_and_label(column)
         buckets.setdefault(group, []).append(column)
     return {group: cols for group, cols in buckets.items() if cols}
+
+
+SPLIT_MAX_VALUES = 12
+
+
+def split_columns(
+    joined: pd.DataFrame,
+    kinds: dict[str, str],
+    max_values: int = SPLIT_MAX_VALUES,
+) -> tuple[list[str], dict[str, str]]:
+    """Columns that can split leads into groups, plus why others cannot.
+
+    Offered: categorical columns (per the pipeline's ``classify_types`` kinds) with
+    2..``max_values`` distinct non-missing values; never ``client_id``. Categorical
+    columns left out map to a reason ("no values", "same for every client",
+    "more than N values"). Numeric columns are never offered and never listed
+    (Requirements 3.8, 3.22, 3.23).
+    """
+    offered: list[str] = []
+    left_out: dict[str, str] = {}
+    for column in joined.columns:
+        if column == "client_id" or kinds.get(column) != "categorical":
+            continue
+        n = int(joined[column].nunique(dropna=True))
+        if n == 0:
+            left_out[str(column)] = "no values"
+        elif n == 1:
+            left_out[str(column)] = "same for every client"
+        elif n > max_values:
+            left_out[str(column)] = f"more than {max_values} values"
+        else:
+            offered.append(str(column))
+    return offered, left_out
+
+
+def split_columns_caption(left_out: dict[str, str]) -> str:
+    """Caption under the split control: what is offered, and what is not (Req 3.22)."""
+    text = (
+        f"Only category and yes/no columns with 2 to {SPLIT_MAX_VALUES} values "
+        "can split leads."
+    )
+    if left_out:
+        items = ", ".join(
+            f"{attribute_display_label(c)} ({reason})" for c, reason in left_out.items()
+        )
+        text += f" Not offered: {items}."
+    return text
+
+
+def filter_picker_for_split(
+    grouped: dict[str, list[str]],
+    defaults: list[str],
+    split: list[str],
+) -> tuple[dict[str, list[str]], list[str]]:
+    """Remove the chosen split columns from picker options and defaults (Req 3.23).
+
+    A split column is the same for everyone in a group, so it cannot help build
+    personas. Groups left empty are dropped. Inputs are not mutated.
+    """
+    drop = set(split)
+    new_grouped = {
+        g: [c for c in cols if c not in drop] for g, cols in grouped.items()
+    }
+    new_grouped = {g: cols for g, cols in new_grouped.items() if cols}
+    return new_grouped, [c for c in defaults if c not in drop]
+
+
+def split_exclusion_caption(split: list[str]) -> str | None:
+    """Caption explaining why split columns are missing from the picker (Req 3.23)."""
+    if not split:
+        return None
+    labels = [attribute_display_label(c) for c in split]
+    if len(labels) == 1:
+        return (
+            f"{labels[0]} is used for the split, so it isn't offered here "
+            "(it's the same for everyone in a group)."
+        )
+    joined = ", ".join(labels[:-1]) + f" and {labels[-1]}"
+    return (
+        f"{joined} are used for the split, so they aren't offered here "
+        "(they're the same for everyone in a group)."
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -1043,6 +1134,32 @@ def _joined_attribute_columns() -> list[str]:
     return _columns()
 
 
+def _split_column_info() -> tuple[list[str], dict[str, str]]:
+    """Cached :func:`split_columns` over the real joined set (task 14.17).
+
+    Returns ``([], {})`` on any failure so the split control degrades to empty.
+    """
+    import streamlit as st
+
+    @st.cache_data(show_spinner=False)
+    def _info() -> tuple[list[str], dict[str, str]]:
+        try:
+            from part5_personas.config import Config
+            from part5_personas.join import build_joined_attributes
+            from part5_personas.preprocess import classify_types
+
+            joined, _report = build_joined_attributes(Config())
+            cols = [c for c in joined.columns if c != "client_id"]
+            numeric, categorical = classify_types(joined, cols)
+            kinds = {c: "numeric" for c in numeric}
+            kinds.update({c: "categorical" for c in categorical})
+            return split_columns(joined, kinds)
+        except Exception:  # noqa: BLE001 - empty split control beats a crash
+            return [], {}
+
+    return _info()
+
+
 _ATTRIBUTE_KINDS_FN = None
 
 
@@ -1258,18 +1375,29 @@ def _render_persona_comparison(result: PersonaRunResult) -> None:
 # --------------------------------------------------------------------------- #
 # Expected joiners by persona (Requirements 7.1-7.5, 7.7, 7.8) -- read-only    #
 # --------------------------------------------------------------------------- #
-BREAKDOWN_COLUMNS: list[str] = ["Persona", "Leads (share %)", "Expected joiners", "Rate"]
+BREAKDOWN_COLUMNS: list[str] = ["Persona", "Leads (share)", "Expected joiners"]
+SUMMARY_COLUMNS: list[str] = ["Group", "Leads (share)", "Expected joiners"]
 BREAKDOWN_TOTAL_NAME = "Total"
 NO_NEW_PROMO_MESSAGE = "Run a New Promo first to see expected joiners by persona."
+# Shown once above the cards when the group dropdown is on "All groups" (Req 7.6b).
+ALL_GROUPS_INSTRUCTION = "Pick a group above to see the persona detail."
+NO_GROUP_CARDS_MESSAGE = "No card has sendable leads here."
+MESSAGE_EXPANDER_LABEL = "How to message this"
+DETAILS_EXPANDER_LABEL = "Details"
 
 
-def breakdown_table_rows(breakdown: CardPersonaBreakdown) -> list[dict[str, str]]:
+def _share_text(leads: int, share_pct: float) -> str:
+    return f"{leads:,} ({share_pct:.1f}%)"
+
+
+def breakdown_table_rows(breakdown, total_name: str = BREAKDOWN_TOTAL_NAME) -> list[dict[str, str]]:
     """Display rows for one card's persona table, plus a final total row (Req 7.1-7.4).
 
-    Keys are :data:`BREAKDOWN_COLUMNS` plus ``Action`` (the persona's action text,
-    possibly empty). The folded "Other personas" row shows only its lead count
-    (blank Expected joiners / Rate). The last row is the total, equal to the
-    card's expected joiners. A card with no sendable leads yields no rows.
+    ``breakdown`` is a ``CardPersonaBreakdown`` or ``GroupCardBreakdown``. Keys are
+    exactly :data:`BREAKDOWN_COLUMNS` (no rate column; rates live in the Details
+    expander). The folded "Other personas" row shows only its lead count. The last
+    row is the total (named ``total_name``), equal to the table's expected
+    joiners. A card with no rows yields no rows.
     """
     if not breakdown.rows:
         return []
@@ -1278,71 +1406,148 @@ def breakdown_table_rows(breakdown: CardPersonaBreakdown) -> list[dict[str, str]
         out.append(
             {
                 "Persona": r.name,
-                "Leads (share %)": f"{r.leads:,} ({r.lead_share_pct:.1f}%)",
+                "Leads (share)": _share_text(r.leads, r.lead_share_pct),
                 "Expected joiners": f"{r.expected_joiners:,.1f}" if r.show_joiners else "",
-                "Rate": f"{r.rate_pct:.1f}%" if r.show_joiners else "",
-                "Action": r.action,
             }
         )
-    total = breakdown.total_expected_joiners
-    rate = total / breakdown.total_leads * 100.0 if breakdown.total_leads else 0.0
     out.append(
         {
-            "Persona": BREAKDOWN_TOTAL_NAME,
-            "Leads (share %)": f"{breakdown.total_leads:,} (100.0%)",
-            "Expected joiners": f"{total:,.1f}",
-            "Rate": f"{rate:.1f}%",
-            "Action": "",
+            "Persona": total_name,
+            "Leads (share)": _share_text(breakdown.total_leads, 100.0),
+            "Expected joiners": f"{breakdown.total_expected_joiners:,.1f}",
         }
     )
     return out
 
 
-def breakdown_html(breakdown: CardPersonaBreakdown) -> str:
-    """Escaped HTML for one card's persona table, actions and takeaway (Req 7.1-7.5)."""
-    rows = breakdown_table_rows(breakdown)
-    takeaway = (
-        '<div style="margin-top:8px;font-weight:600;color:var(--pan-charcoal);">'
-        f"{html.escape(breakdown.takeaway)}</div>"
+def group_summary_rows(summary) -> list[dict[str, str]]:
+    """Compact "All groups" rows: Group | Leads (share) | Expected joiners + Total (Req 7.6b).
+
+    ``summary`` is a ``CardGroupSummary``. The no-group row is present only when the
+    summary carries one. The Total row equals the card's expected joiners.
+    """
+    if not summary.rows:
+        return []
+    out = [
+        {
+            "Group": r.name,
+            "Leads (share)": _share_text(r.leads, r.lead_share_pct),
+            "Expected joiners": f"{r.expected_joiners:,.1f}",
+        }
+        for r in summary.rows
+    ]
+    out.append(
+        {
+            "Group": BREAKDOWN_TOTAL_NAME,
+            "Leads (share)": _share_text(summary.total_leads, 100.0),
+            "Expected joiners": f"{summary.total_expected_joiners:,.1f}",
+        }
     )
-    if not rows:
-        return takeaway
+    return out
+
+
+def group_total_name(group: str) -> str:
+    """Total row label for a group-scoped table: "Total for <group>"."""
+    return f"Total for {group}"
+
+
+def group_note_text(group: str, card_joiners: float, group_joiners: float) -> str:
+    """The note under a group-scoped table (Req 7.6a), one decimal each."""
+    return (
+        f"This card's Joiners across all groups: {card_joiners:,.1f} "
+        f"({group} is {group_joiners:,.1f} of it)."
+    )
+
+
+def rates_details_lines(breakdown) -> list[str]:
+    """Per-persona expected join rates for the Details expander, e.g. "Savers: 34.5%".
+
+    Folded "Other personas" rows (no joiners shown) are skipped; the unlabeled
+    row keeps its own label.
+    """
+    return [f"{r.name}: {r.rate_pct:.1f}%" for r in breakdown.rows if r.show_joiners]
+
+
+def _table_html(columns: list[str], rows: list[dict[str, str]]) -> str:
     th = "".join(
         f'<th style="text-align:left;padding:4px 8px;color:var(--pan-gray);'
         f'font-size:0.78rem;font-weight:500;">{html.escape(c)}</th>'
-        for c in BREAKDOWN_COLUMNS
+        for c in columns
     )
     body = []
     for i, r in enumerate(rows):
         is_total = i == len(rows) - 1
         weight = "700" if is_total else "400"
         border = "border-top:1px solid var(--pan-gray);" if is_total else ""
-        name = html.escape(r["Persona"])
-        if r["Action"]:
-            name += (
-                '<br/><span style="color:var(--pan-gray);font-size:0.78rem;">'
-                f'{html.escape(r["Action"])}</span>'
-            )
-        cells = [name] + [html.escape(r[c]) for c in BREAKDOWN_COLUMNS[1:]]
         tds = "".join(
-            f'<td style="padding:4px 8px;font-weight:{weight};{border}">{c}</td>'
-            for c in cells
+            f'<td style="padding:4px 8px;font-weight:{weight};{border}">'
+            f"{html.escape(r[c])}</td>"
+            for c in columns
         )
         body.append(f"<tr>{tds}</tr>")
-    table = (
+    return (
         '<table style="width:100%;border-collapse:collapse;margin-top:8px;">'
         f"<thead><tr>{th}</tr></thead><tbody>{''.join(body)}</tbody></table>"
     )
-    return table + takeaway
+
+
+def _line_html(text: str, bold: bool = False) -> str:
+    weight = "600" if bold else "400"
+    return (
+        f'<div style="margin-top:8px;font-weight:{weight};color:var(--pan-charcoal);">'
+        f"{html.escape(text)}</div>"
+    )
+
+
+def breakdown_html(breakdown) -> str:
+    """Escaped HTML for one card's persona table and takeaway (Req 7.1-7.5).
+
+    Handles a ``CardPersonaBreakdown`` and a ``GroupCardBreakdown`` (adds the
+    "Total for <group>" row and the all-groups note; a too-few card shows only its
+    message). Actions live in the "How to message this" expander, not here.
+    """
+    group = getattr(breakdown, "group", None)
+    if group is not None and getattr(breakdown, "too_few", False):
+        return _line_html(breakdown.too_few_message, bold=True)
+    rows = breakdown_table_rows(
+        breakdown, group_total_name(group) if group is not None else BREAKDOWN_TOTAL_NAME
+    )
+    out = _table_html(BREAKDOWN_COLUMNS, rows) if rows else ""
+    if group is not None:
+        out += _line_html(
+            group_note_text(group, breakdown.card_expected_joiners, breakdown.total_expected_joiners)
+        )
+    return out + _line_html(breakdown.takeaway, bold=True)
+
+
+def group_summary_html(summary) -> str:
+    """Escaped HTML for one card's compact "All groups" table (Req 7.6b)."""
+    rows = group_summary_rows(summary)
+    return _table_html(SUMMARY_COLUMNS, rows) if rows else ""
+
+
+def _render_card_extras(st, breakdown) -> None:
+    """Collapsed "How to message this" and "Details" expanders for one card."""
+    with st.expander(MESSAGE_EXPANDER_LABEL, expanded=False):
+        st.write(breakdown.takeaway_action or EQUAL_TAKEAWAY)
+    with st.expander(DETAILS_EXPANDER_LABEL, expanded=False):
+        lines = rates_details_lines(breakdown)
+        if lines:
+            st.markdown("Expected join rate by persona")
+            for line in lines:
+                st.markdown(f"- {line}")
+        else:
+            st.markdown("No per-persona rates to show.")
 
 
 def _render_expected_joiners_by_persona(result: PersonaRunResult, run_result_key: str) -> None:
     """Render "Expected Joiners By Persona" over the current New Promo run (Req 7).
 
     Uses the full persona run result (labels + persona sets, not group-scoped) and
-    the New Promo run in session state. Each card keeps its Part 4 fields
-    read-only and unchanged, with the per-persona table beneath. Shows an info
-    message when there is no New Promo run (or it has no cards).
+    the New Promo run in session state. A single-group run shows the plain persona
+    table; a multi-group run follows the group dropdown: one group shows that
+    group's personas with a note, "All groups" shows a compact per-group table and
+    asks to pick a group. Each card keeps its Part 4 fields read-only and unchanged.
     """
     import streamlit as st
     import theme
@@ -1354,21 +1559,45 @@ def _render_expected_joiners_by_persona(result: PersonaRunResult, run_result_key
         st.info(NO_NEW_PROMO_MESSAGE)
         return
 
-    breakdowns = expected_joiners_by_persona(
-        cards, run.sendable_by_segment, result.labels, result.persona_sets
-    )
+    args = (cards, run.sendable_by_segment, result.labels, result.persona_sets)
+    options = group_options(result)
+    selected = st.session_state.get(GROUP_SELECT_KEY) if options else None
+    if options and selected not in options:
+        selected = default_group(options)
+
+    if not options:
+        items = expected_joiners_by_persona(*args, drop_empty=True)
+        mode = "single"
+    elif _is_all_groups(selected):
+        items = group_summary_by_card(*args)
+        mode = "all"
+    else:
+        items = expected_joiners_for_group(*args, selected)
+        mode = "group"
+
     st.caption(
         "Each card keeps its Part 4 guidance unchanged, with expected joiners "
         "split by persona."
     )
-    for i in range(0, len(cards), 2):
+    if mode == "all":
+        st.markdown(ALL_GROUPS_INSTRUCTION)
+    if not items:
+        st.info(NO_GROUP_CARDS_MESSAGE)
+        return
+
+    by_key = {(str(c.get("promo_id", "")), str(c["segment"])): c for c in cards}
+    for i in range(0, len(items), 2):
         cols = st.columns(2)
-        for col, card, bd in zip(cols, cards[i : i + 2], breakdowns[i : i + 2]):
+        for col, item in zip(cols, items[i : i + 2]):
+            card = by_key.get((str(item.promo_id), str(item.segment)), {})
+            body = group_summary_html(item) if mode == "all" else breakdown_html(item)
             with col:
                 theme.card(
-                    f"{bd.promo_id or card.get('promo_id', '--')} -- {bd.segment}",
-                    _part4_card_readonly_html(card) + breakdown_html(bd),
+                    f"{item.promo_id or card.get('promo_id', '--')} -- {item.segment}",
+                    _part4_card_readonly_html(card) + body,
                 )
+                if mode != "all" and not getattr(item, "too_few", False):
+                    _render_card_extras(st, item)
 
 
 def _part4_card_readonly_html(card: dict) -> str:
@@ -1578,12 +1807,13 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
     with ctl_left:
         level_label = st.selectbox(
             "How to group leads",
-            options=LEVEL_LABEL_ORDER,
+            options=PAGE_LEVEL_LABEL_ORDER,
             index=0,
             key="persona_level_select",
             help=(
-                "All leads builds one set of personas. By customer segment builds "
-                "a set per segment. By campaign uses one campaign's audience."
+                "All leads builds personas over every lead. By campaign uses one "
+                "campaign's audience. To get a set of personas per group, use "
+                "the split option below."
             ),
         )
         level = level_label_to_value(level_label)
@@ -1603,31 +1833,13 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
     business_segment_field: str | None = None
     campaign_pool: str | None = None
 
-    if level == LEVEL_BUSINESS_SEGMENT:
-        # Group by customer_dna.segment directly; no picker (Requirements 3.5, 3.20).
-        business_segment_field = business_segment_field_for_level(level)
-
+    # The page never uses the business-segment level; split by "segment" instead.
     if level == LEVEL_CAMPAIGN:
         campaign_pool = _render_campaign_pool_selector(run_result_key)
 
-    # --- Attribute_Picker: grouped multiselect with readable labels ---
-    st.markdown("**Attributes to build personas on**")
-    selected_attributes: list[str] = []
-    picker_cols = st.columns(2)
-    for i, (group, cols) in enumerate(grouped.items()):
-        with picker_cols[i % 2]:
-            defaults = [c for c in cols if c in default_set]
-            chosen = st.multiselect(
-                group,
-                options=cols,
-                default=defaults,
-                format_func=attribute_display_label,
-                key=f"persona_attr_{group}",
-            )
-            selected_attributes.extend(chosen)
-
-    # --- optional two-step control (Requirement 3.8) ---
+    # --- split control, above the picker, at both levels (Req 3.8, 3.22) ---
     grouping_attributes: list[str] = []
+    split_offered, split_left_out = _split_column_info()
     two_step = st.checkbox(
         "Split into groups first, then build personas within each group",
         value=False,
@@ -1640,12 +1852,44 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
     if two_step:
         grouping_attributes = st.multiselect(
             "Split by",
-            options=[c for c in columns if c != "client_id"],
+            options=split_offered,
             default=[],
             format_func=attribute_display_label,
             key="persona_grouping_attrs",
             help='Reads as "Split by [these] first, then create personas within each group".',
         )
+        st.caption(split_columns_caption(split_left_out))
+
+    # --- Attribute_Picker: grouped multiselect with readable labels ---
+    # Chosen split columns are removed from the options and defaults (Req 3.23).
+    grouped, default_set = filter_picker_for_split(
+        grouped, default_set, grouping_attributes
+    )
+    _exclusion = split_exclusion_caption(grouping_attributes)
+    if _exclusion is not None:
+        st.caption(_exclusion)
+    st.markdown("**Attributes to build personas on**")
+    selected_attributes: list[str] = []
+    picker_cols = st.columns(2)
+    for i, (group, cols) in enumerate(grouped.items()):
+        with picker_cols[i % 2]:
+            defaults = [c for c in cols if c in default_set]
+            key = f"persona_attr_{group}"
+            # A removed option may still be selected in session state; drop it so
+            # Streamlit does not reject the stale value.
+            if key in st.session_state:
+                current = list(st.session_state[key])
+                kept = [c for c in current if c in cols]
+                if kept != current:
+                    st.session_state[key] = kept
+            chosen = st.multiselect(
+                group,
+                options=cols,
+                default=defaults,
+                format_func=attribute_display_label,
+                key=key,
+            )
+            selected_attributes.extend(chosen)
 
     # --- single-type warning (Requirement 6.11): non-blocking, above Run ---
     _warning = single_type_warning(

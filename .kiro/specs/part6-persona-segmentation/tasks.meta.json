@@ -1058,6 +1058,42 @@
         "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
         "timestamp": 1794037442295
       }
+    ],
+    "13.5 Scope the breakdown to one group and add the per-group summary (`src/webapp_core/personas.py`)": [
+      {
+        "executionId": "53f38ff7-3151-4503-a592-2d752ba38049",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794042957469
+      },
+      {
+        "executionId": "53f38ff7-3151-4503-a592-2d752ba38049",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794043492523
+      }
+    ],
+    "14.17 Offer one way to group: two levels plus the split control (`app/persona_page.py`)": [
+      {
+        "executionId": "53f38ff7-3151-4503-a592-2d752ba38049",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794042958424
+      },
+      {
+        "executionId": "53f38ff7-3151-4503-a592-2d752ba38049",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794043494484
+      }
+    ],
+    "14.18 Render the group-scoped, compact breakdown (`app/persona_page.py`)": [
+      {
+        "executionId": "53f38ff7-3151-4503-a592-2d752ba38049",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794043501670
+      },
+      {
+        "executionId": "53f38ff7-3151-4503-a592-2d752ba38049",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794046178762
+      }
     ]
   }
 }
