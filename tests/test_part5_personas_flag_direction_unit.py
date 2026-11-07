@@ -64,13 +64,20 @@ def test_persona_with_no_yes_is_fewer():
     assert _direction(b) == "more"
 
 
-def test_non_binary_categorical_keeps_dominant_category_logic():
-    # P: x=4,y=3,z=3 (dominant x, share .4); Q: x=8,y=1,z=1 (x share .8).
+def test_non_binary_categorical_compares_focus_category_share():
+    # Task 4.7: direction compares the persona's share of its focus category (by
+    # lift) with the others' pooled share, not its most common category.
+    # P: x=4,y=3,z=3; Q: x=8,y=1,z=1. Group x=.6, y=.2, z=.2.
+    # P: lift x=.67, y=z=1.5 (tie -> equal count -> name) -> focus y; .3 > .1.
+    # Q: lift x=1.33 -> focus x; .8 > .4.
     rows = ["x"] * 4 + ["y"] * 3 + ["z"] * 3 + ["x"] * 8 + ["y"] + ["z"]
     labels = np.array([0] * 10 + [1] * 10)
     p, q = build_profiles(pd.DataFrame({"age_band": rows}), labels, [], ["age_band"])
 
-    assert p.distinguishing_directions["age_band"] == "fewer"  # .4 < .8
+    assert p.top_categories["age_band"][0][0] == "x"  # most common unchanged
+    assert p.focus_categories["age_band"] == "y"
+    assert p.distinguishing_directions["age_band"] == "more"  # .3 > .1
+    assert q.focus_categories["age_band"] == "x"
     assert q.distinguishing_directions["age_band"] == "more"  # .8 > .4
 
 

@@ -57,6 +57,7 @@ cluster label, which fixes a stable naming order for the later naming stage.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from fractions import Fraction
 
 import numpy as np
 import pandas as pd
@@ -109,6 +110,11 @@ class PersonaProfile:
     ``{"share": persona mean of the flag, "overall": mean over all of the group's
     rows, "n": persona size}`` (NaN skipped). Empty when no ``reach_frame`` / flag
     columns were supplied."""
+    focus_categories: dict[str, str] = field(default_factory=dict)
+    """Focus category by lift (task 4.7, Requirements 4.3, 4.4, 4.6): per non-flag
+    categorical attribute, the category where the persona is most over-represented
+    (``lift = persona share / group overall share``, from the full group counts).
+    Empty for hand-built profiles and for yes/no flag columns."""
 
 
 def _top_categories_for(column: pd.Series, top_n: int = 3) -> list[tuple[str, int]]:
@@ -140,6 +146,15 @@ def _top_categories_for(column: pd.Series, top_n: int = 3) -> list[tuple[str, in
         key=lambda item: (-item[1], item[0]),
     )
     return ordered[:top_n]
+
+
+def _full_counts_for(column: pd.Series) -> dict[str, int]:
+    """Untruncated ``{category_str: count}`` for one categorical column (task 4.7)."""
+    counts: dict[str, int] = {}
+    for category, count in column.dropna().value_counts().items():
+        key = _category_key(category)
+        counts[key] = counts.get(key, 0) + int(count)
+    return counts
 
 
 def _category_key(category: object) -> str:
@@ -208,8 +223,12 @@ def profile_stats(
         top_categories = {
             col: _top_categories_for(cluster_frame[col]) for col in categorical_cols
         }
+        full_counts = {
+            col: _full_counts_for(cluster_frame[col]) for col in categorical_cols
+        }
 
         stats[int(label)] = {
+            "full_counts": full_counts,
             "size": size,
             "pct_of_leads": pct,
             "numeric_mean": numeric_mean,
@@ -398,6 +417,48 @@ def _count_of(persona_stats: dict, col: str, category: str) -> int:
     )
 
 
+def focus_categories(
+    stats: dict[int, dict],
+    categorical_cols: list[str],
+) -> dict[int, dict[str, str]]:
+    """Focus category by lift per persona and non-flag categorical (task 4.7).
+
+    ``lift = (persona share of the category) / (group overall share)``, computed
+    from the FULL counts (``stats[label]["full_counts"]``), not the truncated
+    top-3. Lifts are compared as exact fractions so equal lifts tie exactly. Ties
+    go to the persona's most common category, then the category name. Only
+    categories making up at least 10% of the persona are candidates; when none
+    qualifies, all are. With no baseline (one persona) every lift is 1, so the
+    most common category wins. Binary flag columns are skipped (unchanged).
+    """
+    labels_sorted = sorted(stats)
+    total = sum(stats[q]["size"] for q in labels_sorted)
+    result: dict[int, dict[str, str]] = {label: {} for label in labels_sorted}
+    for col in categorical_cols:
+        if _is_binary_flag_column(col, stats, labels_sorted):
+            continue
+        group_counts: dict[str, int] = {}
+        for q in labels_sorted:
+            for cat, n in stats[q]["full_counts"].get(col, {}).items():
+                group_counts[cat] = group_counts.get(cat, 0) + n
+        for label in labels_sorted:
+            size_p = stats[label]["size"]
+            own = stats[label]["full_counts"].get(col, {})
+            if size_p == 0 or not own:
+                continue
+            candidates = [c for c, n in own.items() if n * 10 >= size_p] or list(own)
+            best = min(
+                candidates,
+                key=lambda c: (
+                    -Fraction(own[c] * total, size_p * group_counts[c]),
+                    -own[c],
+                    c,
+                ),
+            )
+            result[label][col] = best
+    return result
+
+
 def _categorical_direction(
     label: int,
     col: str,
@@ -418,8 +479,8 @@ def _categorical_direction(
     within ``{"0", "1"}``, the comparison is the persona's share of ``"1"`` (yes;
     missing counts as 0) against the other personas' pooled share of ``"1"``, so a
     persona of mostly non-users reads ``"fewer"`` rather than ``"more"`` (its
-    dominant category is ``"0"``). Non-binary categoricals keep the
-    dominant-category comparison above.
+    dominant category is ``"0"``). Non-binary categoricals (task 4.7) compare the persona's
+    share of its *focus category* (by lift) with the others' pooled share of it.
     """
     size_p = stats[label]["size"]
     if size_p == 0:
@@ -444,8 +505,13 @@ def _categorical_direction(
             return "fewer"
         return "flat"
 
-    top_category = own_categories[0][0]
-    own_count = int(own_categories[0][1])
+    focus = stats[label].get("focus_categories", {}).get(col)
+    if focus is not None:
+        top_category = focus
+        own_count = int(stats[label]["full_counts"][col][focus])
+    else:
+        top_category = own_categories[0][0]
+        own_count = int(own_categories[0][1])
     own_share = own_count / size_p
 
     others = [q for q in labels_sorted if q != label]
@@ -455,6 +521,9 @@ def _categorical_direction(
 
     other_count = 0
     for q in others:
+        if focus is not None:
+            other_count += int(stats[q]["full_counts"].get(col, {}).get(focus, 0))
+            continue
         for cat, count in stats[q]["top_categories"].get(col, []):
             if str(cat) == str(top_category):
                 other_count += int(count)
@@ -607,6 +676,9 @@ def build_profiles(
         return []
 
     distinguishing = distinguishing_attributes(stats, numeric_cols, categorical_cols)
+    focus = focus_categories(stats, categorical_cols)
+    for label in stats:
+        stats[label]["focus_categories"] = focus[label]
     directions = distinguishing_directions(stats, distinguishing, numeric_cols)
 
     reach = _channel_reach(reach_frame, labels_arr)
@@ -625,6 +697,7 @@ def build_profiles(
                 distinguishing=distinguishing[label],
                 distinguishing_directions=directions[label],
                 channel_reach=reach.get(int(label), {}),
+                focus_categories=focus[label],
             )
         )
 

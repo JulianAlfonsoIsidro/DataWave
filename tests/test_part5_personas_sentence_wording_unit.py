@@ -128,7 +128,7 @@ def test_trait_tags_unchanged():
         {"age_band": "more", "total_out": "high"},
         {"age_band": [("35-44", 6)]},
     )
-    assert persona_trait_tags(p) == ["More age band", "Higher total outflows"]
+    assert persona_trait_tags(p) == ["More aged 35-44", "Higher total outflows"]
 
 
 def test_deterministic_and_no_label_only_phrase():

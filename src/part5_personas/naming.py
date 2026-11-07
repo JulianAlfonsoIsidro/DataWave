@@ -47,7 +47,12 @@ from __future__ import annotations
 import math
 from typing import Protocol, TypedDict, runtime_checkable
 
-from part5_personas.labels import attribute_label, is_flag_attribute
+from part5_personas.labels import (
+    attribute_label,
+    category_phrase,
+    is_flag_attribute,
+    is_text_category,
+)
 from part5_personas.profile import PersonaProfile
 
 
@@ -239,10 +244,7 @@ class RuleBasedNamer:
         if not distinguishing:
             return f"Persona {profile.cluster_label + 1}"
 
-        directions = profile.distinguishing_directions
-        fragments = [
-            _name_fragment(attr, directions.get(attr)) for attr in distinguishing[:2]
-        ]
+        fragments = [self._fragment(profile, attr) for attr in distinguishing[:2]]
         return " / ".join(fragment for fragment in fragments if fragment)
 
     def _disambiguate(
@@ -273,10 +275,7 @@ class RuleBasedNamer:
         distinguishing = list(profile.distinguishing)
         candidate = base_name
         if len(distinguishing) >= 3:
-            third_attr = distinguishing[2]
-            third = _name_fragment(
-                third_attr, profile.distinguishing_directions.get(third_attr)
-            )
+            third = self._fragment(profile, distinguishing[2])
             if third:
                 extended = f"{base_name} / {third}"
                 if extended not in taken:
@@ -291,6 +290,40 @@ class RuleBasedNamer:
             if lettered not in taken:
                 return lettered
             index += 1
+
+    def _shown_category(self, profile: PersonaProfile, attr: str) -> str:
+        """Category shown in the description/action: focus, else most common."""
+        focus = self._focus_category(profile, attr)
+        return focus if focus is not None else str(profile.top_categories[attr][0][0])
+
+    @staticmethod
+    def _focus_category(profile: PersonaProfile, attr: str) -> str | None:
+        """Focus category of a non-flag text attribute, or None (task 8.1g).
+
+        Uses ``profile.focus_categories[attr]``; when absent (hand-built profiles)
+        falls back to the most common category. Returns None for flags, numerics
+        and attributes with no recorded categories.
+        """
+        categories = profile.top_categories.get(attr)
+        if not categories:
+            return None
+        if not is_text_category(attr, [str(c) for c, _n in categories]):
+            return None
+        focus = profile.focus_categories.get(attr)
+        return str(focus) if focus is not None else str(categories[0][0])
+
+    def _fragment(self, profile: PersonaProfile, attr: str) -> str:
+        """One name fragment: focus-category wording for text, else unchanged.
+
+        Text categoricals read "<c> Age Band" etc. (more dropped, a rare fewer
+        reads "Fewer <phrase>"); flags and numerics use :func:`_name_fragment`.
+        """
+        direction = profile.distinguishing_directions.get(attr)
+        focus = self._focus_category(profile, attr)
+        if focus is None:
+            return _name_fragment(attr, direction)
+        phrase = category_phrase(attr, focus)
+        return f"Fewer {phrase}" if direction == "fewer" else phrase
 
     @staticmethod
     def _letter_suffix(index: int) -> str:
@@ -343,7 +376,7 @@ class RuleBasedNamer:
 
         categories = profile.top_categories.get(attr)
         if categories:
-            top_category, _count = categories[0]
+            top_category = self._shown_category(profile, attr)
             return f"led by {pretty} = {top_category}"
 
         if attr in profile.numeric_mean:
@@ -549,7 +582,7 @@ class RuleBasedNamer:
         pretty = _prettify_attribute(attr)
         categories = profile.top_categories.get(attr)
         if categories:
-            top_category, _count = categories[0]
+            top_category = self._shown_category(profile, attr)
             return f"Lead the message on {pretty} = {top_category}"
         if attr in profile.numeric_mean:
             return f"Highlight {pretty} as the campaign hook"

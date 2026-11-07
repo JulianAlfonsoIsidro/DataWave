@@ -108,6 +108,7 @@ from part5_personas.grouping import (
 )
 from part5_personas.labels import attribute_label as _pipeline_attribute_label
 from part5_personas.labels import is_flag_attribute as _is_flag_attribute
+from part5_personas.labels import is_text_category
 from part5_personas.profile import PersonaProfile
 from webapp_core.personas import (
     PersonaMix,
@@ -236,6 +237,32 @@ DEFAULT_ATTRIBUTE_SET: list[str] = [
     "total_out",
     "inflow_share_payroll",
 ]
+
+
+def constant_columns(joined: pd.DataFrame) -> set[str]:
+    """Columns with at most one distinct non-NaN value (Requirement 3.21).
+
+    Such a column (for example ``owns_Deposit``, which every client has) cannot
+    distinguish personas. NaN is ignored, so a column that is one value plus NaN
+    counts as constant, and an all-NaN column (no distinct value) is hidden too.
+    ``client_id`` is never reported here; it is handled separately.
+    """
+    return {
+        str(c)
+        for c in joined.columns
+        if c != "client_id" and joined[c].nunique(dropna=True) <= 1
+    }
+
+
+def visible_attribute_columns(columns: list[str], joined: pd.DataFrame) -> list[str]:
+    """``columns`` minus the constant ones, input order kept (Requirements 3.1, 3.21)."""
+    hidden = constant_columns(joined)
+    return [c for c in columns if c not in hidden]
+
+
+def default_attribute_set(hidden: set[str] | frozenset[str] = frozenset()) -> list[str]:
+    """The Default_Attribute_Set without any hidden column (Requirements 3.13, 3.21)."""
+    return [c for c in DEFAULT_ATTRIBUTE_SET if c not in hidden]
 
 
 def _humanize(column: str) -> str:
@@ -407,18 +434,46 @@ def categorical_phrase(column: str, category: str, direction: str) -> str:
 
 
 def _dominant_category(profile: PersonaProfile, column: str) -> str | None:
-    """Dominant category of a NON-binary categorical column, else ``None``.
+    """Focus category of a NON-binary categorical column, else ``None``.
 
-    ``None`` for a binary 0/1 flag, a numeric attribute, or a categorical with no
-    recorded top category (callers then keep the label-based wording).
+    Task 14.13 (Requirements 4.10, 6.4): uses ``profile.focus_categories[column]``
+    (the lift-based category from task 4.7) and falls back to the most common
+    category when the profile has no focus entry. ``None`` for a binary 0/1 flag,
+    a numeric attribute, or a categorical with no recorded categories (callers
+    then keep the label-based wording).
     """
     top = profile.top_categories.get(column) or []
     if not top:
         return None
-    if {str(cat) for cat, _count in top} <= {"0", "1"}:
+    if not is_text_category(column, [str(cat) for cat, _count in top]):
         return None
-    return str(top[0][0])
+    focus = profile.focus_categories.get(column)
+    return str(focus) if focus is not None else str(top[0][0])
 
+
+def categorical_tag(column: str, category: str, direction: str) -> str:
+    """Trait tag naming a text attribute's focus category (task 14.13, Req 6.4).
+
+    ``direction`` is "more" or "fewer", e.g. ``("age_band", "25-34", "more")`` ->
+    "More aged 25-34"; ``("inflow_type", "Salary", "fewer")`` -> "Fewer
+    Salary-led money-in". Unmapped text columns read "More <Label>: <value>".
+    """
+    cat = str(category)
+    if column == "age_band":
+        tail = f"aged {cat}"
+    elif column == "region":
+        tail = f"from {cat}"
+    elif column == "segment":
+        tail = f"in the {cat} segment"
+    elif column == "sec_class":
+        tail = f"in class {cat}"
+    elif column == "inflow_type":
+        tail = f"{cat}-led money-in"
+    elif column == "online_shopper":
+        tail = f"{cat}-tier online shoppers"
+    else:
+        tail = f"{attribute_display_label(column)}: {cat}"
+    return f"{direction.capitalize()} {tail}"
 
 def distinguishing_sentences(
     profile: PersonaProfile,
@@ -503,10 +558,13 @@ def persona_trait_tags(profile: PersonaProfile) -> list[str]:
             tags.append(f"Higher {label}")
         elif direction == "low":
             tags.append(f"Lower {label}")
-        elif direction == "more":
-            tags.append(f"More {label}")
-        elif direction == "fewer":
-            tags.append(f"Fewer {label}")
+        elif direction in ("more", "fewer"):
+            # Text categoricals name the focus category (task 14.13).
+            focus = _dominant_category(profile, column)
+            if focus is not None:
+                tags.append(categorical_tag(column, focus, direction))
+            else:
+                tags.append(f"{direction.capitalize()} {label}")
         # "flat" / unknown: no contrast, skip.
     return tags or [_NO_CONTRAST_TAG]
 
@@ -581,7 +639,7 @@ SELECTION_NONE = "none"
 
 _NUMERIC_ONLY_WARNING = (
     "Only numeric attributes selected. Personas will be based on those alone. "
-    "Adding a categorical attribute (such as marital status or a product owned) "
+    "Adding a categorical attribute (such as region or a product owned) "
     "gives richer personas."
 )
 _CATEGORICAL_ONLY_WARNING = (
@@ -977,7 +1035,11 @@ def _joined_attribute_columns() -> list[str]:
             joined, _report = build_joined_attributes(Config())
         except Exception:  # noqa: BLE001 - a missing/unreadable source degrades gracefully
             return list(_ATTRIBUTE_MAP.keys())
-        return [c for c in joined.columns if c != "client_id"]
+        # Constant columns (e.g. owns_Deposit) cannot distinguish personas, so they
+        # are omitted from the picker (Requirement 3.21).
+        return visible_attribute_columns(
+            [c for c in joined.columns if c != "client_id"], joined
+        )
 
     return _columns()
 
@@ -1515,6 +1577,8 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
 
     columns = _joined_attribute_columns()
     grouped = group_attributes_by_theme(columns)
+    # Default set minus anything hidden from the picker (Requirements 3.13, 3.21).
+    default_set = default_attribute_set(set(DEFAULT_ATTRIBUTE_SET) - set(columns))
 
     # --- top controls: level, k, and the level-specific selector ---
     ctl_left, ctl_right = st.columns(2)
@@ -1559,7 +1623,7 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
     picker_cols = st.columns(2)
     for i, (group, cols) in enumerate(grouped.items()):
         with picker_cols[i % 2]:
-            defaults = [c for c in cols if c in DEFAULT_ATTRIBUTE_SET]
+            defaults = [c for c in cols if c in default_set]
             chosen = st.multiselect(
                 group,
                 options=cols,

@@ -23,7 +23,7 @@ KINDS = {"a": "numeric", "b": "numeric", "c": "categorical", "d": "categorical"}
 
 NUMERIC_WARNING = (
     "Only numeric attributes selected. Personas will be based on those alone. "
-    "Adding a categorical attribute (such as marital status or a product owned) "
+    "Adding a categorical attribute (such as region or a product owned) "
     "gives richer personas."
 )
 CATEGORICAL_WARNING = (

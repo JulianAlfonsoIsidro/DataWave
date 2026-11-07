@@ -96,7 +96,7 @@ The build order follows the design's module breakdown: dependency → config →
     - Then apply the smallest fix in `cluster.py`: numeric-only -> seeded `sklearn.cluster.KMeans` (cost = `inertia_`), categorical-only -> seeded `kmodes.kmodes.KModes` (cost = `cost_`), mixed -> `KPrototypes` unchanged; reuse `validate_k`, the subsample, `predict` for the full group, and the elbow sweep; no new dependency; do not change profiling, naming, grouping, or export
     - _Requirements: 2.1, 2.8, 2.9, 2.10, 2.11, 2.12, 2.13, 3.11_
 
-- [ ] 6. Checkpoint - Ensure all tests pass
+- [x] 6. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 7. Implement persona profiling (`profile.py`)
@@ -209,7 +209,7 @@ The build order follows the design's module breakdown: dependency → config →
     - Verify `main` exit codes, missing-artifact halt message, and output-last write safety (no file written on a mid-run failure)
     - _Requirements: 9.5, 9.6, 9.7, 9.8_
 
-- [ ] 12. Checkpoint - Ensure all tests pass
+- [x] 12. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 13. Implement the `Persona_Core` orchestration (`src/webapp_core/personas.py`)
@@ -253,6 +253,7 @@ The build order follows the design's module breakdown: dependency → config →
     - Unit-test the pure presentation helpers from 14.1/14.2: the raw-column → (Attribute_Group, Attribute_Display_Label) mapping and the Default_Attribute_Set; the plain-label ↔ internal-value level mapping; the plain-sentence rendering of distinguishing attributes; the "How the Personas Differ" comparison helpers (`persona_trait_tags` / `persona_comparison_frame`: plain tags, no z-scores or costs, flag attributes read More/Fewer); the `Campaign_Leads_Export` column projection (exactly client_id, persona label, group, best_channel, p_join, control, one row per lead); and the actionable too-small / validation message strings
     - Keep these helpers importable without launching Streamlit (test the pure functions, not the rendered widgets)
     - _Requirements: 3.1, 3.4, 3.8, 3.13, 3.14, 4.10, 6.2, 6.4, 6.10, 8.8_
+    - NOT DOING: the page is now covered by the group-filter, selection-kind, sentence and segment-field unit tests plus the AppTest smoke test of the Personas tab, so a separate helper-test file is not needed (decision recorded; status left unchecked because there is no skipped state)
 
   - [ ] 14.4 (Optional) Add a downloadable one-page Persona_Brief
     - Implement a pure Persona_Brief builder (in the `app/` layer or a small pure helper beside `webapp_core/personas.py`) that renders, per persona in a `PersonaSet`, the persona name, size (integer lead count), key traits as plain sentences (Requirement 4.10), and a recommended campaign angle derived from the recommended actions (Requirement 4.5); the brief is a deterministic function of the `PersonaSet`
@@ -282,7 +283,7 @@ The build order follows the design's module breakdown: dependency → config →
     - _Requirements: 3.8, 3.10, 7.1, 8.8_
   - [x] 14.9 Warn on single-type attribute selections and caption the clustering kind (`app/persona_page.py`)
     - NOTE: requested as "task 14.5 after 14.2", but 14.5 already exists (completed elbow removal) and earlier tasks are not renumbered, so this is 14.9
-    - Add a pure function that classifies the current selection (using the pipeline's `classify_types`, so it matches what the backend runs) as `numeric` / `categorical` / `mixed` / `none`, and a pure function mapping that to the warning text; show a non-blocking `st.warning` above the Run button for numeric-only ("Only numeric attributes selected. Personas will be based on those alone. Adding a categorical attribute (such as marital status or a product owned) gives richer personas.") and categorical-only ("Only categorical attributes selected. Personas will be based on those alone. Adding a numeric attribute (such as years with the bank or spend) gives richer personas."); no confirmation step; nothing for mixed; an empty selection keeps the existing "pick at least one attribute" error
+    - Add a pure function that classifies the current selection (using the pipeline's `classify_types`, so it matches what the backend runs) as `numeric` / `categorical` / `mixed` / `none`, and a pure function mapping that to the warning text; show a non-blocking `st.warning` above the Run button for numeric-only ("Only numeric attributes selected. Personas will be based on those alone. Adding a categorical attribute (such as region or a product owned) gives richer personas.") and categorical-only ("Only categorical attributes selected. Personas will be based on those alone. Adding a numeric attribute (such as years with the bank or spend) gives richer personas."); no confirmation step; nothing for mixed; an empty selection keeps the existing "pick at least one attribute" error
     - Do NOT claim k-prototypes gives better results; the copy may only say mixing both types gives richer personas
     - After a run, show a short caption stating the kind of clustering used (e.g. "Clustered on numeric attributes only"); no caption for mixed selections
     - Unit-test the pure functions in `tests/test_part5_personas_selection_kind_unit.py` (numeric-only, categorical-only, mixed, empty; warning/caption text; no Streamlit UI)
@@ -297,6 +298,34 @@ The build order follows the design's module breakdown: dependency → config →
     - Write the failing tests FIRST: a flag with direction fewer reads "less likely to use the mobile app"; a non-flag categorical reads "less likely to be in the 55+ age band"; owns/has/shops flag wording uses "less likely"; "more likely" is unchanged; the word "fewer" never appears in a sentence's "likely" phrase; numeric wording ("higher"/"lower") is unchanged; the trait tags ("Fewer app users") and the persona names are unchanged; deterministic
     - Fix only the sentence phrase composition (map the "fewer" direction to "less" in the "<direction> likely ..." phrases); update ONLY the sentence expectations that asserted "fewer likely", listing each with the reason
     - _Requirements: 4.10_
+  - [x] 14.12 Fix the numeric-only warning example (`app/persona_page.py`)
+    - Problem: the numeric-only warning suggested "such as marital status", but no such attribute exists in the data
+    - Write the failing test FIRST (the exact warning text), then change the copy to: "Only numeric attributes selected. Personas will be based on those alone. Adding a categorical attribute (such as region or a product owned) gives richer personas."
+    - _Requirements: 6.11_
+  - [x] 4.7 Choose the focus category of a text attribute by lift (`profile.py`)
+    - Problem: names, tags and sentences showed the persona's most common category, which is often just the most common category overall (for example the biggest age band), so it says little about the persona
+    - Add a profile field (for example `focus_categories`) giving, per non-flag categorical attribute, the category where the persona is most over-represented: lift = the persona's share of the category divided by the group's overall share; ties go to the persona's most common category, then to the category name; only categories making up at least 10% of the persona are candidates (a floor so a tiny category cannot win on noise; if none qualifies, all categories are candidates); with no baseline (for example a single persona) all lifts are equal and the most common category wins
+    - Direction of a non-flag categorical attribute now compares the persona's share of its focus category with the other personas' pooled share of that category; the distinguishing-attribute ranking is unchanged; yes/no flags are unchanged
+    - Write the failing tests FIRST, including one where the persona's most common category equals the overall most common and a smaller category has higher lift (the smaller category must win), the tiebreaks, the 10% floor, no-baseline, flag columns unchanged, determinism; show a before/after (most common vs lift) on one real run; update ONLY existing expectations that changed because the focus category replaced the most common one, listing each with the reason
+    - _Requirements: 4.3, 4.4, 4.6_
+  - [x] 8.1g Name the focus category in persona names (`naming.py`, `labels.py`)
+    - Names show the focus category for text categoricals, for example "25-34 Age Band / Luzon Region", "Class C1 / Salary Inflows"; yes/no flags and numeric wording are unchanged; a rare "fewer" reads "Fewer <phrase>"
+    - Shared category wording lives in `labels.py` (the pipeline must not import `app/`): age_band "<c> Age Band", region "<c> Region", segment "<c> Segment", sec_class "Class <c>", inflow_type "<c> Inflows", online_shopper "<c> Online Shoppers", any other text column "<Label>: <c>"
+    - Keep names unique and deterministic: a base name has at most two parts; on a collision keep the existing third-attribute extension (capped at three parts), then the letter suffix; the description and the category-specific action also name the focus category so a card never contradicts its name
+    - Write the failing tests FIRST (wording per column, flags and numerics unchanged, collision order and the three-part cap, uniqueness and determinism, fallback to the most common category when a profile has no focus categories); update ONLY the expectations that changed, listing each
+    - _Requirements: 4.4, 4.6, 4.9_
+  - [x] 14.13 Name the focus category in trait tags and sentences (`app/persona_page.py`)
+    - Tags and sentences use the focus category from 4.7 instead of the most common one; tag wording is consistent and natural: "More aged 25-34", "More from Luzon", "More in the Mass segment", "More in class C1", "More Salary-led money-in", "More High-tier online shoppers", other text columns "More <label>: <value>"; "Fewer ..." for the rare opposite; yes/no flags and numeric tags are unchanged; sentence wording from 14.10/14.11 is unchanged except for the category shown
+    - Write the failing tests FIRST (each column's tag and sentence names the focus category, not the most common one; fallback when a profile has no focus categories; flags and numerics unchanged); update ONLY the expectations that changed, listing each
+    - _Requirements: 4.10, 6.4_
+  - [x] 14.14 Hide constant columns from the attribute picker and default set (`app/persona_page.py`)
+    - A column with a single distinct value across the joined data (for example `owns_Deposit`, which every client has) cannot distinguish personas, so it is omitted from the picker and the default set
+    - Write the failing pure-function tests FIRST (constant columns detected, ignores NaN, keeps varying columns, the default set drops hidden columns, `client_id` untouched), then wire it into the picker's column list
+    - _Requirements: 3.1, 3.13, 3.21_
+  - [x] 14.15 Add a Streamlit AppTest smoke test of the Personas tab (`tests/test_part5_personas_apptest_smoke.py`)
+    - Render the Personas tab headlessly with Streamlit's `AppTest` on a small sampled dataset (k=2 or 3) and check: personas render with the default attributes at "All leads"; the single-type warning appears for numeric-only and for categorical-only selections and not for a mix; the group dropdown appears with the split option and scoping a group scopes the output; an invalid grouping field shows the actionable error message as-is
+    - Keep it as fast as possible; this smoke test replaces the separate page-helper test file (14.3 is not being done)
+    - _Requirements: 3.16, 3.17, 3.20, 6.3, 6.11_
 
 - [x] 15. Shared test strategies and end-to-end verification
   - [x] 15.1 Add shared hypothesis strategies in `tests/strategies_part5_personas.py`
@@ -355,7 +384,13 @@ Order reflects what actually ran. Tasks 14.3 and 14.4 were deliberately deferred
     { "id": 25, "tasks": ["8.1f", "14.10"] },
     { "id": 26, "tasks": ["14.11"] },
     { "id": 27, "tasks": ["9.3"] },
-    { "id": 28, "tasks": ["14.3", "14.4"] }
+    { "id": 28, "tasks": ["14.12"] },
+    { "id": 29, "tasks": ["4.7"] },
+    { "id": 30, "tasks": ["8.1g"] },
+    { "id": 31, "tasks": ["14.13"] },
+    { "id": 32, "tasks": ["14.14"] },
+    { "id": 33, "tasks": ["14.15"] },
+    { "id": 34, "tasks": ["14.3", "14.4"] }
   ]
 }
 ```

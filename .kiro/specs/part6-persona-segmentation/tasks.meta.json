@@ -199,6 +199,11 @@
         "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
         "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
         "timestamp": 1793874000889
+      },
+      {
+        "executionId": "8f8becdb-0799-451d-914d-993c11d39201",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793985211027
       }
     ],
     "7.1 Implement `PersonaProfile` stats and distinguishing attributes": [
@@ -450,6 +455,11 @@
         "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
         "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
         "timestamp": 1793874001902
+      },
+      {
+        "executionId": "8f8becdb-0799-451d-914d-993c11d39201",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793985211376
       }
     ],
     "13.1 Implement `run_personas` and `persona_mix_by_cell` with no Streamlit imports": [
@@ -944,6 +954,73 @@
         "executionId": "ad6e1177-adb2-4857-9bf0-351c646d8072",
         "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
         "timestamp": 1793983222059
+      }
+    ],
+    "14.12 Fix the numeric-only warning example (`app/persona_page.py`)": [
+      {
+        "executionId": "8f8becdb-0799-451d-914d-993c11d39201",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793985210933
+      }
+    ],
+    "4.7 Choose the focus category of a text attribute by lift (`profile.py`)": [
+      {
+        "executionId": "bf96c183-c7dd-4533-ac1a-197a51e2ac3f",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793985631635
+      },
+      {
+        "executionId": "bf96c183-c7dd-4533-ac1a-197a51e2ac3f",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793986775867
+      }
+    ],
+    "8.1g Name the focus category in persona names (`naming.py`, `labels.py`)": [
+      {
+        "executionId": "bf96c183-c7dd-4533-ac1a-197a51e2ac3f",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793986778986
+      },
+      {
+        "executionId": "bf96c183-c7dd-4533-ac1a-197a51e2ac3f",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793987989784
+      }
+    ],
+    "14.13 Name the focus category in trait tags and sentences (`app/persona_page.py`)": [
+      {
+        "executionId": "bf96c183-c7dd-4533-ac1a-197a51e2ac3f",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793987990335
+      },
+      {
+        "executionId": "bf96c183-c7dd-4533-ac1a-197a51e2ac3f",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793988826318
+      }
+    ],
+    "14.14 Hide constant columns from the attribute picker and default set (`app/persona_page.py`)": [
+      {
+        "executionId": "bf96c183-c7dd-4533-ac1a-197a51e2ac3f",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793988826431
+      },
+      {
+        "executionId": "bf96c183-c7dd-4533-ac1a-197a51e2ac3f",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793989314587
+      }
+    ],
+    "14.15 Add a Streamlit AppTest smoke test of the Personas tab (`tests/test_part5_personas_apptest_smoke.py`)": [
+      {
+        "executionId": "bf96c183-c7dd-4533-ac1a-197a51e2ac3f",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793989315987
+      },
+      {
+        "executionId": "bf96c183-c7dd-4533-ac1a-197a51e2ac3f",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793989628227
       }
     ]
   }

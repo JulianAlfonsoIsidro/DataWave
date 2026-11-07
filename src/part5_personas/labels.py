@@ -114,3 +114,46 @@ def attribute_label(raw_column: str) -> str:
         return _ATTRIBUTE_LABELS[raw_column]
 
     return raw_column.replace("_", " ").strip().lower()
+
+
+# Category wording for non-flag text categoricals (task 8.1g, Requirements 4.4, 4.6):
+# column -> template with a ``{c}`` placeholder for the category. Any other text
+# column reads "<Label>: <c>". Shared so names stay consistent across the pipeline.
+_CATEGORY_TEMPLATES: dict[str, str] = {
+    "age_band": "{c} Age Band",
+    "region": "{c} Region",
+    "segment": "{c} Segment",
+    "sec_class": "Class {c}",
+    "inflow_type": "{c} Inflows",
+    "online_shopper": "{c} Online Shoppers",
+}
+
+
+def is_text_category(raw_column: str, categories: list[str]) -> bool:
+    """Return True when ``raw_column`` is a non-flag text categorical.
+
+    ``owns_*`` columns are always flags. Any other column is a text categorical
+    unless its observed categories are all within ``{"0", "1"}`` (a yes/no flag,
+    for example ``digital_app_user``). ``online_shopper`` holds text levels
+    (High / Medium / Low), so it counts as text when its categories are not 0/1.
+    Pure and deterministic (Requirement 4.6).
+    """
+    if raw_column.startswith(_OWNERSHIP_PREFIX):
+        return False
+    cats = {str(c) for c in categories}
+    if not cats or cats <= {"0", "1"}:
+        return False
+    return True
+
+
+def category_phrase(raw_column: str, category: str) -> str:
+    """Return the plain phrase naming ``category`` of a text column (task 8.1g).
+
+    For example ``("age_band", "25-34")`` -> "25-34 Age Band", ``("sec_class",
+    "C1")`` -> "Class C1"; an unmapped column reads "<Label>: <category>". Pure
+    and deterministic (Requirement 4.6).
+    """
+    template = _CATEGORY_TEMPLATES.get(raw_column)
+    if template is not None:
+        return template.format(c=category)
+    return f"{attribute_label(raw_column).title()}: {category}"
