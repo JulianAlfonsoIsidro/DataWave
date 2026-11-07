@@ -327,6 +327,23 @@ The build order follows the design's module breakdown: dependency → config →
     - Render the Personas tab headlessly with Streamlit's `AppTest` on a small sampled dataset (k=2 or 3) and check: personas render with the default attributes at "All leads"; the single-type warning appears for numeric-only and for categorical-only selections and not for a mix; the group dropdown appears with the split option and scoping a group scopes the output; an invalid grouping field shows the actionable error message as-is
     - Keep it as fast as possible; this smoke test replaces the separate page-helper test file (14.3 is not being done)
     - _Requirements: 3.16, 3.17, 3.20, 6.3, 6.11_
+  - [x] 8.1h Use business labels in every persona name, description and action (`naming.py`, `labels.py`)
+    - Problem: actions and descriptions used raw column wording ("Highlight total out as the campaign hook", "led by inflow share payroll (avg 0.08)")
+    - Use the shared `labels.py` wording for every user-facing string from `RuleBasedNamer`, so persona cards, the export and the New Promo breakdown read the same; keep names unique within a set and deterministic
+    - Write the failing tests FIRST: for every known joined column, no raw column name (underscored or with spaces, for example "total out", "inflow share payroll") appears in any name, description or action; uniqueness and determinism unchanged; update ONLY expectations that changed, listing each
+    - _Requirements: 4.4, 4.5, 4.6, 4.9, 4.11_
+  - [x] 13.4 Compute expected joiners by persona for the New Promo cards (`src/webapp_core/personas.py`)
+    - Pure function, no Streamlit: inputs are the New Promo `RunResult` cards and `sendable_by_segment`, the persona run's labels and each persona's actions; one breakdown per card
+    - Rows keyed by `(group, persona)` with leads, lead share, expected joiners (sum of `p_join`) and rate, ordered by expected joiners then name; unlabeled leads go to "Not in this persona run"; personas under 5% of the card's leads OR under 5 leads fold into "Other personas" (lead count only); the total equals the card's `expected_joiners`
+    - Per shown row, the persona's first action that is not the generic channel fallback; a short generic line when it repeats a higher row's action on the same card
+    - Takeaway: with at least two shown personas and best rate at least 1.2x the lowest, "<Persona> is a% of leads but j% of expected joiners. Lead with its hook."; otherwise "Personas respond about equally; one message fits this card."
+    - Write the failing tests FIRST (sum equals card joiners incl. folded and unlabeled leads, both fold rules, ordering, action dedup and channel-line skip, takeaway both branches and the 1.2 boundary, same persona name in two groups not merged, inputs not mutated, determinism); keep `persona_mix_by_cell` and its tests unchanged
+    - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.7, 7.8_
+  - [x] 14.16 Show the breakdown on the New Promo cards and remove the past-promo mix (`app/persona_page.py`)
+    - After a persona run, render the current New Promo run's cards read-only with the 13.4 breakdown (column "Expected joiners") and the takeaway; with no New Promo run show "Run a New Promo first to see expected joiners by persona."
+    - Remove the "Decision Cards With Persona Mix" section built on `outputs/cards.json`; the group selector no longer scopes card output
+    - Tests: pure render helpers unit-tested; extend the AppTest smoke test for the no-run message and for the breakdown after a New Promo run placed in session state; update ONLY the expectations that changed, listing each
+    - _Requirements: 3.17, 7.1, 7.2, 7.6, 7.8, 7.9_
 
 - [x] 15. Shared test strategies and end-to-end verification
   - [x] 15.1 Add shared hypothesis strategies in `tests/strategies_part5_personas.py`
@@ -391,7 +408,9 @@ Order reflects what actually ran. Tasks 14.3 and 14.4 were deliberately deferred
     { "id": 31, "tasks": ["14.13"] },
     { "id": 32, "tasks": ["14.14"] },
     { "id": 33, "tasks": ["14.15"] },
-    { "id": 34, "tasks": ["14.3", "14.4"] }
+    { "id": 34, "tasks": ["8.1h", "13.4"] },
+    { "id": 35, "tasks": ["14.16"] },
+    { "id": 36, "tasks": ["14.3", "14.4"] }
   ]
 }
 ```

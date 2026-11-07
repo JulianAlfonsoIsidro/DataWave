@@ -222,7 +222,7 @@ def test_name_and_description_content():
     description = result["description"]
     assert description.startswith("32.5% of clustered leads")
     assert "monthly income" in description
-    assert "avg 4200.00" in description
+    assert "avg 4,200" in description
     assert description.endswith(".")
 
 

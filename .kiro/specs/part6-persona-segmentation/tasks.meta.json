@@ -1022,6 +1022,42 @@
         "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
         "timestamp": 1793989628227
       }
+    ],
+    "8.1h Use business labels in every persona name, description and action (`naming.py`, `labels.py`)": [
+      {
+        "executionId": "2781cea7-3d1c-4c7d-a0ed-728f20d642b8",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794034925542
+      },
+      {
+        "executionId": "2781cea7-3d1c-4c7d-a0ed-728f20d642b8",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794036545847
+      }
+    ],
+    "13.4 Compute expected joiners by persona for the New Promo cards (`src/webapp_core/personas.py`)": [
+      {
+        "executionId": "2781cea7-3d1c-4c7d-a0ed-728f20d642b8",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794034926736
+      },
+      {
+        "executionId": "2781cea7-3d1c-4c7d-a0ed-728f20d642b8",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794036544787
+      }
+    ],
+    "14.16 Show the breakdown on the New Promo cards and remove the past-promo mix (`app/persona_page.py`)": [
+      {
+        "executionId": "2781cea7-3d1c-4c7d-a0ed-728f20d642b8",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794036551480
+      },
+      {
+        "executionId": "2781cea7-3d1c-4c7d-a0ed-728f20d642b8",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794037442295
+      }
     ]
   }
 }

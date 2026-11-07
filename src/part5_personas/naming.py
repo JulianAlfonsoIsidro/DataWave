@@ -1,10 +1,10 @@
-"""Persona naming for the Persona_Pipeline (design D5).
+﻿"""Persona naming for the Persona_Pipeline (design D5).
 
 Turns a :class:`~part5_personas.profile.PersonaProfile` into a human-facing
 ``name``, a one-line ``description``, and 2-3 recommended campaign ``actions``.
 Each action reads as campaign guidance a planner can act on and, where the
 profile supports it, names a suggested channel (one of "In-app", "Email", "SMS")
-together with an offer angle — for example "Best reached by SMS with a
+together with an offer angle â€” for example "Best reached by SMS with a
 savings-bundle offer" (Requirement 4.5). All derivation is a pure, deterministic
 function of the profile's fields so an identical profile always yields identical
 output (Requirement 4.6); the module holds no Streamlit imports and no
@@ -18,7 +18,7 @@ action reads "Reachable on every channel about equally; lead with {channel}
 (widest reach). Offer angle: a {angle}." (task 8.1f). With empty ``channel_reach`` the previous
 category/flag/default precedence applies unchanged.
 
-Design D5 — the pipeline depends only on the narrow :class:`PersonaNamer`
+Design D5 â€” the pipeline depends only on the narrow :class:`PersonaNamer`
 Protocol, never on a concrete namer type, so a future ``BedrockNamer`` living in
 its own module can implement the same ``name(profile, taken) -> PersonaNaming``
 signature and be swapped in at the call site with no pipeline or page changes
@@ -27,8 +27,8 @@ signature and be swapped in at the call site with no pipeline or page changes
 Direction-aware names (design D5 / Requirement 4.4): the base name composes the
 persona's top distinguishing attributes rendered in shared plain-language labels
 (from :mod:`part5_personas.labels`, so this module never imports ``app/``) plus a
-direction word — High/Low for numeric attributes, More/Fewer for categorical or
-flag attributes — read from ``PersonaProfile.distinguishing_directions``. Two
+direction word â€” High/Low for numeric attributes, More/Fewer for categorical or
+flag attributes â€” read from ``PersonaProfile.distinguishing_directions``. Two
 personas sharing the same top attributes but differing in direction therefore get
 different names.
 
@@ -87,21 +87,34 @@ class PersonaNamer(Protocol):
         ...
 
 
-# Human-readable fallbacks for the raw ownership flag columns the join stage
-# produces (``owns_<product_type>``). Kept tiny and data-independent so the
-# namer stays a pure function of the profile.
 def _prettify_attribute(attr: str) -> str:
-    """Turn a raw attribute column name into a short human-readable phrase.
+    """Business label for a raw attribute column (task 8.1h, Requirement 4.11).
 
-    Pure string formatting (Requirement 4.6): ``owns_investment`` becomes
-    ``investment ownership`` and a snake/space name like ``monthly_income``
-    becomes ``monthly income``. No external state is consulted.
+    Delegates to the shared :func:`part5_personas.labels.attribute_label` so
+    descriptions and actions never show raw column wording ("total_out",
+    "inflow share payroll"). Pure and deterministic (Requirement 4.6).
     """
-    if attr.startswith("owns_"):
-        product = attr[len("owns_") :].replace("_", " ").strip()
-        return f"{product} ownership" if product else "product ownership"
-    return attr.replace("_", " ").strip().lower()
+    return attribute_label(attr)
 
+
+def _is_share_attribute(attr: str) -> bool:
+    """True for 0-1 share/ratio columns, which read better as a percentage."""
+    return "share" in attr or attr.endswith("_ratio")
+
+
+def _format_mean(attr: str, value: float) -> str:
+    """Readable average: percent for shares, thousands-separated otherwise."""
+    if _is_share_attribute(attr):
+        return f"{value * 100:.0f}%"
+    if abs(value) >= 100:
+        return f"{value:,.0f}"
+    text = f"{value:.1f}"
+    return text[:-2] if text.endswith(".0") else text
+
+
+def _flag_word(category: str) -> str:
+    """Yes/no wording for a 0/1 flag category; other values pass through."""
+    return {"1": "yes", "0": "no"}.get(category, category)
 
 def _title_phrase(attr: str) -> str:
     """Title-case a prettified attribute for use inside a persona name."""
@@ -156,7 +169,7 @@ _DEFAULT_CHANNEL = "Email"
 # Fixed precedence for mapping an ownership/validity flag attribute to a channel
 # when that flag's dominant category is the "on" value ("1"). Earlier entries win
 # so the selection is a pure, documented function of the profile (Requirement 4.6).
-# (attribute-name substring, channel) — evaluated in this order.
+# (attribute-name substring, channel) â€” evaluated in this order.
 _FLAG_CHANNEL_PRECEDENCE: tuple[tuple[str, str], ...] = (
     ("digital_app_user", "In-app"),
     ("email_valid", "Email"),
@@ -227,8 +240,8 @@ class RuleBasedNamer:
 
         Reads the first two entries of ``profile.distinguishing`` (already ranked
         and tie-broken by the profiling stage) and renders each as a
-        ``"<Direction> <plain label>"`` fragment — High/Low for numeric
-        attributes, More/Fewer for categorical/flag attributes — using the
+        ``"<Direction> <plain label>"`` fragment â€” High/Low for numeric
+        attributes, More/Fewer for categorical/flag attributes â€” using the
         direction word stored on ``profile.distinguishing_directions`` and the
         shared business label from :func:`part5_personas.labels.attribute_label`.
         The two fragments are joined with " / " (e.g.
@@ -257,12 +270,12 @@ class RuleBasedNamer:
 
         1. **Extend** the name with the persona's *third* distinguishing attribute
            rendered as a direction + label fragment (``"<base> / <third>"``) and
-           retry — two personas that share their top two distinguishing attributes
+           retry â€” two personas that share their top two distinguishing attributes
            often differ on the third.
         2. **Letter suffix.** If the extended name is still taken (or there is no
            usable third attribute), append an ascending letter suffix
            (``" (A)"``, ``" (B)"``, ..., then ``" (AA)"`` and onward) to whichever
-           name was built until a free name is found — never a ``"(cluster N)"``
+           name was built until a free name is found â€” never a ``"(cluster N)"``
            suffix.
 
         The procedure depends only on ``base_name``, ``profile``, and ``taken``,
@@ -377,11 +390,11 @@ class RuleBasedNamer:
         categories = profile.top_categories.get(attr)
         if categories:
             top_category = self._shown_category(profile, attr)
-            return f"led by {pretty} = {top_category}"
+            return f"led by {pretty} = {_flag_word(top_category)}"
 
         if attr in profile.numeric_mean:
             mean_value = profile.numeric_mean[attr]
-            return f"led by {pretty} (avg {mean_value:.2f})"
+            return f"led by {pretty} (avg {_format_mean(attr, mean_value)})"
 
         return f"led by {pretty}"
 
@@ -583,7 +596,7 @@ class RuleBasedNamer:
         categories = profile.top_categories.get(attr)
         if categories:
             top_category = self._shown_category(profile, attr)
-            return f"Lead the message on {pretty} = {top_category}"
+            return f"Lead the message on {pretty} = {_flag_word(top_category)}"
         if attr in profile.numeric_mean:
             return f"Highlight {pretty} as the campaign hook"
         return f"Highlight {pretty} as the campaign hook"
