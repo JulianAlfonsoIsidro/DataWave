@@ -1,4 +1,4 @@
-﻿# Implementation Plan: Persona Segmentation
+# Implementation Plan: Persona Segmentation
 
 ## Overview
 
@@ -228,6 +228,7 @@ The build order follows the design's module breakdown: dependency → config →
     - _Requirements: 7.2, 7.3, 7.4, 7.5_
 
 - [ ] 14. Implement the Streamlit `Persona_Page` (`app/`)
+  - NOTE: 14.3 (NOT DOING) and 14.4 (optional, deferred) are intentionally not done, so this parent stays unchecked; all other sub-tasks are complete.
   - [x] 14.1 Build the CRM-friendly page composition and session-state wiring
     - Render the Clustering_Level selector with the plain labels "All leads" / "By customer segment" / "By campaign" mapped to internal values `all` / `business-segment` / `campaign` (default `all`); a k selector labeled "Number of personas", integers 2–6, default 3; and a Run control
     - Render the Attribute_Picker over Joined_Attribute_Set columns grouped under Demographics / Lifestyle / Products owned / Spending behavior with readable display labels (e.g. "Owns deposit account" for `owns_deposit`) while passing the raw column name as the selected value; preselect a Default_Attribute_Set so Run works immediately; do NOT render any numeric/categorical type-override control (auto-detect stays in the backend; override stays available via Config/API). Keep the raw→(group,label) mapping and Default_Attribute_Set in the `app/` layer with a graceful fallback for unmapped columns
