@@ -8,15 +8,21 @@
 ## Libraries
 
 - **pandas / numpy** — all data loading and transformation.
-- **scikit-learn** — model utilities, calibration, cross-validation (StratifiedGroupKFold, leave-one-promo-out).
+- **scikit-learn** — model utilities, calibration, cross-validation (StratifiedGroupKFold, leave-one-promo-out), and `KMeans` for the numeric-only persona fallback.
 - **xgboost** — the Part 1 propensity booster.
 - **shap** — per-lead top-3 driver explanations.
-- **streamlit** — the Part 5 webapp.
+- **kmodes** — `KPrototypes` for persona clustering and `KModes` for the categorical-only fallback.
+- **streamlit** — the webapp.
 - **python-dotenv** — environment config.
 - **pytest** — unit and integration tests.
 - **hypothesis** — property-based testing (the dominant test style here).
 
 Dependencies live in `requirements.txt` (unpinned). Install into the repo's `.venv`.
+
+## Clustering (personas)
+
+- Mixed numeric/categorical selections use k-prototypes, seeded with 42.
+- `KPrototypes` rejects single-type selections, so numeric-only uses `KMeans` and categorical-only uses `KModes`, both seeded with 42.
 
 ## Import model (important)
 
@@ -26,27 +32,34 @@ Dependencies live in `requirements.txt` (unpinned). Install into the repo's `.ve
 
 ## Common commands
 
-Run from the repo root. On Windows PowerShell, set `PYTHONPATH` with `$env:`.
+Run from the repo root. On Windows PowerShell, set `PYTHONPATH` with `$env:`. This machine has no venv activate script, so call the venv interpreter directly.
 
 ```powershell
 # Install dependencies
-pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 
 # Run the full batch pipeline end to end (regenerates outputs/ artifacts)
-$env:PYTHONPATH="src"; python src/run_pipeline.py
+$env:PYTHONPATH="src"; .\.venv\Scripts\python.exe src/run_pipeline.py
 
 # Run a single stage
-$env:PYTHONPATH="src"; python -m part1_optin.main
-$env:PYTHONPATH="src"; python -m part4_cards.main
+$env:PYTHONPATH="src"; .\.venv\Scripts\python.exe -m part1_optin.main
+$env:PYTHONPATH="src"; .\.venv\Scripts\python.exe -m part4_cards.main
 
 # Launch the webapp (reads the fitted model + artifacts from outputs/)
-$env:PYTHONPATH="src"; streamlit run app/main.py
+$env:PYTHONPATH="src"; .\.venv\Scripts\python.exe -m streamlit run app/main.py
 
 # Run the test suite
-pytest
+.\.venv\Scripts\python.exe -m pytest tests
 
 # Run one test file
-pytest tests/test_part1_integration.py
+.\.venv\Scripts\python.exe -m pytest tests/test_part1_integration.py
 ```
 
 Stages accept `--<name>` CLI flags to override input/output paths; defaults are the canonical `data/` and `outputs/` paths defined in each package's `config.py`.
+
+## Test conventions
+
+- pytest plus hypothesis; property tests are the primary style.
+- Set `deadline=None` on hypothesis tests that fit real models.
+- The Personas page has Streamlit `AppTest` smoke tests (`tests/test_part5_personas_apptest_smoke.py`).
+- Six Part 1 Hypothesis timeouts fail today. They are pre-existing and unrelated to personas.

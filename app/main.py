@@ -1,10 +1,10 @@
 """Streamlit entry point for the Promo Audience Navigator (Part 5 webapp).
 
 This file is the declarative composition layer: it sets the wide desktop
-layout, injects the single stylesheet once, renders the BPI-website chrome (top
-utility bar, main nav bar with a red text brand, a breadcrumb row, and a hero
-with a red-gradient KPI panel), then the Title Case tabs (New Promo, Results,
-What-If, Ask Assistant, Past Promos), and routes to each tab body. All real
+layout, injects the single stylesheet once, renders the page chrome (slim top
+bar, a text brand, a current-run context banner, and a hero with a
+red-gradient KPI panel), then the Title Case tabs (New Promo, Results,
+What-If, Personas, Past Promos, Ask Assistant), and routes to each tab body. All real
 logic lives in ``src/webapp_core`` (model reload, eligibility, promo-id, run
 orchestration) and ``app/theme`` (styling) -- this module only wires them to
 Streamlit widgets and session state. Functionality is unchanged from the prior
@@ -112,6 +112,22 @@ def _metric_from_run() -> tuple[str, str]:
     return f"{total:,.0f}", "Expected Joiners"
 
 
+def _run_context_items() -> list[str] | None:
+    """The current run as short display items, or `None` before any run."""
+    result = st.session_state.get(RUN_RESULT_KEY)
+    if result is None:
+        return None
+    spec = result.promo_spec
+    return [
+        str(spec.promo_id),
+        str(spec.product_type),
+        str(spec.mechanic).replace("_", " ").title(),
+        f"Threshold ₱{float(spec.threshold_php):,.0f}",
+        f"{len(result.scored):,} eligible clients",
+        f"{len(result.cards)} segments",
+    ]
+
+
 FLASH_KEY = "flash_messages"
 
 
@@ -183,12 +199,22 @@ def _render_new_promo_tab() -> None:
     _show_messages(st.session_state.pop(FLASH_KEY, []))
 
     with st.form("new_promo_form"):
-        st.text_input("Promo ID (Auto-Generated)", value=auto_promo_id, disabled=True)
+        id_col, _id_spacer = st.columns([1, 2])
+        with id_col:
+            st.text_input("Promo ID (Auto-Generated)", value=auto_promo_id, disabled=True)
 
-        col_left, col_right = st.columns(2)
-        with col_left:
+        theme.section_label("Promo Basics", "What you are offering.")
+        basics_a, basics_b, basics_c = st.columns(3)
+        with basics_a:
             product_type = st.selectbox("Product Type", PRODUCT_TYPE_OPTIONS, index=0)
+        with basics_b:
             mechanic = st.selectbox("Mechanic", MECHANIC_OPTIONS, index=0)
+        with basics_c:
+            reward = st.text_input("Reward", value="Bonus interest")
+
+        theme.section_label("Offer Terms", "The amounts that qualify a client.")
+        terms_a, terms_b = st.columns(2)
+        with terms_a:
             threshold_php = st.number_input(
                 "Threshold (PHP)",
                 min_value=0.0,
@@ -196,6 +222,7 @@ def _render_new_promo_tab() -> None:
                 step=10_000.0,
                 format="%.2f",
             )
+        with terms_b:
             min_adb = st.number_input(
                 "Minimum ADB (PHP)",
                 min_value=0.0,
@@ -203,14 +230,17 @@ def _render_new_promo_tab() -> None:
                 step=10_000.0,
                 format="%.2f",
             )
-        with col_right:
-            reward = st.text_input("Reward", value="Bonus interest")
+
+        theme.section_label("Audience", "Who can receive the promo.")
+        aud_a, aud_b = st.columns(2)
+        with aud_a:
             eligible_segments = st.multiselect(
                 "Eligible Segments",
                 options=segment_options,
                 default=segment_options,
                 help="Customer_DNA segments. Clients outside these are excluded.",
             )
+        with aud_b:
             channels = st.multiselect(
                 "Channels",
                 options=CHANNEL_OPTIONS,
@@ -230,7 +260,7 @@ def _render_new_promo_tab() -> None:
             min_adb=float(min_adb),
             channels=list(channels),
         )
-        with st.spinner("Scoring and segmenting the audience..."):
+        with theme.loading("analysis", "Scoring and segmenting your audience..."):
             st.session_state[FLASH_KEY] = _execute_run(spec)
         # Refresh once so the hero KPI at the top shows the new run's number.
         st.rerun()
@@ -276,7 +306,7 @@ def _tile_body_html(card: dict | None, *, emphasis: bool) -> str:
     return (
         '<div class="pan-tile-k">Clients</div>'
         f'<div class="pan-tile-v">{n_clients:,}</div>'
-        '<div class="pan-tile-k" style="margin-top:10px;">Expected Joiners</div>'
+        '<div class="pan-tile-k pan-tile-k--spaced">Expected Joiners</div>'
         f'<div class="pan-tile-accent">{joiners:,.1f}</div>'
     )
 
@@ -305,10 +335,12 @@ def _decision_card_html(card: dict) -> str:
         exclusions_html = "none"
 
     # Stat chips for the headline numbers.
-    chips = (
-        theme.chip(f"Joiners {joiners:,.1f}")
-        + theme.chip(f"90% {low:,.1f}-{high:,.1f}")
-        + theme.chip(f"Value {exp_value:,.0f}")
+    chips = theme.chips_html(
+        [
+            theme.chip(f"Joiners {joiners:,.1f}"),
+            theme.chip(f"90% {low:,.1f}-{high:,.1f}"),
+            theme.chip(f"Value {exp_value:,.0f}"),
+        ]
     )
 
     rows = [
@@ -318,15 +350,7 @@ def _decision_card_html(card: dict) -> str:
         ("Top Drivers", drivers_html),
         ("Exclusions By Reason", exclusions_html),
     ]
-    items = "".join(
-        f'<div style="margin-bottom:8px;">'
-        f'<span style="color:var(--pan-gray);font-size:0.78rem;'
-        f'letter-spacing:0.2px;">{label}</span><br/>'
-        f'<span style="font-weight:600;color:var(--pan-charcoal);">{value}</span>'
-        "</div>"
-        for label, value in rows
-    )
-    return f'<div style="margin-bottom:12px;">{chips}</div>{items}'
+    return chips + theme.fields_html(rows)
 
 
 def _render_results_tab() -> None:
@@ -394,6 +418,11 @@ def _render_results_tab() -> None:
                     key=f"download_leads_{segment_label}",
                 )
 
+    theme.next_step(
+        "Test a different threshold in What-If, or group these clients into "
+        "personas in Personas."
+    )
+
 
 _WHATIF_RANGE_FLOOR = 200_000.0
 
@@ -439,7 +468,9 @@ def _render_whatif_tab() -> None:
         new_spec = dataclasses.replace(
             result.promo_spec, threshold_php=float(new_threshold)
         )
-        _show_messages(_execute_run(new_spec))
+        with theme.loading("rescore", "Rescoring at the new threshold...", slow=True):
+            messages = _execute_run(new_spec)
+        _show_messages(messages)
         result = st.session_state.get(RUN_RESULT_KEY)
 
     number, caption = _metric_from_run()
@@ -450,13 +481,14 @@ def _render_whatif_tab() -> None:
             f"{len(result.scored):,} eligible clients across "
             f"{len(result.cards)} segments."
         )
+    theme.next_step("Open Results to see the decision cards at this threshold.")
 
 
 def _render_ask_assistant_tab() -> None:
     """Render the Ask Assistant placeholder panel (Requirement 6.4)."""
     theme.card(
         "Ask Assistant",
-        '<p style="margin:0;">The conversational assistant is coming in the '
+        '<p class="pan-flush">The conversational assistant is coming in the '
         "next spec. For now this panel is a placeholder and performs no "
         "lookup or model call.</p>",
     )
@@ -482,19 +514,14 @@ def _segment_sort_key(row: dict) -> tuple[int, str]:
 def _past_promo_card_html(rows: list[dict]) -> str:
     """Build the (escaped) body HTML for one Past_Promo predicted-vs-actual card.
 
-    Values are centered; the Segment column stays left-aligned so the names
-    read cleanly. Rates are shown as percentages with one decimal.
+    Rates are right-aligned numbers; the Segment column stays left-aligned so
+    the names read cleanly. Rates are shown as percentages with one decimal.
     """
-    th = (
-        "padding:10px 12px;font-size:0.8rem;font-weight:600;"
-        "color:#6B7280;border-bottom:1.5px solid #E6E6E6;"
-    )
-    td = "padding:10px 12px;border-bottom:1px solid #F0F0F0;"
     header = (
         "<tr>"
-        f'<th style="{th}text-align:left;">Segment</th>'
-        f'<th style="{th}text-align:center;">Predicted</th>'
-        f'<th style="{th}text-align:center;">Actual</th>'
+        '<th class="pan-th">Segment</th>'
+        '<th class="pan-th pan-num">Predicted</th>'
+        '<th class="pan-th pan-num">Actual</th>'
         "</tr>"
     )
     body_rows = []
@@ -504,16 +531,11 @@ def _past_promo_card_html(rows: list[dict]) -> str:
         actual = _fmt_rate(row.get("actual"))
         body_rows.append(
             "<tr>"
-            f'<td style="{td}text-align:left;font-weight:600;">{segment}</td>'
-            f'<td style="{td}text-align:center;color:#2B2B2B;">{predicted}</td>'
-            f'<td style="{td}text-align:center;color:#AE1319;font-weight:700;">'
-            f"{actual}</td></tr>"
+            f'<td class="pan-td pan-strong">{segment}</td>'
+            f'<td class="pan-td pan-num">{predicted}</td>'
+            f'<td class="pan-td pan-num pan-accent">{actual}</td></tr>'
         )
-    return (
-        '<table style="border-collapse:collapse;width:100%;font-size:0.95rem;'
-        'border:none;">'
-        f"{header}{''.join(body_rows)}</table>"
-    )
+    return f'<table class="pan-table">{header}{"".join(body_rows)}</table>'
 
 
 def _render_past_promos_tab() -> None:
@@ -569,10 +591,10 @@ def main() -> None:
     """Compose the BPI-web app shell and route to the tabs."""
     theme.inject_css()
 
-    # --- page chrome: utility bar, nav, breadcrumb ---
+    # --- page chrome: slim bar, brand, current-run context banner ---
     theme.utility_bar()
-    theme.nav_bar(active="New Promo")
-    theme.breadcrumb("Home", "Results")
+    theme.nav_bar()
+    theme.context_banner(_run_context_items())
 
     # --- hero: title + subtitle on the left, red-gradient KPI panel right ---
     number, caption = _metric_from_run()
@@ -588,7 +610,15 @@ def main() -> None:
         )
     with hero_right:
         st.markdown(
-            theme.hero_kpi_html(number, caption, foot="Across all segments"),
+            theme.hero_kpi_html(
+                number,
+                caption,
+                foot=(
+                    "Across all segments"
+                    if st.session_state.get(RUN_RESULT_KEY) is not None
+                    else "Run a promo to see expected joiners"
+                ),
+            ),
             unsafe_allow_html=True,
         )
 
@@ -599,11 +629,9 @@ def main() -> None:
         results_tab,
         whatif_tab,
         personas_tab,
-        ask_assistant_tab,
         past_promos_tab,
-    ) = st.tabs(
-        ["New Promo", "Results", "What-If", "Personas", "Ask Assistant", "Past Promos"]
-    )
+        ask_assistant_tab,
+    ) = st.tabs(theme.TAB_LABELS)
 
     with new_promo_tab:
         _render_new_promo_tab()
@@ -613,10 +641,10 @@ def main() -> None:
         _render_whatif_tab()
     with personas_tab:
         persona_page.render_persona_tab(run_result_key=RUN_RESULT_KEY)
-    with ask_assistant_tab:
-        _render_ask_assistant_tab()
     with past_promos_tab:
         _render_past_promos_tab()
+    with ask_assistant_tab:
+        _render_ask_assistant_tab()
 
 
 main()

@@ -4,13 +4,24 @@ DataWave is a hackathon project that helps a retail bank design and target custo
 
 ## What it does
 
-The product is built as four batch pipeline stages plus an interactive webapp:
+The product is built as four batch pipeline stages plus an interactive webapp and an optional persona step:
 
 - **Part 1 — Opt-in propensity**: fits a calibrated model that predicts each lead's probability of joining a promo (`p_join`), with top-3 SHAP drivers per lead.
 - **Part 2 — Network features**: derives customer features (e.g. outflows to other banks, inflow/spend shares) consumed by later stages.
 - **Part 3 — Segments**: assigns each client one of four segment labels from a 2x2 of score (propensity) vs capacity: Ready Toppers, Untapped Wealth, Willing but Stretched, Not Now.
 - **Part 4 — Cards**: builds one action card per segment cell (dominant channel, message angle, expected joiners, expected value) and writes per-segment sendable-lead CSVs, honoring do-not-contact and control-group rules.
-- **Part 5 — Webapp (Promo Audience Navigator)**: a Streamlit UI to design a promo, score and segment the audience, inspect decision cards, run What-If threshold analysis, download sendable leads, and compare predicted vs actual join rates on past promos. The app never retrains — it only reloads the fitted Part 1 model.
+- **Part 5 — Webapp (Promo Audience Navigator)**: a Streamlit UI to design a promo, score and segment the audience, inspect decision cards, run What-If threshold analysis, explore personas, download sendable leads, and compare predicted vs actual join rates on past promos. The app never retrains — it only reloads the fitted Part 1 model.
+
+## Personas tab
+
+- Leads are split into groups first, then clustered into personas within each group.
+- Each persona gets a name, plain-language traits, and recommended actions.
+- The live New Promo cards show an "Expected Joiners By Persona" breakdown.
+- Persona generation is optional and runs on demand; it does not change the Part 1–4 outputs.
+
+## Past Promos
+
+The Past Promos tab shows completed campaigns only.
 
 ## Key domain rules
 

@@ -1,4 +1,4 @@
-﻿"""Example/edge unit tests for the webapp Theme (restyled to the BPI website).
+"""Example/edge unit tests for the webapp Theme (restyled to the BPI website).
 
 These cover concrete behaviors of ``app.theme`` and its siblings
 ``.streamlit/config.toml`` and ``app/styles.css``:
@@ -8,10 +8,11 @@ These cover concrete behaviors of ``app.theme`` and its siblings
   match the ``PALETTE`` dict),
 - the single injected CSS block (:func:`app.theme.build_css`) is loaded from the
   one stylesheet ``app/styles.css`` and contains every sampled palette color,
-  imports the Poppins web font, and hides the default Streamlit chrome,
+  exposes the type tokens (no external font import), and hides the default
+  Streamlit chrome,
 - :func:`app.theme.nav_bar` / :func:`app.theme.header` render the
   "Promo Audience Navigator" text title with no image tag, and
-- the nav items are Title Case (not uppercase).
+- the tab labels are Title Case (not uppercase) and in workflow order.
 
 These are concrete example tests, not Hypothesis properties. ``app`` is a
 package at the repo root (not under ``src``), so the repo root is placed on
@@ -73,14 +74,18 @@ def test_build_css_contains_every_palette_color():
         assert hex_value.upper() in css.upper(), f"CSS missing {key} ({hex_value})"
 
 
-def test_build_css_imports_poppins_and_hides_streamlit_chrome():
-    """The stylesheet imports Poppins and hides the default Streamlit chrome."""
+def test_build_css_uses_type_tokens_and_hides_streamlit_chrome():
+    """The stylesheet uses the type tokens, loads no web font, and hides chrome."""
     css = theme.build_css()
-    assert "Poppins" in css
-    assert "fonts.googleapis.com" in css
+    assert "Poppins" not in css
+    assert "fonts.googleapis.com" not in css
+    assert "@import" not in css
+    assert "--pan-font-heading:" in css
+    assert "var(--pan-font-body)" in css
     # Default header/menu/footer/sidebar hidden.
     assert 'data-testid="stHeader"' in css
-    assert "#MainMenu" in css
+    # The Settings menu (theme switch) is now kept; the rest of the chrome is hidden.
+    assert 'data-testid="stMainMenu"' in css
     assert "footer" in css
     assert 'data-testid="stSidebar"' in css
 
@@ -120,10 +125,17 @@ def test_header_alias_renders_text_title_with_no_image(monkeypatch):
     assert "<img" not in html.lower()
 
 
-def test_nav_items_are_title_case_not_uppercase():
-    """Nav items are Title Case (e.g. "New Promo"), not uppercase."""
-    assert theme.NAV_ITEMS == ["New Promo", "Results", "Past Promos"]
-    for item in theme.NAV_ITEMS:
+def test_tab_labels_are_title_case_not_uppercase():
+    """Tab labels are Title Case (e.g. "New Promo"), not uppercase."""
+    assert theme.TAB_LABELS == [
+        "New Promo",
+        "Results",
+        "What-If",
+        "Personas",
+        "Past Promos",
+        "Ask Assistant",
+    ]
+    for item in theme.TAB_LABELS:
         assert item != item.upper(), f"{item!r} should be Title Case, not uppercase"
 
 
@@ -134,3 +146,35 @@ def test_header_escapes_custom_title_and_stays_image_free(monkeypatch):
     )
     assert "A &amp; B &lt;promo&gt;" in html
     assert "<img" not in html.lower()
+
+def test_type_tokens_have_fallback_stacks_for_missing_licensed_fonts():
+    """Dax and Avenir Next fall back to Bahnschrift / Segoe UI when absent."""
+    heading = theme.font_stack("heading")
+    body = theme.font_stack("body")
+    assert heading.startswith('"Dax"') and '"Bahnschrift"' in heading
+    assert body.startswith('"Avenir Next"') and '"Segoe UI"' in body
+    assert theme.font_stack("number").startswith('"Manrope"')
+    assert heading.endswith("sans-serif") and body.endswith("sans-serif")
+    root = theme.type_tokens_css()
+    assert f"--pan-font-heading: {heading};" in root
+    assert "--pan-type-kpi-hero-font: var(--pan-font-number);" in root
+
+
+def test_config_font_faces_match_tokens_and_bundled_manrope_exists():
+    """config.toml font faces use the token families; Manrope files exist."""
+    parsed = tomllib.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+    assert parsed["server"]["enableStaticServing"] is True
+    block = parsed["theme"]
+    assert block["font"].split(",")[0].strip() == theme.FONT_FAMILIES["body"]
+    assert block["headingFont"].split(",")[0].strip() == theme.FONT_FAMILIES["heading"]
+    faces = block["fontFaces"]
+    assert {f["family"] for f in faces} == set(theme.FONT_FAMILIES.values())
+    for face in faces:
+        if face["family"] == theme.FONT_FAMILIES["number"]:
+            assert (REPO_ROOT / face["url"]).is_file(), face["url"]
+
+
+def test_missing_font_files_reports_only_commercial_files():
+    """The helper only ever names the git-ignored commercial font files."""
+    missing = theme.missing_font_files()
+    assert set(missing) <= set(theme.COMMERCIAL_FONT_FILES)

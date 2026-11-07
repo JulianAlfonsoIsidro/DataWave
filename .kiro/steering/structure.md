@@ -4,9 +4,10 @@
 
 ```
 DataWave/
-├── app/                  # Part 5 Streamlit webapp (presentation layer only)
-│   ├── main.py           # Streamlit entry point — wires widgets to webapp_core
-│   ├── theme.py          # styling / HTML chrome helpers
+├── app/                  # Streamlit webapp (presentation layer only)
+│   ├── main.py           # Streamlit entry point; builds the tabs and wires widgets to webapp_core
+│   ├── persona_page.py   # Personas tab: controls, persona cards, comparison table, downloads
+│   ├── theme.py          # palette, CSS injection, and page chrome helpers
 │   └── styles.css
 ├── data/                 # input CSVs (customer_dna, transactions, promo_history, ...)
 │   ├── gen_data.py       # synthetic data generator
@@ -18,6 +19,7 @@ DataWave/
 │   ├── part2_network/    # network / customer features
 │   ├── part3_segments/   # 2x2 segment labels
 │   ├── part4_cards/      # action cards + sendable leads
+│   ├── part5_personas/   # persona generation (optional, not in run_pipeline.py)
 │   └── webapp_core/      # pure logic behind the webapp (no Streamlit imports)
 ├── tests/                # pytest + hypothesis suite
 ├── .kiro/specs/          # per-part requirements/design/tasks specs
@@ -36,6 +38,21 @@ Each `src/partN_*` package follows the same shape:
 
 `run_pipeline.py` runs stages as: **part2_network → part1_optin → part3_segments → part4_cards**. A stage returning a non-zero exit code stops the run before later stages execute.
 
+### Persona generation (optional)
+
+`part5_personas` is not part of `run_pipeline.py`. It runs on demand (`python -m part5_personas.main`, or from the Personas tab) and reads the outputs of the four stages above.
+
+- `config.py` — frozen `Config` of paths and persona constants.
+- `join.py` — builds the joined attribute set (customer profile + product ownership + Part 2 features) and gates on match rate.
+- `preprocess.py` — classifies column types, imputes, scales, and returns categorical indices.
+- `cluster.py` — seeded clustering, k validation, subsampling, and the elbow sweep.
+- `grouping.py` — clustering levels and the group-first flow; returns named persona sets.
+- `profile.py` — per-persona size, stats, and distinguishing attributes.
+- `naming.py` — persona name, description, and recommended actions.
+- `labels.py` — shared plain-language attribute labels, used by both naming and the page.
+- `export.py` — persona-labeled leads and campaign leads exports.
+- `main.py` — CLI entry point.
+
 ### Output safety
 
 Output-producing steps (writing the model, scores, cards, leads) run **last**, after all computation succeeds, so a failure leaves `outputs/` untouched. Validation/loader gates are the only stages allowed to halt before output.
@@ -44,7 +61,17 @@ Output-producing steps (writing the model, scores, cards, leads) run **last**, a
 
 - `app/` is the declarative composition layer — it only wires Streamlit widgets and session state.
 - `src/webapp_core/` holds all real logic (model reload, eligibility, promo-id generation, run orchestration). It reuses the Part 1/3/4 APIs and adds no modelling.
+- `src/webapp_core/personas.py` runs the in-memory persona generation and computes the persona mix for the live cards.
 - Keep Streamlit imports out of `webapp_core`; keep business logic out of `app/`.
+
+### Tabs in `app/main.py`
+
+- **New Promo** — design a promo, run the analysis, show live decision cards.
+- **Results** — 2x2 segment grid, decision cards, lead download.
+- **What-If** — threshold slider that rescores the audience.
+- **Personas** — persona generation page (`persona_page.py`).
+- **Ask Assistant** — placeholder panel.
+- **Past Promos** — predicted vs actual join rate per past promo.
 
 ## Conventions
 

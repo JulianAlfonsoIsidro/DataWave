@@ -1,13 +1,125 @@
-# Theme colors sampled from the BPI website reference screenshot.
-# The full stylesheet lives in app/styles.css (loaded once by app/theme.py);
-# this block sets Streamlit's base theme so native widgets match.
-#   PAN_RED_DEEP    #AE1319  deep primary red (BPI wordmark / LOGIN button)
-#   PAN_RED_BRIGHT  #D8232A  lighter red (gradient end)
-#   PAN_GOLD        #C9A227  small gold accent (used sparingly)
-#   PAN_CHARCOAL    #2B2B2B  dark charcoal body text
+# Streamlit theme for the Promo Audience Navigator.
+#
+# Colours here only style Streamlit's NATIVE widgets (popups, dataframes,
+# alerts, sliders). The app's own look lives in app/styles.css, section 1
+# ("design tokens"); keep the two in sync. The top-level [theme] colours are the
+# light values and must match PALETTE in app/theme.py (tests check this).
+#   primary #AE1319 | text #1F2328 | page white
+#
+# Light and dark are both defined below. Streamlit follows the OS setting by
+# default and the user can switch in Settings (top-right menu).
+#
+# Fonts: family names and fallback stacks mirror app/theme.py (FONT_STACKS).
+# Dax and Avenir Next are commercial and git-ignored; if their files are
+# missing the browser falls back along the stack (Bahnschrift / Segoe UI).
+# Manrope (SIL OFL) is bundled and committed. Changing this file needs a
+# server restart.
+[server]
+enableStaticServing = true
+
+[client]
+# "viewer" keeps the Settings menu (theme switch) but hides developer options.
+toolbarMode = "viewer"
+
 [theme]
 primaryColor = "#AE1319"
 backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F7F7F8"
-textColor = "#2B2B2B"
-font = "sans serif"
+secondaryBackgroundColor = "#F1F2F5"
+textColor = "#1F2328"
+font = "Avenir Next, Segoe UI, Arial, sans-serif"
+headingFont = "Dax, Bahnschrift, Segoe UI, sans-serif"
+baseRadius = "10px"
+buttonRadius = "10px"
+showWidgetBorder = true
+
+[theme.light]
+primaryColor = "#AE1319"
+backgroundColor = "#F7F7F9"
+secondaryBackgroundColor = "#F1F2F5"
+textColor = "#1F2328"
+borderColor = "#D5D8DE"
+linkColor = "#AE1319"
+redColor = "#B3261E"
+redBackgroundColor = "#FDECEA"
+greenColor = "#17703F"
+greenBackgroundColor = "#E6F4EC"
+yellowColor = "#7A4F00"
+yellowBackgroundColor = "#FFF3D1"
+blueColor = "#0B5C70"
+blueBackgroundColor = "#E3F4F8"
+dataframeBorderColor = "#D5D8DE"
+dataframeHeaderBackgroundColor = "#F1F2F5"
+chartCategoricalColors = ["#AE1319", "#0B7285", "#5B3FA6", "#2457C5", "#B7791F", "#5B616B"]
+
+[theme.dark]
+primaryColor = "#D8232A"
+backgroundColor = "#121316"
+secondaryBackgroundColor = "#23262C"
+textColor = "#ECEEF1"
+borderColor = "#454A55"
+linkColor = "#FF8A8E"
+redColor = "#FF8A80"
+redBackgroundColor = "#2E1514"
+greenColor = "#4CC38A"
+greenBackgroundColor = "#13261C"
+yellowColor = "#F2C14E"
+yellowBackgroundColor = "#2B2410"
+blueColor = "#5CC8DD"
+blueBackgroundColor = "#10262C"
+dataframeBorderColor = "#454A55"
+dataframeHeaderBackgroundColor = "#23262C"
+chartCategoricalColors = ["#FF8A8E", "#4FC3D6", "#A592E8", "#7FA8FF", "#F2C14E", "#A7ADB8"]
+
+[[theme.fontFaces]]
+family = "Avenir Next"
+url = "app/static/fonts/avenir-next-web/AvenirNext-Regular.woff2"
+weight = "400"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Avenir Next"
+url = "app/static/fonts/avenir-next-web/AvenirNext-Medium.woff2"
+weight = "500"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Avenir Next"
+url = "app/static/fonts/avenir-next-web/AvenirNext-Demi.woff2"
+weight = "600"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Avenir Next"
+url = "app/static/fonts/avenir-next-web/AvenirNext-Bold.woff2"
+weight = "700"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Dax"
+url = "app/static/fonts/dax-web/Dax-Medium.ttf"
+weight = "500"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Dax"
+url = "app/static/fonts/dax-web/Dax-Bold.otf"
+weight = "700"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Manrope"
+url = "app/static/fonts/manrope/medium.woff2"
+weight = "500"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Manrope"
+url = "app/static/fonts/manrope/semibold.woff2"
+weight = "600"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "Manrope"
+url = "app/static/fonts/manrope/bold.woff2"
+weight = "700"
+style = "normal"

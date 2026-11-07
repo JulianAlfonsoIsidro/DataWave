@@ -1248,24 +1248,24 @@ def _persona_card_html(
     (Requirement 4.5). Reuses the ``pan-chip`` style via raw HTML so the card
     matches the rest of the app without new CSS classes.
     """
-    chips = (
-        f'<span class="pan-chip">{size:,} leads</span>'
-        f'<span class="pan-chip">{pct:.1f}%</span>'
+    import theme
+
+    chips = theme.chips_html(
+        [
+            f'<span class="pan-chip">{size:,} leads</span>',
+            f'<span class="pan-chip">{pct:.1f}%</span>',
+        ]
     )
     desc_html = html.escape(str(description))
     distinguishing_html = html.escape(distinguishing_sentence)
-    actions_items = "".join(
-        f"<li style=\"margin-bottom:4px;\">{html.escape(str(a))}</li>" for a in actions
-    )
+    actions_items = "".join(f"<li>{html.escape(str(a))}</li>" for a in actions)
     return (
-        f'<div style="margin-bottom:10px;">{chips}</div>'
-        f'<div style="margin-bottom:10px;color:var(--pan-charcoal);">{desc_html}</div>'
-        '<div style="margin-bottom:6px;">'
-        '<span style="color:var(--pan-gray);font-size:0.78rem;">What sets them apart</span>'
-        f'<br/><span style="font-weight:600;">{distinguishing_html}</span></div>'
-        '<div style="margin-top:8px;">'
-        '<span style="color:var(--pan-gray);font-size:0.78rem;">Recommended actions</span>'
-        f'<ul style="margin:6px 0 0 18px;padding:0;">{actions_items}</ul></div>'
+        f"{chips}"
+        f'<div class="pan-desc">{desc_html}</div>'
+        f'{theme.field_html("What sets them apart", distinguishing_html)}'
+        '<div class="pan-field">'
+        '<span class="pan-field-label">Recommended actions</span>'
+        f'<ul class="pan-list">{actions_items}</ul></div>'
     )
 
 
@@ -1469,34 +1469,29 @@ def rates_details_lines(breakdown) -> list[str]:
 
 
 def _table_html(columns: list[str], rows: list[dict[str, str]]) -> str:
+    # First column is text (left); the rest are numbers (right-aligned).
     th = "".join(
-        f'<th style="text-align:left;padding:4px 8px;color:var(--pan-gray);'
-        f'font-size:0.78rem;font-weight:500;">{html.escape(c)}</th>'
-        for c in columns
+        f'<th class="pan-th{"" if j == 0 else " pan-num"}">{html.escape(c)}</th>'
+        for j, c in enumerate(columns)
     )
     body = []
     for i, r in enumerate(rows):
         is_total = i == len(rows) - 1
-        weight = "700" if is_total else "400"
-        border = "border-top:1px solid var(--pan-gray);" if is_total else ""
         tds = "".join(
-            f'<td style="padding:4px 8px;font-weight:{weight};{border}">'
-            f"{html.escape(r[c])}</td>"
-            for c in columns
+            f'<td class="pan-td{"" if j == 0 else " pan-num"}">{html.escape(r[c])}</td>'
+            for j, c in enumerate(columns)
         )
-        body.append(f"<tr>{tds}</tr>")
+        row_class = ' class="pan-row-total"' if is_total else ""
+        body.append(f"<tr{row_class}>{tds}</tr>")
     return (
-        '<table style="width:100%;border-collapse:collapse;margin-top:8px;">'
+        '<table class="pan-table">'
         f"<thead><tr>{th}</tr></thead><tbody>{''.join(body)}</tbody></table>"
     )
 
 
 def _line_html(text: str, bold: bool = False) -> str:
-    weight = "600" if bold else "400"
-    return (
-        f'<div style="margin-top:8px;font-weight:{weight};color:var(--pan-charcoal);">'
-        f"{html.escape(text)}</div>"
-    )
+    strong = " strong" if bold else ""
+    return f'<div class="pan-line{strong}">{html.escape(text)}</div>'
 
 
 def breakdown_html(breakdown) -> str:
@@ -1632,10 +1627,14 @@ def _part4_card_readonly_html(card: dict) -> str:
     else:
         exclusions_html = "none"
 
-    chips = (
-        f'<span class="pan-chip">Joiners {joiners:,.1f}</span>'
-        f'<span class="pan-chip">90% {low:,.1f}-{high:,.1f}</span>'
-        f'<span class="pan-chip">Value {exp_value:,.0f}</span>'
+    import theme
+
+    chips = theme.chips_html(
+        [
+            f'<span class="pan-chip">Joiners {joiners:,.1f}</span>',
+            f'<span class="pan-chip">90% {low:,.1f}-{high:,.1f}</span>',
+            f'<span class="pan-chip">Value {exp_value:,.0f}</span>',
+        ]
     )
 
     rows = [
@@ -1645,15 +1644,7 @@ def _part4_card_readonly_html(card: dict) -> str:
         ("Top Drivers", drivers_html),
         ("Exclusions By Reason", exclusions_html),
     ]
-    items = "".join(
-        f'<div style="margin-bottom:8px;">'
-        f'<span style="color:var(--pan-gray);font-size:0.78rem;'
-        f'letter-spacing:0.2px;">{label}</span><br/>'
-        f'<span style="font-weight:600;color:var(--pan-charcoal);">{value}</span>'
-        "</div>"
-        for label, value in rows
-    )
-    return f'<div style="margin-bottom:12px;">{chips}</div>{items}'
+    return chips + theme.fields_html(rows)
 
 
 def _render_downloads(selected_group: str | None = None) -> None:
@@ -1803,6 +1794,9 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
     default_set = default_attribute_set(set(DEFAULT_ATTRIBUTE_SET) - set(columns))
 
     # --- top controls: level, k, and the level-specific selector ---
+    import theme
+
+    theme.section_label("Audience And Grouping", "Who to group and how many personas to build.")
     ctl_left, ctl_right = st.columns(2)
     with ctl_left:
         level_label = st.selectbox(
@@ -1868,6 +1862,7 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
     _exclusion = split_exclusion_caption(grouping_attributes)
     if _exclusion is not None:
         st.caption(_exclusion)
+    theme.section_label("Attributes", "What the personas are built from.")
     st.markdown("**Attributes to build personas on**")
     selected_attributes: list[str] = []
     picker_cols = st.columns(2)
@@ -2038,7 +2033,9 @@ def _handle_run(
 
     live_leads = _live_leads_for(run_result_key) if campaign_pool == "live" else None
 
-    with st.spinner("Building personas..."):
+    import theme
+
+    with theme.loading("personas", "Grouping leads into personas..."):
         try:
             result = _run_personas_cached(spec, live_leads)
             exports = _build_exports(result)

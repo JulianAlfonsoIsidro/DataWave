@@ -1,254 +1,938 @@
-﻿/* Promo Audience Navigator - BPI website style.
-   Colors sampled from the BPI website reference screenshot:
-     --pan-red-deep   #AE1319  deep primary red (BPI wordmark / LOGIN button)
-     --pan-red-bright #D8232A  lighter red (gradient end)
-     --pan-gold       #C9A227  small gold accent (used sparingly, if at all)
-     --pan-charcoal   #2B2B2B  dark charcoal body text
-     --pan-ink        #1A1A1A  near-black headings
-     --pan-gray       #6B7280  utility/breadcrumb gray
-     --pan-line       #E6E6E6  thin gray dividers / input borders
-   Font: Poppins (Google Fonts, imported below).
-   This file is the single stylesheet, loaded once by app/theme.inject_css(). */
+/* Promo Audience Navigator - BPI website style.
+   Brand influence only: palette, type feel, spacing and tone. No logo, wordmark
+   or asset is used or imitated.
 
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+   This file is the single stylesheet, loaded once by app/theme.inject_css().
+   app/theme.py prepends the TYPE tokens (--pan-font-*, --pan-type-*) and, when
+   Streamlit reports a theme, appends a colour-scheme override. Every colour in
+   this file comes from section 1; no other section contains a hex value.
 
+   Sections (each can be reverted on its own):
+     1. DESIGN TOKENS   colours (light/dark), radius, spacing, motion
+     2. BACKGROUNDS     page wash, hero panel, dot grid
+     3. BASE            page, typography, Streamlit chrome
+     4. COMPONENTS      tabs, cards, chips, buttons, inputs, tables, alerts
+     5. LOADING         analysis and persona loaders, skeletons
+     6. MOTION          the only place UI transitions live
+     7. FLOW            context banner, section labels, next-step cues
+*/
+
+/* ===================================================================== */
+/* 1. DESIGN TOKENS                                                      */
+/* ===================================================================== */
+/* light-dark() picks the first value in light mode and the second in dark
+   mode, using the colour-scheme of the element it is used on. Streamlit sets
+   colour-scheme live on its root element (data-testid="stApp") whenever the
+   theme changes in Settings, so everything inside the app follows the switch
+   instantly. Outside it (and if Streamlit ever stops setting it), the
+   :root value below follows the OS preference. Needs Chrome/Edge 123+,
+   Firefox 120+ or Safari 17.5+. */
 :root {
-  --pan-red-deep: #AE1319;
-  --pan-red-bright: #D8232A;
-  --pan-gold: #C9A227;
-  --pan-charcoal: #2B2B2B;
-  --pan-ink: #1A1A1A;
-  --pan-gray: #6B7280;
-  --pan-line: #E6E6E6;
-  --pan-grad: linear-gradient(135deg, #AE1319 0%, #D8232A 100%);
+  color-scheme: light dark;
+
+  /* surfaces */
+  --pan-bg:              light-dark(#F7F7F9, #121316);
+  --pan-bg-glow:         light-dark(#FFFFFF, #181A1F);
+  --pan-surface:         light-dark(#FFFFFF, #1B1D22);
+  --pan-surface-2:       light-dark(#F1F2F5, #23262C);
+  --pan-border:          light-dark(#D5D8DE, #454A55);
+  --pan-border-control:  light-dark(#868C97, #6E7683);
+  --pan-divider:         light-dark(#E6E8EC, #2E323A);
+
+  /* text */
+  --pan-text:            light-dark(#1F2328, #ECEEF1);
+  --pan-text-muted:      light-dark(#5B616B, #A7ADB8);
+  --pan-on-primary:      #FFFFFF;
+
+  /* brand red */
+  --pan-primary:         light-dark(#AE1319, #D8232A);
+  --pan-primary-from:    light-dark(#AE1319, #9C1218);
+  --pan-primary-to:      light-dark(#D8232A, #D8232A);
+  --pan-primary-hover-from: light-dark(#8F0F14, #B71C22);
+  --pan-primary-hover-to:   light-dark(#B91D24, #E5373D);
+  --pan-primary-text:    light-dark(#AE1319, #FF8A8E);
+  --pan-primary-tint:    light-dark(#FBEDED, #3A1517);
+  --pan-focus:           light-dark(#AE1319, #FF8A8E);
+  --pan-gold:            light-dark(#E0A800, #F2C14E);
+
+  /* disabled */
+  --pan-disabled-bg:     light-dark(#F1F2F5, #23262C);
+  --pan-disabled-text:   light-dark(#8A909B, #7C828D);
+
+  /* status (text on its own background) */
+  --pan-success:         light-dark(#17703F, #4CC38A);
+  --pan-success-bg:      light-dark(#E6F4EC, #13261C);
+  --pan-warning:         light-dark(#7A4F00, #F2C14E);
+  --pan-warning-bg:      light-dark(#FFF3D1, #2B2410);
+  --pan-error:           light-dark(#B3261E, #FF8A80);
+  --pan-error-bg:        light-dark(#FDECEA, #2E1514);
+  --pan-info:            light-dark(#0B5C70, #5CC8DD);
+  --pan-info-bg:         light-dark(#E3F4F8, #10262C);
+
+  /* chart series (also draw a marker/dash per series; never colour alone) */
+  --pan-series-1:        light-dark(#AE1319, #FF8A8E);
+  --pan-series-2:        light-dark(#0B7285, #4FC3D6);
+  --pan-series-3:        light-dark(#5B3FA6, #A592E8);
+  --pan-series-4:        light-dark(#2457C5, #7FA8FF);
+  --pan-series-5:        light-dark(#B7791F, #F2C14E);
+  --pan-series-6:        light-dark(#5B616B, #A7ADB8);
+
+  /* segment accents (each segment also has its own marker shape and label) */
+  --pan-seg-ready:       var(--pan-series-1);
+  --pan-seg-untapped:    var(--pan-series-2);
+  --pan-seg-stretched:   var(--pan-series-5);
+  --pan-seg-notnow:      var(--pan-series-6);
+
+  /* hero panel */
+  --pan-hero-from:       light-dark(#AE1319, #5A0D12);
+  --pan-hero-to:         light-dark(#D8232A, #A31A20);
+  --pan-hero-band:       light-dark(rgba(255,255,255,0.10), rgba(255,255,255,0.06));
+  --pan-hero-band-2:     light-dark(rgba(255,255,255,0.06), rgba(255,255,255,0.035));
+  --pan-hero-vignette:   light-dark(rgba(60,0,4,0.28), rgba(0,0,0,0.35));
+  --pan-dot:             light-dark(rgba(31,35,40,0.07), rgba(236,238,241,0.07));
+
+  /* elevation and overlays */
+  --pan-shadow:          light-dark(rgba(17,24,39,0.08), rgba(0,0,0,0.5));
+  --pan-shadow-strong:   light-dark(rgba(174,19,25,0.25), rgba(0,0,0,0.6));
+  --pan-scrim:           light-dark(rgba(247,247,249,0.62), rgba(18,19,22,0.62));
+
+  /* loaders: the persona loader's two tile colours (brand red and gold) */
+  --loader-accent:       light-dark(#AE1319, #D8232A);
+  --loader-accent-alt:   light-dark(#E0A800, #F2C14E);
+  --pan-loader-doc:      light-dark(#E9EEF4, #2A2F38);
+  --pan-loader-line:     light-dark(#C5CFDC, #3C4350);
+  --pan-loader-fold:     light-dark(#CBD5E1, #454E5C);
+  --pan-loader-mag:      light-dark(#C9CDD3, #6E7683);
+  --pan-skel:            light-dark(#E6E8EC, #2A2E36);
+
+  /* radius */
+  --pan-radius-sm: 6px;
+  --pan-radius-md: 10px;
+  --pan-radius-lg: 14px;
+  --pan-radius-pill: 999px;
+
+  /* spacing scale */
+  --pan-space-1: 4px;
+  --pan-space-2: 8px;
+  --pan-space-3: 12px;
+  --pan-space-4: 16px;
+  --pan-space-5: 24px;
+  --pan-space-6: 32px;
+
+  /* motion: 120-250 ms, one ease-out curve, opacity and transform only */
+  --pan-dur-fast: 120ms;
+  --pan-dur: 180ms;
+  --pan-dur-slow: 250ms;
+  --pan-ease: cubic-bezier(0, 0, 0.2, 1);
 }
 
-/* ---- Global page: white, Poppins, charcoal text, centered 1200px ---- */
-html, body, [class*="css"], .stApp, .stMarkdown, p, span, div, label, input, select, textarea, button {
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+/* ===================================================================== */
+/* 2. BACKGROUNDS (CSS only, no image files)                             */
+/* ===================================================================== */
+.stApp {
+  background: var(--pan-bg) !important;
+  background-image: linear-gradient(180deg, var(--pan-bg-glow) 0, var(--pan-bg) 340px) !important;
+  color: var(--pan-text);
 }
-.stApp { background: #FFFFFF; color: var(--pan-charcoal); }
+.pan-hero-text {
+  background-image: radial-gradient(var(--pan-dot) 1px, transparent 1.2px);
+  background-size: 18px 18px;
+  border-radius: var(--pan-radius-lg);
+  padding: var(--pan-space-2) 0 var(--pan-space-2) 2px;
+}
+.pan-hero-kpi,
+.pan-tile.red {
+  background:
+    linear-gradient(115deg, transparent 0 36%, var(--pan-hero-band) 36% 50%, transparent 50% 100%),
+    linear-gradient(115deg, transparent 0 62%, var(--pan-hero-band-2) 62% 70%, transparent 70% 100%),
+    linear-gradient(180deg, transparent 50%, var(--pan-hero-vignette) 100%),
+    linear-gradient(135deg, var(--pan-hero-from) 0%, var(--pan-hero-to) 100%);
+}
+
+/* ===================================================================== */
+/* 3. BASE: page, typography, Streamlit chrome                           */
+/* ===================================================================== */
+html, body, [class*="css"], .stApp, .stMarkdown, p, span, div, label, input, select, textarea, button {
+  font-family: var(--pan-font-body);
+}
+.stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6 { font-family: var(--pan-font-heading); }
+.stApp [data-testid="stMetricValue"] { font-family: var(--pan-font-number); font-variant-numeric: tabular-nums; }
+.stApp {
+  font-size: var(--pan-type-body-size);
+  line-height: var(--pan-type-body-leading);
+}
 .block-container {
   max-width: 1200px;
   margin: 0 auto;
   padding-top: 0.5rem;
   padding-bottom: 3rem;
 }
-h1, h2, h3, h4 { color: var(--pan-ink); font-weight: 700; }
-h1 { font-size: 2.6rem; font-weight: 800; letter-spacing: -0.5px; }
-p { font-weight: 400; line-height: 1.6; }
+.stApp h1, .stApp h2, .stApp h3, .stApp h4 { color: var(--pan-text); }
+.stApp h1 {
+  font-size: var(--pan-type-title-size);
+  font-weight: var(--pan-type-title-weight);
+  line-height: var(--pan-type-title-leading);
+  letter-spacing: -0.5px;
+}
+.stApp h2 {
+  font-size: var(--pan-type-section-size);
+  font-weight: var(--pan-type-section-weight);
+  line-height: var(--pan-type-section-leading);
+}
+.stApp h3 {
+  font-size: var(--pan-type-subsection-size);
+  font-weight: var(--pan-type-subsection-weight);
+  line-height: var(--pan-type-subsection-leading);
+}
+.stApp h4 {
+  font-size: var(--pan-type-card-title-size);
+  font-weight: var(--pan-type-card-title-weight);
+  line-height: var(--pan-type-card-title-leading);
+}
+p { font-weight: var(--pan-type-body-weight); line-height: var(--pan-type-body-leading); }
+h2, h3 { letter-spacing: -0.2px; }
+[data-testid="stCaptionContainer"] {
+  color: var(--pan-text-muted);
+  font-size: var(--pan-type-caption-size);
+  line-height: var(--pan-type-caption-leading);
+}
 
-/* ---- Hide Streamlit chrome: header, menu, footer, sidebar toggle ---- */
-header[data-testid="stHeader"] { display: none !important; }
-#MainMenu { visibility: hidden; }
+/* Streamlit chrome: keep only the Settings menu (theme switch); hide the rest. */
+header[data-testid="stHeader"] { background: transparent !important; height: 2.5rem; }
+/* The menu button (three dots) stays visible at all times, top right, on a
+   solid surface so it reads on any background. Its header sits above the
+   loader overlay (Streamlit's header z-index is far higher than 999), so the
+   theme can be switched even while something is loading. Theme changes in
+   Settings apply instantly in the browser: no rerun or restart. */
+[data-testid="stMainMenu"] { visibility: visible !important; display: flex !important; opacity: 1 !important; }
+[data-testid="stMainMenuButton"] {
+  background: var(--pan-surface) !important;
+  color: var(--pan-text) !important;
+  border: 1px solid var(--pan-border) !important;
+  border-radius: var(--pan-radius-md) !important;
+  box-shadow: 0 2px 8px var(--pan-shadow);
+}
+[data-testid="stMainMenuButton"]:hover { background: var(--pan-surface-2) !important; }
+[data-testid="stAppDeployButton"],
+[data-testid="stToolbarActions"],
+[data-testid="stStatusWidget"],
+[data-testid="stDecoration"] { display: none !important; }
 footer { visibility: hidden; }
-div[data-testid="stToolbar"] { display: none !important; }
-div[data-testid="stDecoration"] { display: none !important; }
-button[kind="headerNoPadding"], div[data-testid="collapsedControl"] { display: none !important; }
-section[data-testid="stSidebar"] { display: none !important; }
+/* Hide the sidebar and its toggle by id. Do NOT hide button[kind="headerNoPadding"]:
+   Streamlit uses that kind for the Settings menu button too. */
+section[data-testid="stSidebar"],
+div[data-testid="collapsedControl"],
+[data-testid="stExpandSidebarButton"] { display: none !important; }
 
-/* ---- Top utility bar ---- */
+/* Visible keyboard focus everywhere (instant, never animated) */
+.stApp :focus-visible {
+  outline: 2px solid var(--pan-focus);
+  outline-offset: 2px;
+}
+
+/* ===================================================================== */
+/* 4. COMPONENTS                                                         */
+/* ===================================================================== */
+
+/* ---- Utility bar and brand/nav ---- */
 .pan-utility {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.8rem;
-  color: var(--pan-gray);
-  padding: 8px 2px;
+  font-size: var(--pan-type-caption-size);
+  color: var(--pan-text-muted);
+  padding: var(--pan-space-2) 2px;
 }
-.pan-utility .pan-utility-right a {
-  color: var(--pan-gray);
-  text-decoration: none;
-  margin-left: 20px;
-}
-.pan-utility .pan-utility-right a:hover { color: var(--pan-red-deep); }
-.pan-utility b { color: var(--pan-charcoal); font-weight: 600; }
-.pan-rule { border: none; border-top: 1px solid var(--pan-line); margin: 0 0 0 0; }
-
-/* ---- Main nav bar ---- */
+.pan-utility b { color: var(--pan-text); font-weight: var(--pan-weight-demi); }
+.pan-rule { border: none; border-top: 1px solid var(--pan-divider); margin: 0; }
 .pan-nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 2px;
+  padding: var(--pan-space-3) 2px;
 }
 .pan-nav .pan-brand {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--pan-red-deep);
+  font-family: var(--pan-font-heading);
+  font-size: var(--pan-type-section-size);
+  font-weight: var(--pan-weight-bold);
+  color: var(--pan-primary-text);
   letter-spacing: -0.3px;
 }
-.pan-nav .pan-navitems { display: flex; gap: 30px; }
-.pan-nav .pan-navitem {
-  font-size: 0.98rem;
-  font-weight: 500;
-  color: var(--pan-charcoal);
-  text-decoration: none;
-  padding-bottom: 4px;
-}
-.pan-nav .pan-navitem.active {
-  color: var(--pan-red-deep);
-  font-weight: 600;
-  border-bottom: 2px solid var(--pan-red-deep);
-}
 
-/* ---- Breadcrumb ---- */
-.pan-breadcrumb {
-  font-size: 0.82rem;
-  color: var(--pan-gray);
-  padding: 12px 2px 18px 2px;
+/* ---- Hero ---- */
+.pan-hero-title {
+  font-family: var(--pan-type-title-font);
+  font-size: var(--pan-type-title-size);
+  font-weight: var(--pan-type-title-weight);
+  line-height: var(--pan-type-title-leading);
+  color: var(--pan-text);
+  margin: 0 0 var(--pan-space-2) 0;
 }
-.pan-breadcrumb .sep { margin: 0 8px; color: #B9BDC6; }
-
-/* ---- Hero section ---- */
-.pan-hero-title { font-size: 2.8rem; font-weight: 800; color: var(--pan-ink); margin: 0 0 8px 0; line-height: 1.1; }
-.pan-hero-sub { font-size: 1.05rem; color: var(--pan-charcoal); margin: 0 0 22px 0; }
+.pan-hero-sub { font-size: var(--pan-type-body-size); color: var(--pan-text-muted); margin: 0 0 var(--pan-space-5) 0; }
 .pan-hero-kpi {
-  background: var(--pan-grad);
-  border-radius: 18px;
-  padding: 36px 28px;
-  color: #FFFFFF;
-  box-shadow: 0 12px 30px rgba(174,19,25,0.25);
+  border-radius: var(--pan-radius-lg);
+  padding: var(--pan-space-6) var(--pan-space-5);
+  color: var(--pan-on-primary);
+  box-shadow: 0 12px 30px var(--pan-shadow-strong);
   height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 .pan-hero-kpi .kpi-label {
-  font-size: 0.85rem;
-  text-transform: none;
+  font-size: var(--pan-type-caption-size);
   letter-spacing: 0.3px;
   opacity: 0.92;
-  font-weight: 500;
+  font-weight: var(--pan-weight-medium);
 }
-.pan-hero-kpi .kpi-number { font-size: 3.4rem; font-weight: 800; line-height: 1.05; margin-top: 4px; }
-.pan-hero-kpi .kpi-foot { font-size: 0.85rem; opacity: 0.9; margin-top: 8px; }
+.pan-hero-kpi .kpi-number {
+  font-family: var(--pan-type-kpi-hero-font);
+  font-size: var(--pan-type-kpi-hero-size);
+  font-weight: var(--pan-type-kpi-hero-weight);
+  line-height: var(--pan-type-kpi-hero-leading);
+  font-variant-numeric: tabular-nums;
+  margin-top: var(--pan-space-1);
+}
+.pan-hero-kpi .kpi-foot { font-size: var(--pan-type-caption-size); opacity: 0.9; margin-top: var(--pan-space-2); }
 
-/* ---- Pill / gradient buttons (Streamlit buttons restyled) ---- */
+/* ---- Buttons: 10 px radius, flat, clear disabled state ---- */
 .stButton > button, .stDownloadButton > button, .stFormSubmitButton > button {
-  background: var(--pan-grad);
-  color: #FFFFFF;
-  font-weight: 600;
-  font-size: 0.98rem;
-  border: none;
-  border-radius: 999px;
-  padding: 0.6rem 1.6rem;
-  box-shadow: 0 4px 14px rgba(174,19,25,0.22);
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
-}
-.stButton > button:hover, .stDownloadButton > button:hover, .stFormSubmitButton > button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(174,19,25,0.3);
-  color: #FFFFFF;
-}
-.stButton > button:focus, .stDownloadButton > button:focus, .stFormSubmitButton > button:focus {
-  color: #FFFFFF; outline: none; box-shadow: 0 0 0 3px rgba(216,35,42,0.35);
-}
-
-/* Secondary buttons: white with red border */
-.stDownloadButton > button {
-  background: #FFFFFF;
-  color: var(--pan-red-deep);
-  border: 1.5px solid var(--pan-red-deep);
+  background: linear-gradient(135deg, var(--pan-primary-from), var(--pan-primary-to));
+  color: var(--pan-on-primary);
+  font-weight: var(--pan-type-button-weight);
+  font-size: var(--pan-type-button-size);
+  line-height: var(--pan-type-button-leading);
+  border: 1px solid transparent;
+  border-radius: var(--pan-radius-md);
+  padding: 0.55rem 1.4rem;
   box-shadow: none;
 }
-.stDownloadButton > button:hover { background: #FFF5F5; color: var(--pan-red-deep); }
+.stButton > button:hover, .stFormSubmitButton > button:hover {
+  background: linear-gradient(135deg, var(--pan-primary-hover-from), var(--pan-primary-hover-to));
+  color: var(--pan-on-primary);
+  border-color: transparent;
+}
+/* Secondary: download buttons */
+.stDownloadButton > button {
+  background: var(--pan-surface);
+  color: var(--pan-primary-text);
+  border: 1.5px solid var(--pan-primary-text);
+}
+.stDownloadButton > button:hover { background: var(--pan-primary-tint); color: var(--pan-primary-text); border-color: var(--pan-primary-text); }
+.stButton > button:disabled, .stDownloadButton > button:disabled, .stFormSubmitButton > button:disabled {
+  background: var(--pan-disabled-bg);
+  color: var(--pan-disabled-text);
+  border: 1px solid var(--pan-border);
+  cursor: not-allowed;
+  transform: none;
+}
 
-/* ---- Tabs restyled as clean underline nav (Title Case via Python labels) ---- */
+/* ---- Tabs: underline nav ---- */
 .stTabs [data-baseweb="tab-list"] {
-  gap: 28px;
+  gap: var(--pan-space-5);
   background: transparent;
-  border-bottom: 1px solid var(--pan-line);
+  border-bottom: 1px solid var(--pan-divider);
   padding: 0;
 }
 .stTabs [data-baseweb="tab"] {
+  position: relative;
   background: transparent;
-  color: var(--pan-charcoal);
-  font-weight: 500;
-  font-size: 1rem;
+  color: var(--pan-text-muted);
+  font-weight: var(--pan-weight-medium);
+  font-size: var(--pan-type-button-size);
+  line-height: var(--pan-type-button-leading);
   padding: 10px 2px;
-  border-bottom: 2px solid transparent;
 }
+.stTabs [data-baseweb="tab"]:hover { color: var(--pan-text); }
 .stTabs [data-baseweb="tab"][aria-selected="true"] {
-  color: var(--pan-red-deep);
-  font-weight: 600;
-  border-bottom: 2px solid var(--pan-red-deep);
+  color: var(--pan-primary-text);
+  font-weight: var(--pan-type-button-weight);
 }
-.stTabs [data-baseweb="tab-highlight"] { background-color: transparent; }
-.stTabs [data-baseweb="tab-border"] { background-color: transparent; }
+.stTabs [data-baseweb="tab"]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--pan-primary-text);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+.stTabs [data-baseweb="tab"][aria-selected="true"]::after { transform: scaleX(1); }
+.stTabs [data-baseweb="tab-highlight"], .stTabs [data-baseweb="tab-border"] { background-color: transparent; }
 
-/* ---- Cards ---- */
+/* ---- Cards (decision, persona, Expected Joiners, Past Promos) ---- */
 .pan-card {
-  background: #FFFFFF;
-  border: 1px solid var(--pan-line);
-  border-radius: 16px;
-  padding: 22px 26px;
-  box-shadow: 0 6px 20px rgba(17,17,17,0.06);
-  margin-bottom: 22px;
+  background: var(--pan-surface);
+  border: 1px solid var(--pan-border);
+  border-radius: var(--pan-radius-lg);
+  padding: var(--pan-space-4) var(--pan-space-5);
+  box-shadow: 0 4px 14px var(--pan-shadow);
+  margin-bottom: var(--pan-space-5);
 }
 .pan-card .pan-card-heading {
-  color: var(--pan-red-deep);
-  font-weight: 700;
-  font-size: 1.15rem;
-  margin: 0 0 10px 0;
+  display: flex;
+  align-items: center;
+  gap: var(--pan-space-2);
+  color: var(--pan-primary-text);
+  font-family: var(--pan-type-card-title-font);
+  font-weight: var(--pan-type-card-title-weight);
+  font-size: var(--pan-type-card-title-size);
+  line-height: var(--pan-type-card-title-leading);
+  margin: 0 0 var(--pan-space-2) 0;
 }
-.pan-card hr.pan-divider { border: none; border-top: 1px solid var(--pan-line); margin: 10px 0 14px 0; }
+.pan-card hr.pan-divider { border: none; border-top: 1px solid var(--pan-divider); margin: var(--pan-space-2) 0 var(--pan-space-3) 0; }
+.pan-card p.pan-flush { margin: 0; }
 
-/* ---- 2x2 grid tiles ---- */
+/* ---- Label/value fields inside cards ---- */
+.pan-chips { display: flex; flex-wrap: wrap; gap: var(--pan-space-2); margin-bottom: var(--pan-space-3); }
+.pan-field { margin-bottom: var(--pan-space-2); }
+.pan-field-label {
+  display: block;
+  color: var(--pan-text-muted);
+  font-size: var(--pan-type-caption-size);
+  line-height: var(--pan-type-caption-leading);
+}
+.pan-field-value { display: block; font-weight: var(--pan-weight-demi); color: var(--pan-text); }
+.pan-desc { margin-bottom: var(--pan-space-3); color: var(--pan-text); }
+.pan-list { margin: var(--pan-space-2) 0 0 18px; padding: 0; }
+.pan-list li { margin-bottom: var(--pan-space-1); }
+.pan-line { margin-top: var(--pan-space-2); color: var(--pan-text); }
+.pan-line.strong { font-weight: var(--pan-weight-demi); }
+
+/* ---- 2x2 tiles ---- */
 .pan-tile {
-  border-radius: 16px;
-  padding: 22px 24px;
-  margin-bottom: 22px;
+  border-radius: var(--pan-radius-lg);
+  padding: var(--pan-space-5);
+  margin-bottom: var(--pan-space-5);
   min-height: 150px;
-  box-shadow: 0 6px 20px rgba(17,17,17,0.06);
+  box-shadow: 0 4px 14px var(--pan-shadow);
 }
-.pan-tile.white { background: #FFFFFF; border: 1.5px solid var(--pan-red-deep); color: var(--pan-charcoal); }
-.pan-tile.white .pan-tile-title { color: var(--pan-red-deep); }
-.pan-tile.white .pan-tile-accent { color: var(--pan-red-deep); }
-.pan-tile.red { background: var(--pan-grad); color: #FFFFFF; box-shadow: 0 10px 26px rgba(174,19,25,0.25); }
-.pan-tile.red .pan-tile-title, .pan-tile.red .pan-tile-accent { color: #FFFFFF; }
-.pan-tile .pan-tile-title { font-size: 1.15rem; font-weight: 700; margin: 0 0 12px 0; }
-.pan-tile .pan-tile-k { font-size: 0.8rem; opacity: 0.85; }
-.pan-tile .pan-tile-v { font-size: 1.6rem; font-weight: 800; line-height: 1.1; }
-.pan-tile .pan-tile-accent { font-size: 1.2rem; font-weight: 700; }
+.pan-tile.white { background: var(--pan-surface); border: 1.5px solid var(--pan-border); color: var(--pan-text); border-left: 5px solid var(--pan-seg-color, var(--pan-primary-text)); }
+.pan-tile.red { color: var(--pan-on-primary); box-shadow: 0 10px 26px var(--pan-shadow-strong); }
+.pan-tile .pan-tile-title {
+  display: flex;
+  align-items: center;
+  gap: var(--pan-space-2);
+  font-family: var(--pan-type-card-title-font);
+  font-size: var(--pan-type-card-title-size);
+  font-weight: var(--pan-type-card-title-weight);
+  line-height: var(--pan-type-card-title-leading);
+  margin: 0 0 var(--pan-space-3) 0;
+}
+.pan-tile.white .pan-tile-title, .pan-tile.white .pan-tile-accent { color: var(--pan-text); }
+.pan-tile.red .pan-tile-title, .pan-tile.red .pan-tile-accent { color: var(--pan-on-primary); }
+.pan-tile .pan-tile-k { font-size: var(--pan-type-caption-size); opacity: 0.85; }
+.pan-tile .pan-tile-k--spaced { margin-top: var(--pan-space-3); }
+.pan-tile .pan-tile-v {
+  font-family: var(--pan-type-kpi-tile-font);
+  font-size: var(--pan-type-kpi-tile-size);
+  font-weight: var(--pan-type-kpi-tile-weight);
+  line-height: var(--pan-type-kpi-tile-leading);
+  font-variant-numeric: tabular-nums;
+}
+.pan-tile .pan-tile-accent { font-size: var(--pan-type-card-title-size); font-weight: var(--pan-weight-bold); }
 
-/* ---- Stat chips ---- */
+/* Segment markers: a shape as well as a colour, so segments differ without colour */
+.pan-marker { flex: none; width: 12px; height: 12px; display: inline-block; background: var(--pan-seg-color, var(--pan-primary-text)); }
+.pan-marker--diamond { transform: rotate(45deg) scale(0.85); }
+.pan-marker--triangle { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.pan-marker--circle { border-radius: 50%; }
+.pan-marker--square { background: transparent; border: 2px solid var(--pan-seg-color, var(--pan-primary-text)); }
+.pan-seg--ready { --pan-seg-color: var(--pan-seg-ready); }
+.pan-seg--untapped { --pan-seg-color: var(--pan-seg-untapped); }
+.pan-seg--stretched { --pan-seg-color: var(--pan-seg-stretched); }
+.pan-seg--notnow { --pan-seg-color: var(--pan-seg-notnow); }
+.pan-tile.red .pan-marker { background: var(--pan-on-primary); }
+
+/* ---- Chips ---- */
 .pan-chip {
   display: inline-block;
-  background: #FBEDED;
-  color: var(--pan-red-deep);
-  border-radius: 999px;
-  padding: 5px 14px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin: 0 8px 8px 0;
+  background: var(--pan-primary-tint);
+  color: var(--pan-primary-text);
+  border: 1px solid color-mix(in srgb, var(--pan-primary-text) 28%, transparent);
+  border-radius: var(--pan-radius-pill);
+  padding: 3px 12px;
+  font-size: var(--pan-type-caption-size);
+  font-weight: var(--pan-weight-demi);
 }
 
-/* ---- Form inputs & sliders: rounded, light borders, red focus ---- */
-div[data-baseweb="input"] input,
-div[data-baseweb="select"] > div,
-.stNumberInput input,
-.stTextInput input,
-textarea {
-  border-radius: 10px !important;
-  border-color: var(--pan-line) !important;
+/* ---- Inputs, selects, sliders ---- */
+div[data-baseweb="input"], div[data-baseweb="select"] > div, div[data-baseweb="base-input"] {
+  border-radius: var(--pan-radius-md) !important;
 }
-div[data-baseweb="input"]:focus-within,
-div[data-baseweb="select"] > div:focus-within {
-  border-color: var(--pan-red-bright) !important;
-  box-shadow: 0 0 0 2px rgba(216,35,42,0.18) !important;
+div[data-baseweb="input"] input, .stNumberInput input, .stTextInput input, textarea {
+  border-radius: var(--pan-radius-md) !important;
 }
-.stSlider [data-baseweb="slider"] div[role="slider"] { background: var(--pan-red-deep) !important; }
-.stSlider [data-baseweb="slider"] > div > div > div { background: var(--pan-red-deep) !important; }
-[data-testid="stMultiSelect"] span[data-baseweb="tag"] { background: var(--pan-red-deep) !important; }
+div[data-baseweb="input"], div[data-baseweb="select"] > div {
+  border-color: var(--pan-border-control) !important;
+  background-color: var(--pan-surface) !important;
+}
+div[data-baseweb="input"]:hover, div[data-baseweb="select"] > div:hover { border-color: var(--pan-text-muted) !important; }
+div[data-baseweb="input"]:focus-within, div[data-baseweb="select"] > div:focus-within {
+  border-color: var(--pan-focus) !important;
+  outline: 2px solid var(--pan-focus);
+  outline-offset: 1px;
+}
+div[data-baseweb="input"]:has(input:disabled), div[data-baseweb="select"]:has(input:disabled) > div {
+  background-color: var(--pan-disabled-bg) !important;
+  color: var(--pan-disabled-text);
+}
+.stSlider [data-baseweb="slider"] div[role="slider"] { background: var(--pan-primary) !important; }
+.stSlider [data-baseweb="slider"] > div > div > div { background: var(--pan-primary) !important; }
+[data-testid="stMultiSelect"] span[data-baseweb="tag"] {
+  background: var(--pan-primary) !important;
+  color: var(--pan-on-primary) !important;
+  border-radius: var(--pan-radius-sm) !important;
+}
+[data-testid="stCheckbox"] label, [data-testid="stRadio"] label { color: var(--pan-text); }
 
-/* Headings inside Streamlit subheaders get the brand treatment */
-h2, h3 { letter-spacing: -0.2px; }
-
-/* ---- Tables inside cards: no vertical grid lines, values centered per cell ---- */
-.pan-card table, .pan-card table th, .pan-card table td {
-  border-left: none !important;
-  border-right: none !important;
-  border-top: none !important;
+/* ---- Expanders ("How to message this", "Details") ---- */
+[data-testid="stExpander"] details {
+  background: var(--pan-surface);
+  border: 1px solid var(--pan-border);
+  border-radius: var(--pan-radius-md);
 }
-.pan-card table th { background: transparent; }
+[data-testid="stExpander"] summary { padding: var(--pan-space-2) var(--pan-space-3); }
+[data-testid="stExpander"] summary:hover { background: var(--pan-surface-2); border-radius: var(--pan-radius-md); }
+
+/* ---- Alerts: warnings, errors, info, success (colours come from config.toml) ---- */
+[data-testid="stAlert"] { border-radius: var(--pan-radius-md); font-size: var(--pan-type-body-size); }
+
+/* ---- Tables (persona, Expected Joiners, Past Promos) ---- */
+.pan-table { width: 100%; border-collapse: collapse; margin-top: var(--pan-space-2); font-size: var(--pan-type-table-size); line-height: var(--pan-type-table-leading); border: none; }
+.pan-th {
+  padding: 6px var(--pan-space-3);
+  text-align: left;
+  background: var(--pan-surface-2);
+  color: var(--pan-text-muted);
+  font-size: var(--pan-type-table-head-size);
+  font-weight: var(--pan-type-table-head-weight);
+  line-height: var(--pan-type-table-head-leading);
+  border-bottom: 1px solid var(--pan-border);
+}
+.pan-td { padding: 6px var(--pan-space-3); border-bottom: 1px solid var(--pan-divider); color: var(--pan-text); }
+.pan-th.pan-num, .pan-td.pan-num { text-align: right; font-variant-numeric: tabular-nums; }
+.pan-td.pan-strong { font-weight: var(--pan-weight-demi); }
+.pan-td.pan-accent { color: var(--pan-primary-text); font-weight: var(--pan-weight-bold); }
+.pan-table .pan-row-total .pan-td { border-top: 1px solid var(--pan-text-muted); font-weight: var(--pan-weight-bold); }
+.pan-card table, .pan-card table th, .pan-card table td { border-left: none !important; border-right: none !important; }
+.stMarkdown table { font-size: var(--pan-type-table-size); line-height: var(--pan-type-table-leading); font-variant-numeric: tabular-nums; }
+.stMarkdown table th { font-size: var(--pan-type-table-head-size); font-weight: var(--pan-type-table-head-weight); }
+
+/* ---- Native spinner (rarely shown; our loaders replace it) ---- */
+[data-testid="stSpinner"] { color: var(--pan-text-muted); }
+
+/* ===================================================================== */
+/* 5. LOADING: shown only on a real wait                                 */
+/* ===================================================================== */
+/* Overlay card, fixed in the viewport so showing it never shifts the page.
+   It stays invisible for --pan-loader-delay (see MOTION note) so a fast or
+   cached run never flashes it. */
+.pan-loading {
+  --pan-loader-delay: 350ms;
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  background: var(--pan-scrim);
+  opacity: 0;
+  animation: pan-reveal var(--pan-dur) var(--pan-ease) var(--pan-loader-delay) forwards;
+}
+.pan-loading--slow { --pan-loader-delay: 800ms; }
+.pan-loading-card {
+  width: min(360px, 90vw);
+  text-align: center;
+  padding: var(--pan-space-5) var(--pan-space-6);
+  background: var(--pan-surface);
+  border: 1px solid var(--pan-border);
+  border-radius: var(--pan-radius-lg);
+  box-shadow: 0 12px 30px var(--pan-shadow);
+}
+.pan-loading-msg { margin-top: var(--pan-space-3); color: var(--pan-text); font-weight: var(--pan-weight-demi); }
+.pan-loading-sub { margin-top: var(--pan-space-1); color: var(--pan-text-muted); font-size: var(--pan-type-caption-size); }
+
+/* Skeleton bars (same widths every time, so nothing jumps) */
+.pan-skel { display: grid; gap: var(--pan-space-2); margin-top: var(--pan-space-4); }
+.pan-skel span { display: block; height: 10px; border-radius: var(--pan-radius-sm); background: var(--pan-skel); animation: pan-pulse 1.4s var(--pan-ease) infinite alternate; }
+.pan-skel span:nth-child(1) { width: 100%; }
+.pan-skel span:nth-child(2) { width: 82%; animation-delay: 120ms; }
+.pan-skel span:nth-child(3) { width: 64%; animation-delay: 240ms; }
+
+/* Analysis loader: documents slide right to left under a magnifier */
+.pan-docs { --doc-w: 56px; --doc-gap: 28px; position: relative; width: calc(3 * var(--doc-w) + 2 * var(--doc-gap)); height: 96px; margin: 0 auto; }
+.pan-docs-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, black 24%, black 76%, transparent);
+  mask-image: linear-gradient(90deg, transparent, black 24%, black 76%, transparent);
+}
+.pan-docs-track { display: flex; gap: var(--doc-gap); position: absolute; top: 12px; left: 0; animation: pan-docs-slide 1.6s linear infinite; }
+.pan-doc {
+  position: relative;
+  flex: none;
+  width: var(--doc-w);
+  height: 72px;
+  border-radius: var(--pan-radius-sm);
+  background-color: var(--pan-loader-doc);
+  background-image:
+    linear-gradient(var(--pan-loader-line), var(--pan-loader-line)),
+    linear-gradient(var(--pan-loader-line), var(--pan-loader-line)),
+    linear-gradient(var(--pan-loader-line), var(--pan-loader-line)),
+    linear-gradient(var(--pan-loader-line), var(--pan-loader-line)),
+    linear-gradient(var(--pan-loader-line), var(--pan-loader-line));
+  background-repeat: no-repeat;
+  background-size: 16px 3px, 12px 3px, 36px 3px, 36px 3px, 26px 3px;
+  background-position: 10px 24px, 10px 32px, 10px 42px, 10px 50px, 10px 58px;
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+}
+.pan-doc::after { content: ""; position: absolute; top: 0; right: 0; width: 16px; height: 16px; background: var(--pan-loader-fold); clip-path: polygon(0 0, 0 100%, 100% 100%); }
+.pan-mag { position: absolute; left: 50%; top: 4px; width: 0; height: 0; animation: pan-mag-bob 1.8s var(--pan-ease) infinite alternate; }
+.pan-mag::before {
+  content: "";
+  position: absolute;
+  left: -34px;
+  top: 0;
+  width: 56px;
+  height: 56px;
+  box-sizing: content-box;
+  border-radius: 50%;
+  border: 6px solid var(--pan-loader-mag);
+  background: color-mix(in srgb, var(--pan-surface) 38%, transparent);
+}
+.pan-mag::after { content: ""; position: absolute; left: 24px; top: 58px; width: 9px; height: 30px; border-radius: 5px; background: var(--pan-loader-mag); transform: rotate(-45deg); transform-origin: top center; }
+
+/* Persona loader: a sorting puzzle. Eight red and gold tiles start mixed and,
+   in three rounds of swaps, slide past each other (one arcs around, the other
+   dips back) until a red group and a gold group form; the two groups then
+   ease apart slightly. animation-direction: alternate plays it back in
+   reverse, so the loop never fades or jumps. Keyframes are generated from one
+   swap plan (pitch 28px) with the --pan-ease curve baked into each slide. */
+.pan-pz { position: relative; width: 106px; height: 50px; margin: 30px auto 30px; }
+.pan-pz-tile {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--loader-accent);
+  animation-duration: 3.6s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-fill-mode: both;
+  will-change: transform;
+}
+.pan-pz-tile.gold { background: var(--loader-accent-alt); }
+.pan-pz-a { left: 0px; top: 0px; animation-name: pan-pz-a; }
+.pan-pz-b { left: 28px; top: 0px; animation-name: pan-pz-b; }
+.pan-pz-c { left: 56px; top: 0px; animation-name: pan-pz-c; }
+.pan-pz-d { left: 84px; top: 0px; animation-name: pan-pz-d; }
+.pan-pz-e { left: 0px; top: 28px; animation-name: pan-pz-e; }
+.pan-pz-f { left: 28px; top: 28px; animation-name: pan-pz-f; }
+.pan-pz-g { left: 56px; top: 28px; animation-name: pan-pz-g; }
+.pan-pz-h { left: 84px; top: 28px; animation-name: pan-pz-h; }
+@keyframes pan-pz-a {
+  0% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  6% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  30% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  34% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  37% { transform: translate(10.1px, -15.7px) scale(1.000); }
+  40% { transform: translate(16.2px, -16.8px) scale(1.000); }
+  43% { transform: translate(20.5px, -13.0px) scale(1.000); }
+  46% { transform: translate(23.5px, -8.4px) scale(1.000); }
+  49% { transform: translate(25.6px, -4.6px) scale(1.000); }
+  52% { transform: translate(27.0px, -1.9px) scale(1.000); }
+  55% { transform: translate(27.8px, -0.5px) scale(1.000); }
+  58% { transform: translate(28.0px, -0.0px) scale(1.000); }
+  62% { transform: translate(28.0px, 0.0px) scale(1.000); }
+  65% { transform: translate(38.1px, -15.7px) scale(1.000); }
+  68% { transform: translate(44.2px, -16.8px) scale(1.000); }
+  71% { transform: translate(48.5px, -13.0px) scale(1.000); }
+  74% { transform: translate(51.5px, -8.4px) scale(1.000); }
+  77% { transform: translate(53.6px, -4.6px) scale(1.000); }
+  80% { transform: translate(55.0px, -1.9px) scale(1.000); }
+  83% { transform: translate(55.8px, -0.5px) scale(1.000); }
+  86% { transform: translate(56.0px, -0.0px) scale(1.000); }
+  88% { transform: translate(56.0px, 0.0px) scale(1.000); }
+  90% { transform: translate(57.2px, 0.0px) scale(1.000); }
+  92% { transform: translate(57.7px, 0.0px) scale(1.000); }
+  94% { transform: translate(57.9px, 0.0px) scale(1.000); }
+  96% { transform: translate(58.0px, 0.0px) scale(1.000); }
+  100% { transform: translate(58.0px, 0.0px) scale(1.000); }
+}
+@keyframes pan-pz-b {
+  0% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  6% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  30% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  34% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  37% { transform: translate(-10.1px, 0.0px) scale(0.910); }
+  40% { transform: translate(-16.2px, 0.0px) scale(0.903); }
+  43% { transform: translate(-20.5px, 0.0px) scale(0.925); }
+  46% { transform: translate(-23.5px, 0.0px) scale(0.952); }
+  49% { transform: translate(-25.6px, 0.0px) scale(0.974); }
+  52% { transform: translate(-27.0px, 0.0px) scale(0.989); }
+  55% { transform: translate(-27.8px, 0.0px) scale(0.997); }
+  58% { transform: translate(-28.0px, 0.0px) scale(1.000); }
+  62% { transform: translate(-28.0px, 0.0px) scale(1.000); }
+  86% { transform: translate(-28.0px, 0.0px) scale(1.000); }
+  88% { transform: translate(-28.0px, 0.0px) scale(1.000); }
+  90% { transform: translate(-29.2px, 0.0px) scale(1.000); }
+  92% { transform: translate(-29.7px, 0.0px) scale(1.000); }
+  94% { transform: translate(-29.9px, 0.0px) scale(1.000); }
+  96% { transform: translate(-30.0px, 0.0px) scale(1.000); }
+  100% { transform: translate(-30.0px, 0.0px) scale(1.000); }
+}
+@keyframes pan-pz-c {
+  0% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  6% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  30% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  34% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  37% { transform: translate(10.1px, -15.7px) scale(1.000); }
+  40% { transform: translate(16.2px, -16.8px) scale(1.000); }
+  43% { transform: translate(20.5px, -13.0px) scale(1.000); }
+  46% { transform: translate(23.5px, -8.4px) scale(1.000); }
+  49% { transform: translate(25.6px, -4.6px) scale(1.000); }
+  52% { transform: translate(27.0px, -1.9px) scale(1.000); }
+  55% { transform: translate(27.8px, -0.5px) scale(1.000); }
+  58% { transform: translate(28.0px, -0.0px) scale(1.000); }
+  62% { transform: translate(28.0px, 0.0px) scale(1.000); }
+  86% { transform: translate(28.0px, 0.0px) scale(1.000); }
+  88% { transform: translate(28.0px, 0.0px) scale(1.000); }
+  90% { transform: translate(29.2px, 0.0px) scale(1.000); }
+  92% { transform: translate(29.7px, 0.0px) scale(1.000); }
+  94% { transform: translate(29.9px, 0.0px) scale(1.000); }
+  96% { transform: translate(30.0px, 0.0px) scale(1.000); }
+  100% { transform: translate(30.0px, 0.0px) scale(1.000); }
+}
+@keyframes pan-pz-d {
+  0% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  6% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  30% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  34% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  37% { transform: translate(-10.1px, 0.0px) scale(0.910); }
+  40% { transform: translate(-16.2px, 0.0px) scale(0.903); }
+  43% { transform: translate(-20.5px, 0.0px) scale(0.925); }
+  46% { transform: translate(-23.5px, 0.0px) scale(0.952); }
+  49% { transform: translate(-25.6px, 0.0px) scale(0.974); }
+  52% { transform: translate(-27.0px, 0.0px) scale(0.989); }
+  55% { transform: translate(-27.8px, 0.0px) scale(0.997); }
+  58% { transform: translate(-28.0px, 0.0px) scale(1.000); }
+  62% { transform: translate(-28.0px, 0.0px) scale(1.000); }
+  65% { transform: translate(-38.1px, 0.0px) scale(0.910); }
+  68% { transform: translate(-44.2px, 0.0px) scale(0.903); }
+  71% { transform: translate(-48.5px, 0.0px) scale(0.925); }
+  74% { transform: translate(-51.5px, 0.0px) scale(0.952); }
+  77% { transform: translate(-53.6px, 0.0px) scale(0.974); }
+  80% { transform: translate(-55.0px, 0.0px) scale(0.989); }
+  83% { transform: translate(-55.8px, 0.0px) scale(0.997); }
+  86% { transform: translate(-56.0px, 0.0px) scale(1.000); }
+  88% { transform: translate(-56.0px, 0.0px) scale(1.000); }
+  90% { transform: translate(-57.2px, 0.0px) scale(1.000); }
+  92% { transform: translate(-57.7px, 0.0px) scale(1.000); }
+  94% { transform: translate(-57.9px, 0.0px) scale(1.000); }
+  96% { transform: translate(-58.0px, 0.0px) scale(1.000); }
+  100% { transform: translate(-58.0px, 0.0px) scale(1.000); }
+}
+@keyframes pan-pz-e {
+  0% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  6% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  30% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  34% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  37% { transform: translate(10.1px, 15.7px) scale(1.000); }
+  40% { transform: translate(16.2px, 16.8px) scale(1.000); }
+  43% { transform: translate(20.5px, 13.0px) scale(1.000); }
+  46% { transform: translate(23.5px, 8.4px) scale(1.000); }
+  49% { transform: translate(25.6px, 4.6px) scale(1.000); }
+  52% { transform: translate(27.0px, 1.9px) scale(1.000); }
+  55% { transform: translate(27.8px, 0.5px) scale(1.000); }
+  58% { transform: translate(28.0px, 0.0px) scale(1.000); }
+  62% { transform: translate(28.0px, 0.0px) scale(1.000); }
+  65% { transform: translate(38.1px, 15.7px) scale(1.000); }
+  68% { transform: translate(44.2px, 16.8px) scale(1.000); }
+  71% { transform: translate(48.5px, 13.0px) scale(1.000); }
+  74% { transform: translate(51.5px, 8.4px) scale(1.000); }
+  77% { transform: translate(53.6px, 4.6px) scale(1.000); }
+  80% { transform: translate(55.0px, 1.9px) scale(1.000); }
+  83% { transform: translate(55.8px, 0.5px) scale(1.000); }
+  86% { transform: translate(56.0px, 0.0px) scale(1.000); }
+  88% { transform: translate(56.0px, 0.0px) scale(1.000); }
+  90% { transform: translate(57.2px, 0.0px) scale(1.000); }
+  92% { transform: translate(57.7px, 0.0px) scale(1.000); }
+  94% { transform: translate(57.9px, 0.0px) scale(1.000); }
+  96% { transform: translate(58.0px, 0.0px) scale(1.000); }
+  100% { transform: translate(58.0px, 0.0px) scale(1.000); }
+}
+@keyframes pan-pz-f {
+  0% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  6% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  9% { transform: translate(10.1px, 15.7px) scale(1.000); }
+  12% { transform: translate(16.2px, 16.8px) scale(1.000); }
+  15% { transform: translate(20.5px, 13.0px) scale(1.000); }
+  18% { transform: translate(23.5px, 8.4px) scale(1.000); }
+  21% { transform: translate(25.6px, 4.6px) scale(1.000); }
+  24% { transform: translate(27.0px, 1.9px) scale(1.000); }
+  27% { transform: translate(27.8px, 0.5px) scale(1.000); }
+  30% { transform: translate(28.0px, 0.0px) scale(1.000); }
+  34% { transform: translate(28.0px, 0.0px) scale(1.000); }
+  37% { transform: translate(38.1px, 15.7px) scale(1.000); }
+  40% { transform: translate(44.2px, 16.8px) scale(1.000); }
+  43% { transform: translate(48.5px, 13.0px) scale(1.000); }
+  46% { transform: translate(51.5px, 8.4px) scale(1.000); }
+  49% { transform: translate(53.6px, 4.6px) scale(1.000); }
+  52% { transform: translate(55.0px, 1.9px) scale(1.000); }
+  55% { transform: translate(55.8px, 0.5px) scale(1.000); }
+  58% { transform: translate(56.0px, 0.0px) scale(1.000); }
+  62% { transform: translate(56.0px, 0.0px) scale(1.000); }
+  86% { transform: translate(56.0px, 0.0px) scale(1.000); }
+  88% { transform: translate(56.0px, 0.0px) scale(1.000); }
+  90% { transform: translate(57.2px, 0.0px) scale(1.000); }
+  92% { transform: translate(57.7px, 0.0px) scale(1.000); }
+  94% { transform: translate(57.9px, 0.0px) scale(1.000); }
+  96% { transform: translate(58.0px, 0.0px) scale(1.000); }
+  100% { transform: translate(58.0px, 0.0px) scale(1.000); }
+}
+@keyframes pan-pz-g {
+  0% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  6% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  9% { transform: translate(-10.1px, 0.0px) scale(0.910); }
+  12% { transform: translate(-16.2px, 0.0px) scale(0.903); }
+  15% { transform: translate(-20.5px, 0.0px) scale(0.925); }
+  18% { transform: translate(-23.5px, 0.0px) scale(0.952); }
+  21% { transform: translate(-25.6px, 0.0px) scale(0.974); }
+  24% { transform: translate(-27.0px, 0.0px) scale(0.989); }
+  27% { transform: translate(-27.8px, 0.0px) scale(0.997); }
+  30% { transform: translate(-28.0px, 0.0px) scale(1.000); }
+  34% { transform: translate(-28.0px, 0.0px) scale(1.000); }
+  37% { transform: translate(-38.1px, 0.0px) scale(0.910); }
+  40% { transform: translate(-44.2px, 0.0px) scale(0.903); }
+  43% { transform: translate(-48.5px, 0.0px) scale(0.925); }
+  46% { transform: translate(-51.5px, 0.0px) scale(0.952); }
+  49% { transform: translate(-53.6px, 0.0px) scale(0.974); }
+  52% { transform: translate(-55.0px, 0.0px) scale(0.989); }
+  55% { transform: translate(-55.8px, 0.0px) scale(0.997); }
+  58% { transform: translate(-56.0px, 0.0px) scale(1.000); }
+  62% { transform: translate(-56.0px, 0.0px) scale(1.000); }
+  86% { transform: translate(-56.0px, 0.0px) scale(1.000); }
+  88% { transform: translate(-56.0px, 0.0px) scale(1.000); }
+  90% { transform: translate(-57.2px, 0.0px) scale(1.000); }
+  92% { transform: translate(-57.7px, 0.0px) scale(1.000); }
+  94% { transform: translate(-57.9px, 0.0px) scale(1.000); }
+  96% { transform: translate(-58.0px, 0.0px) scale(1.000); }
+  100% { transform: translate(-58.0px, 0.0px) scale(1.000); }
+}
+@keyframes pan-pz-h {
+  0% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  6% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  30% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  34% { transform: translate(0.0px, 0.0px) scale(1.000); }
+  37% { transform: translate(-10.1px, 0.0px) scale(0.910); }
+  40% { transform: translate(-16.2px, 0.0px) scale(0.903); }
+  43% { transform: translate(-20.5px, 0.0px) scale(0.925); }
+  46% { transform: translate(-23.5px, 0.0px) scale(0.952); }
+  49% { transform: translate(-25.6px, 0.0px) scale(0.974); }
+  52% { transform: translate(-27.0px, 0.0px) scale(0.989); }
+  55% { transform: translate(-27.8px, 0.0px) scale(0.997); }
+  58% { transform: translate(-28.0px, 0.0px) scale(1.000); }
+  62% { transform: translate(-28.0px, 0.0px) scale(1.000); }
+  65% { transform: translate(-38.1px, 0.0px) scale(0.910); }
+  68% { transform: translate(-44.2px, 0.0px) scale(0.903); }
+  71% { transform: translate(-48.5px, 0.0px) scale(0.925); }
+  74% { transform: translate(-51.5px, 0.0px) scale(0.952); }
+  77% { transform: translate(-53.6px, 0.0px) scale(0.974); }
+  80% { transform: translate(-55.0px, 0.0px) scale(0.989); }
+  83% { transform: translate(-55.8px, 0.0px) scale(0.997); }
+  86% { transform: translate(-56.0px, 0.0px) scale(1.000); }
+  88% { transform: translate(-56.0px, 0.0px) scale(1.000); }
+  90% { transform: translate(-57.2px, 0.0px) scale(1.000); }
+  92% { transform: translate(-57.7px, 0.0px) scale(1.000); }
+  94% { transform: translate(-57.9px, 0.0px) scale(1.000); }
+  96% { transform: translate(-58.0px, 0.0px) scale(1.000); }
+  100% { transform: translate(-58.0px, 0.0px) scale(1.000); }
+}
+
+@keyframes pan-reveal { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pan-pulse { from { opacity: 0.45; } to { opacity: 1; } }
+@keyframes pan-docs-slide { from { transform: translateX(0); } to { transform: translateX(calc(-1 * (var(--doc-w) + var(--doc-gap)))); } }
+@keyframes pan-mag-bob { from { transform: translateY(0); } to { transform: translateY(-3px); } }
+
+
+@media (prefers-reduced-motion: reduce) {
+  /* The delay is kept (a fast run still never shows it); the reveal is a
+     one-frame step and the animation inside is replaced by a still frame. */
+  .pan-loading { animation-duration: 1ms; }
+  .pan-docs-track, .pan-mag, .pan-skel span { animation: none; }
+  /* Still frame: the persona tiles sit in their final grouped places. */
+  .pan-pz-tile { animation-play-state: paused; animation-delay: -3.6s; }
+}
+
+/* ===================================================================== */
+/* 6. MOTION: UI transitions (opacity and transform only, 120-250 ms)    */
+/* ===================================================================== */
+/* Animates: button lift, tab underline, message fade-in.
+   Never animated: tables, dataframes, charts, numbers, layout, colours,
+   borders, shadows and focus rings (they change instantly). */
+.stButton > button, .stDownloadButton > button, .stFormSubmitButton > button {
+  transition: transform var(--pan-dur-fast) var(--pan-ease);
+}
+.stButton > button:hover:not(:disabled), .stDownloadButton > button:hover:not(:disabled), .stFormSubmitButton > button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+.stButton > button:active:not(:disabled), .stDownloadButton > button:active:not(:disabled), .stFormSubmitButton > button:active:not(:disabled) {
+  transform: translateY(0);
+}
+.stTabs [data-baseweb="tab"]::after { transition: transform var(--pan-dur) var(--pan-ease); }
+[data-testid="stAlert"], .pan-next, .pan-context { animation: pan-fade-in var(--pan-dur) var(--pan-ease) both; }
+@keyframes pan-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .stButton > button, .stDownloadButton > button, .stFormSubmitButton > button,
+  .stTabs [data-baseweb="tab"]::after { transition: none; }
+  .stButton > button:hover:not(:disabled), .stDownloadButton > button:hover:not(:disabled), .stFormSubmitButton > button:hover:not(:disabled) { transform: none; }
+  [data-testid="stAlert"], .pan-next, .pan-context { animation: none; }
+}
+
+/* ===================================================================== */
+/* 7. FLOW: context banner, section labels, next-step cues               */
+/* ===================================================================== */
+.pan-context {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pan-space-2) var(--pan-space-3);
+  background: var(--pan-surface-2);
+  border: 1px solid var(--pan-border);
+  border-radius: var(--pan-radius-md);
+  padding: var(--pan-space-2) var(--pan-space-3);
+  margin: var(--pan-space-2) 0 var(--pan-space-4) 0;
+  font-size: var(--pan-type-caption-size);
+  color: var(--pan-text-muted);
+}
+.pan-context .pan-context-label { font-weight: var(--pan-weight-demi); color: var(--pan-text); }
+.pan-context .pan-context-item { color: var(--pan-text); }
+.pan-context .pan-context-item + .pan-context-item::before { content: "\00b7"; margin-right: var(--pan-space-3); color: var(--pan-text-muted); }
+.pan-section-label { margin: var(--pan-space-4) 0 var(--pan-space-2) 0; }
+.pan-section-label::before {
+  content: "";
+  display: block;
+  width: 32px;
+  height: 3px;
+  margin-bottom: 6px;
+  border-radius: 2px;
+  background: var(--pan-primary);
+}
+.pan-section-label .pan-section-title { font-family: var(--pan-font-heading); font-weight: var(--pan-weight-medium); font-size: var(--pan-type-card-title-size); color: var(--pan-text); }
+.pan-section-label .pan-section-help { display: block; color: var(--pan-text-muted); font-size: var(--pan-type-caption-size); line-height: var(--pan-type-caption-leading); }
+.pan-next {
+  margin: var(--pan-space-4) 0;
+  padding: var(--pan-space-2) var(--pan-space-3);
+  border-left: 3px solid var(--pan-primary);
+  background: var(--pan-surface-2);
+  border-radius: 0 var(--pan-radius-md) var(--pan-radius-md) 0;
+  color: var(--pan-text);
+  font-size: var(--pan-type-caption-size);
+}
+.pan-next b { font-weight: var(--pan-weight-demi); }
