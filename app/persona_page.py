@@ -19,9 +19,8 @@ optional two-step control, the campaign-pool selector, validation, the
 per-persona summary cards, and the two download controls. Task 14.2 adds, after
 a successful run, Streamlit **built-in** renders (no new chart dependency,
 Requirement 9.9): the "How the Personas Differ" comparison table
-(``st.dataframe`` of plain-language trait tags, Requirement 6.4), and the existing Part 4 cards rendered read-only
-with an adjacent Persona_Mix badge and the unavailable fallback (Requirements
-7.1, 7.2, 7.5). The Elbow_Plot is intentionally not shown on the page (revised
+(``st.dataframe`` of plain-language trait tags, Requirement 6.4), and, over the current New Promo run, the Part 4 cards rendered read-only
+with expected joiners split by persona (task 14.16, Requirements 7.1-7.5). The Elbow_Plot is intentionally not shown on the page (revised
 Requirement 6.5); the backend still computes it (Requirement 2.12).
 
 Comparison-table pure helpers (importable without Streamlit, unit-tested in task
@@ -111,10 +110,10 @@ from part5_personas.labels import is_flag_attribute as _is_flag_attribute
 from part5_personas.labels import is_text_category
 from part5_personas.profile import PersonaProfile
 from webapp_core.personas import (
-    PersonaMix,
+    CardPersonaBreakdown,
     PersonaRunResult,
     PersonaRunSpec,
-    persona_mix_by_cell,
+    expected_joiners_by_persona,
     run_personas,
 )
 
@@ -1106,33 +1105,6 @@ def _available_promo_meta() -> dict[str, str]:
     return meta
 
 
-def _load_part4_cards() -> list[dict]:
-    """Read the Part 4 decision cards from ``outputs/cards.json`` (Requirement 7).
-
-    Follows the path-resolution pattern of :func:`_available_promo_meta` (resolve
-    ``outputs/cards.json`` relative to the app root) so the persona-mix layer can
-    render **alongside** the existing Part 4 cards without touching any Part 4 code
-    or ``app/main.py``. The returned card dicts are read only -- neither this page
-    nor :func:`webapp_core.personas.persona_mix_by_cell` mutates them, keeping every
-    Part 4 field byte-for-byte unchanged (Requirements 7.3, 7.4).
-
-    Returns:
-        The list of card dicts, or an empty list when the file is absent or
-        unreadable (the caller then renders nothing rather than failing).
-    """
-    import json
-    from pathlib import Path
-
-    root = Path(__file__).resolve().parent.parent
-    cards_path = root / "outputs" / "cards.json"
-    try:
-        with open(cards_path, encoding="utf-8") as fh:
-            cards = json.load(fh)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return []
-    return cards if isinstance(cards, list) else []
-
-
 def _show_messages(messages: list[tuple[str, str]]) -> None:
     """Display ``(level, text)`` messages as Streamlit alerts (mirrors main.py)."""
     import streamlit as st
@@ -1284,97 +1256,119 @@ def _render_persona_comparison(result: PersonaRunResult) -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Persona mix on decision cards (Requirements 7.1, 7.2, 7.5) -- read-only      #
+# Expected joiners by persona (Requirements 7.1-7.5, 7.7, 7.8) -- read-only    #
 # --------------------------------------------------------------------------- #
-def _persona_mix_badge_html(mix) -> str:
-    """Build the (escaped) persona-mix badge HTML shown beside a card (Req 7.1, 7.2).
+BREAKDOWN_COLUMNS: list[str] = ["Persona", "Leads (share %)", "Expected joiners", "Rate"]
+BREAKDOWN_TOTAL_NAME = "Total"
+NO_NEW_PROMO_MESSAGE = "Run a New Promo first to see expected joiners by persona."
 
-    Renders the :class:`webapp_core.personas.PersonaMix` for one cell as a visually
-    distinct block of persona-name -> one-decimal-percentage chips, adjacent to the
-    card's existing guidance and never overwriting, hiding, or reordering any card
-    field (Requirement 7.2). Shares are shown to one decimal place and listed in
-    descending share so the dominant persona reads first.
 
-    When the mix is unavailable (``available == False``, Requirement 7.5) a muted
-    "Persona context unavailable" chip is returned instead so the card still renders
-    with its guidance intact. Reuses the ``pan-chip`` style (no new CSS classes).
+def breakdown_table_rows(breakdown: CardPersonaBreakdown) -> list[dict[str, str]]:
+    """Display rows for one card's persona table, plus a final total row (Req 7.1-7.4).
+
+    Keys are :data:`BREAKDOWN_COLUMNS` plus ``Action`` (the persona's action text,
+    possibly empty). The folded "Other personas" row shows only its lead count
+    (blank Expected joiners / Rate). The last row is the total, equal to the
+    card's expected joiners. A card with no sendable leads yields no rows.
     """
-    label = (
-        '<span style="color:var(--pan-gray);font-size:0.78rem;'
-        'letter-spacing:0.2px;">Persona Mix</span><br/>'
-    )
-    if not getattr(mix, "available", False) or not getattr(mix, "shares", None):
-        return (
-            f'<div style="margin-top:4px;">{label}'
-            '<span class="pan-chip">Persona context unavailable</span></div>'
+    if not breakdown.rows:
+        return []
+    out: list[dict[str, str]] = []
+    for r in breakdown.rows:
+        out.append(
+            {
+                "Persona": r.name,
+                "Leads (share %)": f"{r.leads:,} ({r.lead_share_pct:.1f}%)",
+                "Expected joiners": f"{r.expected_joiners:,.1f}" if r.show_joiners else "",
+                "Rate": f"{r.rate_pct:.1f}%" if r.show_joiners else "",
+                "Action": r.action,
+            }
         )
-
-    ordered = sorted(mix.shares.items(), key=lambda kv: (-kv[1], kv[0]))
-    chips = "".join(
-        f'<span class="pan-chip">{html.escape(str(name))} {share:.1f}%</span>'
-        for name, share in ordered
+    total = breakdown.total_expected_joiners
+    rate = total / breakdown.total_leads * 100.0 if breakdown.total_leads else 0.0
+    out.append(
+        {
+            "Persona": BREAKDOWN_TOTAL_NAME,
+            "Leads (share %)": f"{breakdown.total_leads:,} (100.0%)",
+            "Expected joiners": f"{total:,.1f}",
+            "Rate": f"{rate:.1f}%",
+            "Action": "",
+        }
     )
-    return f'<div style="margin-top:4px;">{label}{chips}</div>'
+    return out
 
 
-def _render_cards_with_mix(result: PersonaRunResult) -> None:
-    """Render each Part 4 card read-only with its Persona_Mix adjacent (Req 7).
+def breakdown_html(breakdown: CardPersonaBreakdown) -> str:
+    """Escaped HTML for one card's persona table, actions and takeaway (Req 7.1-7.5)."""
+    rows = breakdown_table_rows(breakdown)
+    takeaway = (
+        '<div style="margin-top:8px;font-weight:600;color:var(--pan-charcoal);">'
+        f"{html.escape(breakdown.takeaway)}</div>"
+    )
+    if not rows:
+        return takeaway
+    th = "".join(
+        f'<th style="text-align:left;padding:4px 8px;color:var(--pan-gray);'
+        f'font-size:0.78rem;font-weight:500;">{html.escape(c)}</th>'
+        for c in BREAKDOWN_COLUMNS
+    )
+    body = []
+    for i, r in enumerate(rows):
+        is_total = i == len(rows) - 1
+        weight = "700" if is_total else "400"
+        border = "border-top:1px solid var(--pan-gray);" if is_total else ""
+        name = html.escape(r["Persona"])
+        if r["Action"]:
+            name += (
+                '<br/><span style="color:var(--pan-gray);font-size:0.78rem;">'
+                f'{html.escape(r["Action"])}</span>'
+            )
+        cells = [name] + [html.escape(r[c]) for c in BREAKDOWN_COLUMNS[1:]]
+        tds = "".join(
+            f'<td style="padding:4px 8px;font-weight:{weight};{border}">{c}</td>'
+            for c in cells
+        )
+        body.append(f"<tr>{tds}</tr>")
+    table = (
+        '<table style="width:100%;border-collapse:collapse;margin-top:8px;">'
+        f"<thead><tr>{th}</tr></thead><tbody>{''.join(body)}</tbody></table>"
+    )
+    return table + takeaway
 
-    Reads the Part 4 decision cards from ``outputs/cards.json`` (via
-    :func:`_load_part4_cards`), computes the per-cell Persona_Mix with the already
-    implemented :func:`webapp_core.personas.persona_mix_by_cell` from the run's
-    ``labels`` and those cards, and renders each card **alongside** a persona-mix
-    badge. Every Part 4 field is shown read-only exactly as laid out by Part 4's
-    ``_decision_card_html`` field order (Action, Dominant Channel, Message Angle,
-    Top Drivers, Exclusions By Reason) -- nothing is overwritten, hidden, or
-    reordered (Requirements 7.2, 7.3, 7.4); this page renders a local read-only copy
-    of those fields and never mutates a card.
 
-    The unavailable-mix fallback (Requirement 7.5) is handled per card by
-    :func:`_persona_mix_badge_html`, so a cell with no assignment still renders its
-    guidance plus a "persona context unavailable" indication while the remaining
-    cards render normally. No chart/plot dependency is involved here (Req 9.9).
+def _render_expected_joiners_by_persona(result: PersonaRunResult, run_result_key: str) -> None:
+    """Render "Expected Joiners By Persona" over the current New Promo run (Req 7).
 
-    Does nothing when no cards are on disk, so a workspace without ``cards.json``
-    simply omits this section rather than failing the page.
+    Uses the full persona run result (labels + persona sets, not group-scoped) and
+    the New Promo run in session state. Each card keeps its Part 4 fields
+    read-only and unchanged, with the per-persona table beneath. Shows an info
+    message when there is no New Promo run (or it has no cards).
     """
     import streamlit as st
     import theme
 
-    cards = _load_part4_cards()
+    st.subheader("Expected Joiners By Persona")
+    run = st.session_state.get(run_result_key)
+    cards = list(getattr(run, "cards", None) or [])
     if not cards:
+        st.info(NO_NEW_PROMO_MESSAGE)
         return
 
-    labels = result.labels
-    try:
-        mixes = persona_mix_by_cell(labels, cards)
-    except Exception:  # noqa: BLE001 - never fail the page on a mix error (Req 7.5)
-        mixes = {}
-
-    st.subheader("Decision Cards With Persona Mix")
-    st.caption(
-        "Each card keeps its Part 4 guidance unchanged, with the persona mix of "
-        "its leads shown alongside."
+    breakdowns = expected_joiners_by_persona(
+        cards, run.sendable_by_segment, result.labels, result.persona_sets
     )
-
+    st.caption(
+        "Each card keeps its Part 4 guidance unchanged, with expected joiners "
+        "split by persona."
+    )
     for i in range(0, len(cards), 2):
-        pair = cards[i : i + 2]
         cols = st.columns(2)
-        for col, card in zip(cols, pair):
+        for col, card, bd in zip(cols, cards[i : i + 2], breakdowns[i : i + 2]):
             with col:
-                promo_id = str(card.get("promo_id", "--"))
-                segment = str(card.get("segment", "--"))
-                mix = mixes.get((promo_id, segment))
-                if mix is None:
-                    # No mix entry for this card -> treat as unavailable (Req 7.5).
-                    mix = PersonaMix(
-                        promo_id=promo_id,
-                        segment=segment,
-                        shares={},
-                        available=False,
-                    )
-                body = _part4_card_readonly_html(card) + _persona_mix_badge_html(mix)
-                theme.card(f"{promo_id} -- {segment}", body)
+                theme.card(
+                    f"{bd.promo_id or card.get('promo_id', '--')} -- {bd.segment}",
+                    _part4_card_readonly_html(card) + breakdown_html(bd),
+                )
 
 
 def _part4_card_readonly_html(card: dict) -> str:
@@ -1547,16 +1541,15 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
     5. one **summary card** per persona (Requirement 6.3) with the too-small
        instruction for flagged groups (Requirement 6.10);
     6. after a successful run, the **"How the Personas Differ" table**
-       (``st.dataframe`` of plain trait tags, Requirement 6.4), and the existing Part 4
-       **cards with their Persona_Mix** badge, unavailable fallback included
-       (Requirements 7.1, 7.2, 7.5); the Elbow_Plot is not shown on the page
+       (``st.dataframe`` of plain trait tags, Requirement 6.4), and the **Expected Joiners By Persona**
+       section over the current New Promo run (Requirements 7.1-7.5); the Elbow_Plot is not shown on the page
        (revised Requirement 6.5); and
     7. the two **download** controls, default Campaign_Leads_Export + optional full
        Persona_Labeled_Leads, disabled until a run completes (Requirements 8.8-8.10).
 
     All clustering/profiling is delegated to the cached
     :func:`webapp_core.personas.run_personas`; this function only wires widgets and
-    session state (Requirement 6.9). The task-14.2 comparison table and on-card persona mix
+    session state (Requirement 6.9). The task-14.2 comparison table and expected-joiners tables
     use Streamlit built-ins only, adding no dependency (Requirement 9.9).
 
     Args:
@@ -1688,7 +1681,7 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
 
     # --- results: summary cards + charts + cards-with-mix + downloads ---
     # Everything below persists across reruns and is gated on a run result
-    # existing in the session (task 14.2: the charts and the on-card persona mix
+    # existing in the session (task 14.2: the comparison and expected joiners
     # render only after a successful persona run).
     result: PersonaRunResult | None = st.session_state.get(PERSONA_RESULT_KEY)
     selected_group: str | None = None
@@ -1704,7 +1697,7 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
                 options,
                 index=options.index(st.session_state[GROUP_SELECT_KEY]),
                 key=GROUP_SELECT_KEY,
-                help="Show the personas, comparison, decision cards and download "
+                help="Show the personas, comparison and download "
                 "for one group, or all groups together.",
             )
         scoped = scope_result_to_group(result, selected_group)
@@ -1716,9 +1709,9 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
         _render_summary_cards(scoped)
         # How the Personas Differ comparison table (Requirement 6.4).
         _render_persona_comparison(scoped)
-        # Existing Part 4 cards rendered read-only with the Persona_Mix badge
-        # adjacent, with the unavailable fallback (Requirements 7.1, 7.2, 7.5).
-        _render_cards_with_mix(scoped)
+        # Expected joiners by persona over the current New Promo run; uses the
+        # full (not group-scoped) persona run (Requirements 7.1-7.5).
+        _render_expected_joiners_by_persona(result, run_result_key)
 
     _render_downloads(selected_group)
 
