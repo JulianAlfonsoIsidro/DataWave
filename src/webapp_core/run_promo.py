@@ -42,14 +42,20 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+import numpy as np
 import pandas as pd
 
 from part1_optin.scoring import SCORE_PROMO_COLUMNS, score_promo
-from part3_segments.segments import SEGMENTS_FILE_COLUMNS, assign_segments
+from part3_segments.segments import (
+    SEGMENTS_FILE_COLUMNS,
+    _assign_quadrant_labels,
+    assign_segments,
+)
 from part4_cards.cards import build_cards
 from part4_cards.classify import classify
 from part4_cards.config import Config as CardsConfig
 from part4_cards import loader as cards_loader
+from webapp_core.threshold import ThresholdType, per_client_amounts
 
 
 @dataclass(frozen=True)
@@ -70,6 +76,11 @@ class PromoSpec:
     eligible_segments: list[str]
     min_adb: float
     channels: list[str]
+    # Optional threshold selection (Requirements 5.5, 5.6). Defaults keep old
+    # constructors valid. For Balance Increase, ``threshold_pct`` is the percent
+    # of each client's latest ADB and ``threshold_php`` is the scoring median.
+    threshold_type: ThresholdType | str | None = None
+    threshold_pct: float | None = None
 
     def to_promo_dict(self) -> dict:
         """The *flat* promo dict ``score_promo`` and ``assign_segments`` expect.
@@ -108,6 +119,9 @@ class RunResult:
     segments_df: pd.DataFrame
     cards: list[dict]
     sendable_by_segment: dict[str, pd.DataFrame] = field(default_factory=dict)
+    # Non-excluded leads (control included) from the same classification call
+    # that produced ``sendable_by_segment`` (Requirement 8.1). ``None`` if unset.
+    non_excluded: pd.DataFrame | None = None
 
 
 def _cards_promo_dict(promo_spec: PromoSpec) -> dict[str, dict]:
@@ -140,12 +154,65 @@ def _empty_result(promo_spec: PromoSpec) -> RunResult:
         segments_df=pd.DataFrame(columns=SEGMENTS_FILE_COLUMNS),
         cards=[],
         sendable_by_segment={},
+        non_excluded=None,
     )
+
+
+def _is_balance_increase(promo_spec: PromoSpec) -> bool:
+    """True when the spec selects the Balance Increase threshold type."""
+    if promo_spec.threshold_type is None or promo_spec.threshold_pct is None:
+        return False
+    try:
+        return ThresholdType(promo_spec.threshold_type) is ThresholdType.BALANCE_INCREASE
+    except ValueError:
+        return False
+
+
+def _apply_balance_increase(
+    segments_df: pd.DataFrame, promo_spec: PromoSpec, adb_monthly: pd.DataFrame
+) -> pd.DataFrame:
+    """Re-derive segment labels with a per-client capacity threshold.
+
+    ``capacity_high`` is ``capacity_php >= pct / 100 * latest_adb`` per client;
+    a missing ADB gives NaN and therefore False (Requirements 5.5, 5.6). The
+    score side and quadrant mapping reuse the Part 3 definitions unchanged.
+    """
+    adb = adb_monthly[["client_id", "month", "adb_php"]]
+    if adb.empty:
+        latest = pd.Series(dtype=float)
+    else:
+        idx = adb.groupby("client_id")["month"].idxmax()
+        latest = adb.loc[idx].set_index("client_id")["adb_php"]
+    latest_adb = segments_df["client_id"].map(latest)
+    amounts = per_client_amounts(promo_spec.threshold_pct, latest_adb)
+
+    leads = segments_df.copy()
+    capacity_high = (leads["capacity_php"].to_numpy(dtype=float) >= amounts.to_numpy()) & (
+        ~np.isnan(amounts.to_numpy())
+    )
+    leads["capacity_high"] = capacity_high
+    median = leads.groupby("promo_id")["p_join"].transform("median")
+    leads["score_high"] = leads["p_join"] >= median
+    _assign_quadrant_labels(leads)
+    return leads[SEGMENTS_FILE_COLUMNS].reset_index(drop=True)
+
+
+def _classify_leads(
+    segments_df: pd.DataFrame, promo_spec: PromoSpec
+) -> tuple[dict[str, pd.DataFrame], pd.DataFrame]:
+    """One classification call yielding sendable-by-segment and non-excluded."""
+    return _classify_impl(segments_df, promo_spec)
 
 
 def _sendable_by_segment(
     segments_df: pd.DataFrame, promo_spec: PromoSpec
 ) -> dict[str, pd.DataFrame]:
+    return _classify_impl(segments_df, promo_spec)[0]
+
+
+def _classify_impl(
+    segments_df: pd.DataFrame, promo_spec: PromoSpec
+) -> tuple[dict[str, pd.DataFrame], pd.DataFrame]:
     """Derive each segment's Sendable_Leads using the Part 4 sendable rule.
 
     Sendable is Part 4's definition: a Lead that is neither excluded nor held
@@ -178,12 +245,13 @@ def _sendable_by_segment(
     }
 
     leads = classify(frames, cfg)
+    non_excluded = leads[~leads["excluded"]].reset_index(drop=True)
     sendable = leads[(~leads["excluded"]) & (leads["control"] == 0)]
 
     by_segment: dict[str, pd.DataFrame] = {}
     for segment, cell in sendable.groupby("segment", sort=False):
         by_segment[str(segment)] = cell.reset_index(drop=True)
-    return by_segment
+    return by_segment, non_excluded
 
 
 def run_promo(
@@ -243,6 +311,10 @@ def run_promo(
         "features": data["features"],
     }
     segments_df = assign_segments(scored, promo_dict, segment_frames)
+    if _is_balance_increase(promo_spec):
+        segments_df = _apply_balance_increase(
+            segments_df, promo_spec, data["adb_monthly"]
+        )
 
     # 4. Build one card per Cell (Requirement 3.3). build_cards wants the
     # dict-of-dicts promo shape, not the flat one score_promo consumed.
@@ -250,7 +322,7 @@ def run_promo(
 
     # 5. Derive the per-segment Sendable_Leads using Part 4's sendable rule so
     # DOWNLOAD LEADS and the predicted/actual comparison share one definition.
-    sendable_by_segment = _sendable_by_segment(segments_df, promo_spec)
+    sendable_by_segment, non_excluded = _classify_leads(segments_df, promo_spec)
 
     return RunResult(
         promo_spec=promo_spec,
@@ -258,4 +330,5 @@ def run_promo(
         segments_df=segments_df,
         cards=cards,
         sendable_by_segment=sendable_by_segment,
+        non_excluded=non_excluded,
     )

@@ -257,11 +257,11 @@ def test_expected_joiners_by_persona_renders_for_new_promo_run(app_test, sample)
         cards, run.sendable_by_segment, result.labels, result.persona_sets, drop_empty=True
     )[0]
     text = _markdown_text(at)
-    assert "P900 -- Ready Toppers" in text
-    assert "Leads (share)" in text and "Expected joiners" in text
-    assert ">Rate<" not in text  # rates moved into Details
-    assert html.escape(bd.takeaway) in text
-    assert f"{bd.total_expected_joiners:,.1f}" in text
+    assert "P900 · Ready Toppers" in text
+    # Part 7 wording: sentence rows, "Total For <Segment>" line, no old table headers.
+    assert "likely to join" in text
+    assert "Total For Ready Toppers" in text
+    assert "Leads (share)" not in text and ">Rate<" not in text
     # Single group: no group instruction, collapsed expanders present.
     assert persona_page.ALL_GROUPS_INSTRUCTION not in text
     labels = [e.label for e in at.expander]
@@ -284,8 +284,10 @@ def test_split_by_age_band_single_group_and_all_groups(app_test, sample):
 
     # One group selected: note + that group's personas only.
     text = _markdown_text(at)
-    assert "This card&#x27;s Joiners across all groups" in text
-    assert f"Total for {group}" in text
+    # Part 7 (7.9): no group index or old group note in any persona string.
+    assert "across all groups" not in text
+    assert "Total For Ready Toppers" in text
+    assert f"Total for {group}" not in text
     assert persona_page.ALL_GROUPS_INSTRUCTION not in text
     names_here = {p.name for ps in result.persona_sets if ps.group_key == group for p in ps.personas}
     names_else = {p.name for ps in result.persona_sets if ps.group_key != group for p in ps.personas}

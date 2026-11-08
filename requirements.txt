@@ -8,3 +8,7 @@ python-dotenv
 pytest
 hypothesis
 kmodes
+boto3
+pdfplumber
+python-docx
+openpyxl

@@ -373,6 +373,110 @@ def fields_html(rows: list[tuple[str, str]]) -> str:
     return "".join(field_html(label, value) for label, value in rows)
 
 
+# --- shared card parts: badge, banner, stat tile, bar, tooltip ---
+
+_KINDS = ("neutral", "info", "success", "warning", "error")
+
+
+def _kind_class(prefix: str, kind: str) -> str:
+    return f" {prefix}--{kind}" if kind in _KINDS and kind != "neutral" else ""
+
+
+def badge_html(text: str, kind: str = "neutral") -> str:
+    """Return a small pill badge (e.g. the Demo Mode badge)."""
+    return f'<span class="pan-badge{_kind_class("pan-badge", kind)}">{html.escape(text)}</span>'
+
+
+def banner_html(text: str, kind: str = "info") -> str:
+    """Return a full-width message banner."""
+    return (
+        f'<div class="pan-banner{_kind_class("pan-banner", kind)}" role="status">'
+        f"{html.escape(text)}</div>"
+    )
+
+
+def tooltip_html(label: str, tip: str) -> str:
+    """Return ``label`` with a hover/focus tooltip (also a native title)."""
+    return (
+        f'<span class="pan-tip" tabindex="0" title="{html.escape(tip, quote=True)}">'
+        f"{html.escape(label)}"
+        f'<span class="pan-tip-text" aria-hidden="true">{html.escape(tip)}</span></span>'
+    )
+
+
+def stat_tile_html(label: str, tip: str = "") -> str:
+    """Return one stat tile; the tooltip is attached when ``tip`` is given."""
+    inner = tooltip_html(label, tip) if tip else html.escape(label)
+    return f'<div class="pan-stat">{inner}</div>'
+
+
+def stat_tiles_html(tiles: list[str]) -> str:
+    """Wrap already-built stat tiles in a wrapping row."""
+    return f'<div class="pan-stats">{"".join(tiles)}</div>'
+
+
+def bar_html(label: str, fraction: float) -> str:
+    """Return a labelled horizontal bar; ``fraction`` is clamped to 0..1."""
+    try:
+        f = min(1.0, max(0.0, float(fraction)))
+    except (TypeError, ValueError):
+        f = 0.0
+    return (
+        '<div class="pan-bar">'
+        f'<span class="pan-bar-label">{html.escape(label)}</span>'
+        '<div class="pan-bar-track"><div class="pan-bar-fill" '
+        f'style="width:{f * 100:.1f}%"></div></div></div>'
+    )
+
+
+def persona_section_html(section) -> str:
+    """Render a ``webapp_core.persona_view.PersonaSection`` (Requirements 7.1-7.12).
+
+    Sentence rows each with a bar, the "Total For <Segment Name>" line, the
+    note, the takeaway, or the "personas not generated" line. ``None`` renders
+    nothing. All text is escaped here.
+    """
+    if section is None:
+        return ""
+    heading = '<div class="pan-line strong">Expected Joiners By Persona</div>'
+    if section.unavailable_text:
+        return heading + f'<div class="pan-line">{html.escape(section.unavailable_text)}</div>'
+    bars = "".join(bar_html(line.text, line.bar_pct / 100.0) for line in section.lines)
+    total = (
+        f"{section.total_line}: about {section.total_joiners:,} of "
+        f"{section.total_leads:,} likely to join"
+    )
+    out = heading + bars + f'<div class="pan-line strong">{html.escape(total)}</div>'
+    if section.note:
+        out += f'<div class="pan-line">{html.escape(section.note)}</div>'
+    if section.takeaway:
+        out += f'<div class="pan-line strong">{html.escape(section.takeaway)}</div>'
+    return out
+
+
+def decision_card_body_html(view, extra_html: str = "") -> str:
+    """Render a ``CardView`` (``webapp_core.card_view``) as card body HTML.
+
+    The single renderer used by the Results and Personas pages (Requirement
+    4.12). ``extra_html`` is trusted, already escaped markup appended below
+    (the persona breakdown today). Everything else is escaped here.
+    """
+    stats = stat_tiles_html([stat_tile_html(s.label, s.tooltip) for s in view.stats])
+    drivers = ", ".join(html.escape(d) for d in view.drivers) or "None"
+    exclusions = (
+        ", ".join(html.escape(e) for e in view.exclusions) if view.exclusions else "None"
+    )
+    rows = [
+        ("Action", html.escape(view.action)),
+        ("Dominant Channel", html.escape(view.channel)),
+        ("Message Angle", html.escape(view.angle)),
+        (view.why_heading, drivers),
+        (view.not_contacted_heading, exclusions),
+    ]
+    persona = persona_section_html(view.persona_lines)
+    return stats + fields_html(rows) + persona + extra_html
+
+
 # --- loading: shown only on a real wait ---
 
 _LOADER_SUBTEXT = {

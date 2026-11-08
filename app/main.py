@@ -41,15 +41,29 @@ st.set_page_config(
 
 import theme  # noqa: E402  (imported after set_page_config by design)
 import persona_page  # noqa: E402  (Persona_Page tab body; imported like theme)
+import upload_panel  # noqa: E402  (Upload Campaign File tab body)
+import assistant_page  # noqa: E402  (Ask Assistant tab body)
+import past_promos_page  # noqa: E402  (Past Promos tab body)
 
 from part1_optin.config import Config as Part1Config  # noqa: E402
+from webapp_core.card_view import build_card_view  # noqa: E402
+from webapp_core.persona_view import build_persona_section  # noqa: E402
+from webapp_core.personas import expected_joiners_by_persona  # noqa: E402
 from webapp_core.model_io import load_model  # noqa: E402
 from webapp_core.past_promos import (  # noqa: E402
     predicted_vs_actual,
     read_sendable_ids_by_cell,
 )
+from webapp_core.audience import latest_adb  # noqa: E402
 from webapp_core.promo_id import next_promo_id  # noqa: E402
 from webapp_core.run_promo import PromoSpec, run_promo  # noqa: E402
+from webapp_core.threshold import (  # noqa: E402
+    THRESHOLD_SPECS,
+    ThresholdType,
+    default_value,
+    effective_threshold,
+    format_value,
+)
 
 # --- project paths (resolved from this file so the app runs from any cwd) ---
 
@@ -92,6 +106,42 @@ def _load_eligible_segment_options() -> list[str]:
         return sorted(dna["segment"].dropna().unique().tolist())
     except (FileNotFoundError, ValueError):
         return ["Affluent-Gold", "Affluent-Preferred", "Mass", "Mid-Market"]
+
+
+@st.cache_data(show_spinner=False)
+def _load_latest_adb_series() -> pd.Series | None:
+    """Latest ADB per client for the Balance Increase threshold, or `None`."""
+    try:
+        adb = pd.read_csv(ADB_MONTHLY_PATH)
+    except (FileNotFoundError, ValueError):
+        return None
+    return latest_adb(adb)["latest_adb"]
+
+
+def _slider_format(spec) -> str:
+    """The Streamlit printf format for a threshold slider (peso or percent)."""
+    return "%d%%" if spec.is_percent else "₱%d"
+
+
+def _threshold_kwargs(
+    threshold_type: ThresholdType, value: float
+) -> tuple[dict | None, str | None, str | None]:
+    """Resolve a selection into PromoSpec threshold fields.
+
+    Returns ``(fields, error, note)``; ``fields`` is `None` when the threshold
+    cannot be applied (Balance Increase with no usable ADB, Requirement 5.11).
+    """
+    resolution = effective_threshold(threshold_type, value, _load_latest_adb_series())
+    if resolution.error is not None or resolution.threshold_php is None:
+        return None, resolution.error, None
+    fields = {
+        "threshold_type": threshold_type.value,
+        "threshold_pct": (
+            float(value) if threshold_type is ThresholdType.BALANCE_INCREASE else None
+        ),
+        "threshold_php": float(resolution.threshold_php),
+    }
+    return fields, None, resolution.note
 
 
 def _load_data_bundle() -> dict[str, pd.DataFrame]:
@@ -193,10 +243,72 @@ def _render_new_promo_tab() -> None:
     seen_ids = st.session_state.get(SEEN_PROMO_IDS_KEY, [])
     auto_promo_id = next_promo_id(seen_ids)
 
-    st.subheader("Design A Promo")
-
     # Messages from the last Run survive the page refresh below.
     _show_messages(st.session_state.pop(FLASH_KEY, []))
+
+    upload_tab, form_tab = st.tabs([
+        upload_panel.UPLOAD_TAB_LABEL,
+        upload_panel.FORM_TAB_LABEL,
+    ])
+
+    # The upload tab runs first, so its prefill reaches session state before
+    # the Fill In Details widgets below are created (Requirement 2.9).
+    with upload_tab:
+        upload_panel.render_upload_panel(
+            segment_options=segment_options,
+            product_options=PRODUCT_TYPE_OPTIONS,
+            mechanic_options=MECHANIC_OPTIONS,
+            channel_options=CHANNEL_OPTIONS,
+        )
+
+    with form_tab:
+        _render_fill_in_details(
+            segment_options=segment_options, auto_promo_id=auto_promo_id
+        )
+
+
+def _render_fill_in_details(*, segment_options: list[str], auto_promo_id: str) -> None:
+    """The Fill In Details tab: threshold controls, the form, and Run."""
+    upload_panel.ensure_form_defaults(
+        segment_options, PRODUCT_TYPE_OPTIONS, MECHANIC_OPTIONS, CHANNEL_OPTIONS
+    )
+
+    st.subheader("Design A Promo")
+
+    # Threshold controls live above the form so a type change reruns the page
+    # and the slider (keyed by type) resets to its default (Requirements 5.1-5.3).
+    theme.section_label("Threshold", "The amount that qualifies a client.")
+    st.session_state.setdefault(upload_panel.THRESHOLD_TYPE_KEY, list(ThresholdType)[0])
+    type_col, slider_col = st.columns([1, 2])
+    with type_col:
+        threshold_type = st.selectbox(
+            "Threshold Type",
+            list(ThresholdType),
+            format_func=lambda t: t.value,
+            key=upload_panel.THRESHOLD_TYPE_KEY,
+        )
+        upload_panel.field_tag("threshold_type")
+    t_spec = THRESHOLD_SPECS[threshold_type]
+    slider_key = upload_panel.threshold_value_key(threshold_type)
+    st.session_state.setdefault(slider_key, default_value(threshold_type))
+    with slider_col:
+        threshold_value = st.slider(
+            t_spec.label,
+            min_value=t_spec.minimum,
+            max_value=t_spec.maximum,
+            step=t_spec.step,
+            format=_slider_format(t_spec),
+            key=slider_key,
+        )
+        upload_panel.field_tag("threshold_value")
+    st.caption(f"Selected: {format_value(threshold_type, threshold_value)}")
+    threshold_fields, threshold_error, threshold_note = _threshold_kwargs(
+        threshold_type, threshold_value
+    )
+    if threshold_note:
+        st.info(threshold_note)
+    if threshold_error:
+        st.error(threshold_error)
 
     with st.form("new_promo_form"):
         id_col, _id_spacer = st.columns([1, 2])
@@ -206,30 +318,30 @@ def _render_new_promo_tab() -> None:
         theme.section_label("Promo Basics", "What you are offering.")
         basics_a, basics_b, basics_c = st.columns(3)
         with basics_a:
-            product_type = st.selectbox("Product Type", PRODUCT_TYPE_OPTIONS, index=0)
+            product_type = st.selectbox(
+                "Product Type", PRODUCT_TYPE_OPTIONS, key=upload_panel.PRODUCT_TYPE_KEY
+            )
+            upload_panel.field_tag("product_type")
         with basics_b:
-            mechanic = st.selectbox("Mechanic", MECHANIC_OPTIONS, index=0)
+            mechanic = st.selectbox(
+                "Mechanic", MECHANIC_OPTIONS, key=upload_panel.MECHANIC_KEY
+            )
+            upload_panel.field_tag("mechanic")
         with basics_c:
-            reward = st.text_input("Reward", value="Bonus interest")
+            reward = st.text_input("Reward", key=upload_panel.REWARD_KEY)
+            upload_panel.field_tag("reward")
 
         theme.section_label("Offer Terms", "The amounts that qualify a client.")
-        terms_a, terms_b = st.columns(2)
+        terms_a, _terms_spacer = st.columns(2)
         with terms_a:
-            threshold_php = st.number_input(
-                "Threshold (PHP)",
-                min_value=0.0,
-                value=100_000.0,
-                step=10_000.0,
-                format="%.2f",
-            )
-        with terms_b:
             min_adb = st.number_input(
                 "Minimum ADB (PHP)",
                 min_value=0.0,
-                value=0.0,
                 step=10_000.0,
                 format="%.2f",
+                key=upload_panel.MIN_ADB_KEY,
             )
+            upload_panel.field_tag("min_adb")
 
         theme.section_label("Audience", "Who can receive the promo.")
         aud_a, aud_b = st.columns(2)
@@ -237,24 +349,28 @@ def _render_new_promo_tab() -> None:
             eligible_segments = st.multiselect(
                 "Eligible Segments",
                 options=segment_options,
-                default=segment_options,
                 help="Customer_DNA segments. Clients outside these are excluded.",
+                key=upload_panel.SEGMENTS_KEY,
             )
+            upload_panel.field_tag("eligible_segments")
         with aud_b:
             channels = st.multiselect(
                 "Channels",
                 options=CHANNEL_OPTIONS,
-                default=CHANNEL_OPTIONS,
+                key=upload_panel.CHANNELS_KEY,
             )
+            upload_panel.field_tag("channels")
 
         submitted = st.form_submit_button("Run Analysis")
 
-    if submitted:
+    # With no usable ADB the error is shown above and the run is blocked
+    # (Requirement 5.11).
+    if submitted and threshold_fields is not None:
         spec = PromoSpec(
             promo_id=auto_promo_id,
             product_type=product_type,
             mechanic=mechanic,
-            threshold_php=float(threshold_php),
+            **threshold_fields,
             reward=reward,
             eligible_segments=list(eligible_segments),
             min_adb=float(min_adb),
@@ -311,46 +427,89 @@ def _tile_body_html(card: dict | None, *, emphasis: bool) -> str:
     )
 
 
-def _decision_card_html(card: dict) -> str:
-    """Build the (escaped) body HTML for one segment's decision card."""
-    action = html.escape(str(card.get("action", "--")))
-    channel = html.escape(str(card.get("dominant_channel", "--")))
-    angle = html.escape(str(card.get("message_angle", "--")))
+def _results_persona_section(result, card: dict, segment_label: str):
+    """Persona section for one Results card (Requirements 7.1, 7.4, 7.5, 7.10).
 
-    joiners = float(card.get("expected_joiners", 0.0) or 0.0)
-    low = float(card.get("joiners_90_low", 0.0) or 0.0)
-    high = float(card.get("joiners_90_high", 0.0) or 0.0)
-    exp_value = float(card.get("expected_value", 0.0) or 0.0)
-
-    drivers = card.get("top_drivers") or []
-    drivers_html = ", ".join(html.escape(str(d)) for d in drivers) or "--"
-
-    excluded = card.get("excluded_by_reason") or {}
-    if excluded:
-        exclusions_html = ", ".join(
-            f"{html.escape(str(reason))}: {int(count):,}"
-            for reason, count in excluded.items()
-        )
-    else:
-        exclusions_html = "none"
-
-    # Stat chips for the headline numbers.
-    chips = theme.chips_html(
-        [
-            theme.chip(f"Joiners {joiners:,.1f}"),
-            theme.chip(f"90% {low:,.1f}-{high:,.1f}"),
-            theme.chip(f"Value {exp_value:,.0f}"),
-        ]
+    Without a persona run the card shows the "personas not generated" line. A
+    run with several groups is detailed in the Personas tab, so no section is
+    shown here (group names are never printed on these cards).
+    """
+    persona_result = st.session_state.get(persona_page.PERSONA_RESULT_KEY)
+    if persona_result is None:
+        return build_persona_section(None, 0.0, segment_label)
+    if persona_page.group_options(persona_result):
+        return None
+    items = expected_joiners_by_persona(
+        [card],
+        result.sendable_by_segment or {},
+        persona_result.labels,
+        persona_result.persona_sets,
+        drop_empty=True,
     )
+    breakdown = items[0] if items else None
+    return persona_page.persona_section_for(breakdown, segment_label)
 
-    rows = [
-        ("Action", action),
-        ("Dominant Channel", channel),
-        ("Message Angle", angle),
-        ("Top Drivers", drivers_html),
-        ("Exclusions By Reason", exclusions_html),
+
+_TIP_MESSAGES_SAVED = (
+    "Baseline messages minus Recommended messages. Baseline is every eligible "
+    "lead; Recommended skips segments whose action is Skip."
+)
+_TIP_JOINERS_KEPT = (
+    "Recommended expected joiners divided by Baseline expected joiners, as a "
+    "percent. Expected joiners are the sum of each lead's p_join."
+)
+_TIP_COST_SAVED = (
+    "Baseline channel cost minus Recommended channel cost, using the per "
+    "message cost of each lead's best channel."
+)
+
+
+def _render_impact_summary(result) -> None:
+    """Show the Impact Summary banner and tiles for a run (Req 8.3, 8.5-8.8).
+
+    Shared by the Results and What-If tabs.
+    """
+    from webapp_core.impact import compute_impact, load_channel_costs
+
+    try:
+        impact = compute_impact(result, load_channel_costs())
+    except Exception:
+        st.markdown(
+            theme.banner_html("No comparison is available for this run.", "info"),
+            unsafe_allow_html=True,
+        )
+        return
+    if not impact.available:
+        st.markdown(
+            theme.banner_html(
+                impact.neutral_message or "No comparison is available for this run.",
+                "info",
+            ),
+            unsafe_allow_html=True,
+        )
+        return
+    if impact.cost_available and impact.banner:
+        st.markdown(theme.banner_html(impact.banner, "info"), unsafe_allow_html=True)
+    else:
+        st.markdown(
+            theme.banner_html(
+                impact.cost_message or "Cost savings are unavailable.", "info"
+            ),
+            unsafe_allow_html=True,
+        )
+    cost_value = (
+        f"₱{impact.cost_saved:,}" if impact.cost_saved is not None else "Unavailable"
+    )
+    tiles = [
+        theme.stat_tile_html(
+            f"Messages Saved: {impact.messages_saved:,}", _TIP_MESSAGES_SAVED
+        ),
+        theme.stat_tile_html(
+            f"Joiners Kept (%): {impact.joiners_kept_pct}%", _TIP_JOINERS_KEPT
+        ),
+        theme.stat_tile_html(f"Cost Saved (₱): {cost_value}", _TIP_COST_SAVED),
     ]
-    return chips + theme.fields_html(rows)
+    st.markdown(theme.stat_tiles_html(tiles), unsafe_allow_html=True)
 
 
 def _render_results_tab() -> None:
@@ -380,6 +539,9 @@ def _render_results_tab() -> None:
                     emphasis=emphasis,
                 )
 
+    # --- Impact Summary banner and tiles (Req 8.3, 8.5-8.8) ---
+    _render_impact_summary(result)
+
     # --- decision cards, two per row on wide screens ---
     st.subheader("Decision Cards")
     ordered_segments = [
@@ -393,9 +555,11 @@ def _render_results_tab() -> None:
         card_cols = st.columns(2)
         for card_col, segment_label in zip(card_cols, pair):
             with card_col:
-                theme.card(
-                    segment_label, _decision_card_html(cards_by_segment[segment_label])
+                card = cards_by_segment[segment_label]
+                view = build_card_view(
+                    card, persona=_results_persona_section(result, card, segment_label)
                 )
+                theme.card(view.title, theme.decision_card_body_html(view))
 
     # --- Download Leads: one per-segment Sendable_Leads CSV ---
     st.subheader("Download Leads")
@@ -418,20 +582,82 @@ def _render_results_tab() -> None:
                     key=f"download_leads_{segment_label}",
                 )
 
+    _render_export_summary(result)
+
     theme.next_step(
         "Test a different threshold in What-If, or group these clients into "
         "personas in Personas."
     )
 
 
-_WHATIF_RANGE_FLOOR = 200_000.0
+EXPORT_CACHE_KEY = "export_summary_cache"
+EXPORT_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
 
-def _whatif_slider_bounds(current: float) -> tuple[float, float, float]:
-    """Return ``(min_value, max_value, step)`` for the What-If slider."""
-    max_value = max(current * 4.0, _WHATIF_RANGE_FLOOR)
-    step = max(round(max_value / 100.0), 1.0)
-    return 0.0, float(max_value), float(step)
+def _export_workbook_bytes(result) -> bytes:
+    """Build the Export_Workbook bytes, cached per run and persona result.
+
+    The cache key uses object identity, so a new run or a new persona
+    generation rebuilds the workbook once and reruns reuse the bytes.
+    """
+    from datetime import date
+
+    from webapp_core.export_workbook import build_workbook
+    from webapp_core.impact import compute_impact, load_channel_costs
+
+    persona_result = st.session_state.get(persona_page.PERSONA_RESULT_KEY)
+    source = (
+        getattr(persona_result, "narration_source", "Demo")
+        if persona_result is not None
+        else "Demo"
+    )
+    key = (id(result), id(persona_result), source, date.today())
+    cached = st.session_state.get(EXPORT_CACHE_KEY)
+    if cached is not None and cached[0] == key:
+        return cached[1]
+    impact = compute_impact(result, load_channel_costs())
+    data = build_workbook(result, impact, persona_result, source, run_date=date.today())
+    st.session_state[EXPORT_CACHE_KEY] = (key, data)
+    return data
+
+
+def _render_export_summary(result) -> None:
+    """Export Summary download for the current run (Requirements 9.1, 9.2, 9.12)."""
+    from webapp_core.export_workbook import workbook_filename
+
+    st.subheader("Export Summary")
+    if result is None:
+        st.caption("Run an analysis first to export a summary.")
+        st.download_button(
+            "Export Summary",
+            data=b"",
+            disabled=True,
+            key="export_summary_disabled",
+        )
+        return
+    try:
+        data = _export_workbook_bytes(result)
+    except Exception:
+        st.error(
+            "The summary could not be built for this run. Run the analysis "
+            "again, then try the export once more."
+        )
+        return
+    st.download_button(
+        "Export Summary",
+        data=data,
+        file_name=workbook_filename(result.promo_spec.promo_id),
+        mime=EXPORT_MIME,
+        key="export_summary",
+    )
+
+
+def _spec_threshold_type(spec: PromoSpec) -> ThresholdType:
+    """The run's threshold type; legacy specs without one are Top-Up."""
+    try:
+        return ThresholdType(spec.threshold_type)
+    except ValueError:
+        return ThresholdType.TOP_UP
 
 
 def _render_whatif_tab() -> None:
@@ -445,8 +671,13 @@ def _render_whatif_tab() -> None:
         )
         return
 
-    current = float(result.promo_spec.threshold_php)
-    min_value, max_value, step = _whatif_slider_bounds(current)
+    t_type = _spec_threshold_type(result.promo_spec)
+    t_spec = THRESHOLD_SPECS[t_type]
+    min_value, max_value, step = t_spec.minimum, t_spec.maximum, t_spec.step
+    if t_type is ThresholdType.BALANCE_INCREASE and result.promo_spec.threshold_pct is not None:
+        current = float(result.promo_spec.threshold_pct)
+    else:
+        current = float(result.promo_spec.threshold_php)
 
     st.subheader("What-If: Vary The Threshold")
     st.caption(
@@ -456,18 +687,22 @@ def _render_whatif_tab() -> None:
     )
 
     new_threshold = st.slider(
-        "Threshold (PHP)",
+        t_spec.label,
         min_value=min_value,
         max_value=max_value,
-        value=min(max(current, min_value), max_value),
+        value=int(min(max(current, min_value), max_value)),
         step=step,
-        format="%.0f",
+        format=_slider_format(t_spec),
+        key=f"whatif_threshold_{t_type.name}",
     )
 
-    if abs(float(new_threshold) - current) >= (step / 2.0):
-        new_spec = dataclasses.replace(
-            result.promo_spec, threshold_php=float(new_threshold)
-        )
+    fields, error, note = _threshold_kwargs(t_type, new_threshold)
+    if note:
+        st.info(note)
+    if error:
+        st.error(error)
+    elif fields is not None and abs(float(new_threshold) - current) >= (step / 2.0):
+        new_spec = dataclasses.replace(result.promo_spec, **fields)
         with theme.loading("rescore", "Rescoring at the new threshold...", slow=True):
             messages = _execute_run(new_spec)
         _show_messages(messages)
@@ -475,6 +710,8 @@ def _render_whatif_tab() -> None:
 
     number, caption = _metric_from_run()
     theme.metric_panel(number, caption)
+    if result is not None:
+        _render_impact_summary(result)
     if result is not None and result.cards:
         st.caption(
             f"Threshold ₱{float(result.promo_spec.threshold_php):,.0f}: "
@@ -485,13 +722,8 @@ def _render_whatif_tab() -> None:
 
 
 def _render_ask_assistant_tab() -> None:
-    """Render the Ask Assistant placeholder panel (Requirement 6.4)."""
-    theme.card(
-        "Ask Assistant",
-        '<p class="pan-flush">The conversational assistant is coming in the '
-        "next spec. For now this panel is a placeholder and performs no "
-        "lookup or model call.</p>",
-    )
+    """Render the Ask Assistant tab (Part 7, Requirements 3.8-3.12)."""
+    assistant_page.render_assistant_page()
 
 
 def _fmt_rate(value: float) -> str:
@@ -539,52 +771,8 @@ def _past_promo_card_html(rows: list[dict]) -> str:
 
 
 def _render_past_promos_tab() -> None:
-    """Render the Past Promos tab: predicted vs actual join rate per promo."""
-    try:
-        with open(CARDS_JSON_PATH, encoding="utf-8") as fh:
-            cards = json.load(fh)
-    except FileNotFoundError:
-        st.info(RUN_PIPELINE_MESSAGE)
-        return
-
-    if not cards:
-        st.info(
-            "No past promos were found in the Cards_File. Run "
-            "`python src/run_pipeline.py` to regenerate the promo cards."
-        )
-        return
-
-    try:
-        promo_leads = pd.read_csv(PROMO_LEADS_PATH)
-    except FileNotFoundError:
-        st.info(RUN_PIPELINE_MESSAGE)
-        return
-
-    sendable_ids_by_cell = read_sendable_ids_by_cell(
-        cards, leads_dir=OUTPUTS_DIR / "leads"
-    )
-    rows = predicted_vs_actual(cards, promo_leads, sendable_ids_by_cell)
-
-    rows_by_promo: dict[str, list[dict]] = {}
-    for row in rows:
-        rows_by_promo.setdefault(str(row.get("promo_id")), []).append(row)
-
-    st.subheader("Past Promos: Predicted Vs Actual Join Rate")
-    st.caption(
-        "For each past promo, the model's predicted join rate next to the "
-        "actual join rate that happened, per segment. No Leads means the "
-        "segment had no sendable leads."
-    )
-    promo_ids = sorted(rows_by_promo)
-    for i in range(0, len(promo_ids), 2):
-        pair = promo_ids[i : i + 2]
-        card_cols = st.columns(2)
-        for card_col, promo_id in zip(card_cols, pair):
-            with card_col:
-                theme.card(
-                    heading=promo_id,
-                    body_html=_past_promo_card_html(rows_by_promo[promo_id]),
-                )
+    """Render the Past Promos tab (Part 7, Requirement 11)."""
+    past_promos_page.render_past_promos_tab()
 
 
 def main() -> None:

@@ -109,6 +109,8 @@ from part5_personas.labels import attribute_label as _pipeline_attribute_label
 from part5_personas.labels import is_flag_attribute as _is_flag_attribute
 from part5_personas.labels import is_text_category
 from part5_personas.profile import PersonaProfile
+from webapp_core.card_view import build_card_view
+from webapp_core.persona_view import build_persona_section
 from webapp_core.personas import (
     EQUAL_TAKEAWAY,
     PersonaRunResult,
@@ -1052,7 +1054,7 @@ def _run_personas_impl(
     """
     from part5_personas.config import Config
 
-    return run_personas(_spec, cfg=Config(), live_leads=_live_leads)
+    return run_personas(_spec, cfg=Config(), live_leads=_live_leads, narration="ai")
 
 
 # Lazily-built ``st.cache_data`` wrapper around :func:`_run_personas_impl`. Built
@@ -1281,6 +1283,10 @@ def _render_summary_cards(result: PersonaRunResult) -> None:
     import streamlit as st
     import theme
 
+    if getattr(result, "narration_source", "Bedrock") != "Bedrock":
+        # Some persona text is Mock text (Requirement 6.11).
+        st.markdown(theme.badge_html("Demo Mode", "warning"), unsafe_allow_html=True)
+
     for persona_set in result.persona_sets:
         if persona_set.group_key:
             st.markdown(f"**Segment: {persona_set.group_key}**")
@@ -1446,19 +1452,6 @@ def group_summary_rows(summary) -> list[dict[str, str]]:
     return out
 
 
-def group_total_name(group: str) -> str:
-    """Total row label for a group-scoped table: "Total for <group>"."""
-    return f"Total for {group}"
-
-
-def group_note_text(group: str, card_joiners: float, group_joiners: float) -> str:
-    """The note under a group-scoped table (Req 7.6a), one decimal each."""
-    return (
-        f"This card's Joiners across all groups: {card_joiners:,.1f} "
-        f"({group} is {group_joiners:,.1f} of it)."
-    )
-
-
 def rates_details_lines(breakdown) -> list[str]:
     """Per-persona expected join rates for the Details expander, e.g. "Savers: 34.5%".
 
@@ -1494,25 +1487,17 @@ def _line_html(text: str, bold: bool = False) -> str:
     return f'<div class="pan-line{strong}">{html.escape(text)}</div>'
 
 
-def breakdown_html(breakdown) -> str:
-    """Escaped HTML for one card's persona table and takeaway (Req 7.1-7.5).
+def persona_section_for(breakdown, segment: str):
+    """Persona section for one card's breakdown (Requirements 7.1-7.12).
 
-    Handles a ``CardPersonaBreakdown`` and a ``GroupCardBreakdown`` (adds the
-    "Total for <group>" row and the all-groups note; a too-few card shows only its
-    message). Actions live in the "How to message this" expander, not here.
+    Delegates to :func:`webapp_core.persona_view.build_persona_section` over a
+    ``CardPersonaBreakdown`` or ``GroupCardBreakdown``. No group index appears in
+    any string. A too-few group card has no persona rows to show, so it gets the
+    "not generated" line via an empty breakdown.
     """
-    group = getattr(breakdown, "group", None)
-    if group is not None and getattr(breakdown, "too_few", False):
-        return _line_html(breakdown.too_few_message, bold=True)
-    rows = breakdown_table_rows(
-        breakdown, group_total_name(group) if group is not None else BREAKDOWN_TOTAL_NAME
-    )
-    out = _table_html(BREAKDOWN_COLUMNS, rows) if rows else ""
-    if group is not None:
-        out += _line_html(
-            group_note_text(group, breakdown.card_expected_joiners, breakdown.total_expected_joiners)
-        )
-    return out + _line_html(breakdown.takeaway, bold=True)
+    if breakdown is None or getattr(breakdown, "too_few", False):
+        return build_persona_section(None, 0.0, segment)  # "not generated" line
+    return build_persona_section(breakdown, breakdown.total_expected_joiners, segment)
 
 
 def group_summary_html(summary) -> str:
@@ -1585,66 +1570,35 @@ def _render_expected_joiners_by_persona(result: PersonaRunResult, run_result_key
         cols = st.columns(2)
         for col, item in zip(cols, items[i : i + 2]):
             card = by_key.get((str(item.promo_id), str(item.segment)), {})
-            body = group_summary_html(item) if mode == "all" else breakdown_html(item)
-            with col:
-                theme.card(
-                    f"{item.promo_id or card.get('promo_id', '--')} -- {item.segment}",
-                    _part4_card_readonly_html(card) + body,
+            # One shared renderer over CardView (Requirements 4.12, 7.1-7.12).
+            # The all-groups summary keeps its compact per-group table; every
+            # other mode passes persona_lines into the shared renderer.
+            if mode == "all":
+                body = group_summary_html(item)
+                persona = None
+            else:
+                body = (
+                    _line_html(item.too_few_message, bold=True)
+                    if getattr(item, "too_few", False)
+                    else ""
                 )
+                persona = (
+                    None
+                    if getattr(item, "too_few", False)
+                    else persona_section_for(item, str(item.segment))
+                )
+            view = build_card_view(
+                {
+                    **card,
+                    "promo_id": item.promo_id or card.get("promo_id", ""),
+                    "segment": item.segment,
+                },
+                persona=persona,
+            )
+            with col:
+                theme.card(view.title, theme.decision_card_body_html(view, body))
                 if mode != "all" and not getattr(item, "too_few", False):
                     _render_card_extras(st, item)
-
-
-def _part4_card_readonly_html(card: dict) -> str:
-    """Build the read-only body HTML for one Part 4 card (Requirements 7.2-7.4).
-
-    A local, read-only render of the Part 4 card fields in the **same field order**
-    as ``app/main.py``'s ``_decision_card_html`` (Action, Dominant Channel, Message
-    Angle, Top Drivers, Exclusions By Reason, plus the Joiners / 90% / Value stat
-    chips). It only *reads* ``card`` values -- it never edits, hides, or reorders a
-    field -- so every Part 4 value stays byte-for-byte unchanged (Requirements 7.2,
-    7.3, 7.4). This is intentionally separate from ``main.py`` so no Part 4 code and
-    no existing tab is touched; we render alongside, not in place.
-    """
-    action = html.escape(str(card.get("action", "--")))
-    channel = html.escape(str(card.get("dominant_channel", "--")))
-    angle = html.escape(str(card.get("message_angle", "--")))
-
-    joiners = float(card.get("expected_joiners", 0.0) or 0.0)
-    low = float(card.get("joiners_90_low", 0.0) or 0.0)
-    high = float(card.get("joiners_90_high", 0.0) or 0.0)
-    exp_value = float(card.get("expected_value", 0.0) or 0.0)
-
-    drivers = card.get("top_drivers") or []
-    drivers_html = ", ".join(html.escape(str(d)) for d in drivers) or "--"
-
-    excluded = card.get("excluded_by_reason") or {}
-    if excluded:
-        exclusions_html = ", ".join(
-            f"{html.escape(str(reason))}: {int(count):,}"
-            for reason, count in excluded.items()
-        )
-    else:
-        exclusions_html = "none"
-
-    import theme
-
-    chips = theme.chips_html(
-        [
-            f'<span class="pan-chip">Joiners {joiners:,.1f}</span>',
-            f'<span class="pan-chip">90% {low:,.1f}-{high:,.1f}</span>',
-            f'<span class="pan-chip">Value {exp_value:,.0f}</span>',
-        ]
-    )
-
-    rows = [
-        ("Action", action),
-        ("Dominant Channel", channel),
-        ("Message Angle", angle),
-        ("Top Drivers", drivers_html),
-        ("Exclusions By Reason", exclusions_html),
-    ]
-    return chips + theme.fields_html(rows)
 
 
 def _render_downloads(selected_group: str | None = None) -> None:

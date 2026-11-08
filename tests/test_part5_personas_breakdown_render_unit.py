@@ -17,6 +17,7 @@ if str(APP_DIR) not in sys.path:
     sys.path.insert(0, str(APP_DIR))
 
 import app.persona_page as pp  # noqa: E402
+import theme  # noqa: E402
 from webapp_core.personas import (  # noqa: E402
     NO_GROUP_NAME,
     OTHER_PERSONAS_NAME,
@@ -71,7 +72,8 @@ def test_columns_exactly_three_and_no_rate_column():
         assert list(r) == pp.BREAKDOWN_COLUMNS
         assert "Rate" not in r and "Action" not in r
         assert "expected_joiners" not in r and "lead_share_pct" not in r
-    assert "Rate" not in pp.breakdown_html(_breakdown())
+    # The card text now comes from the persona section (no rate column).
+    assert "Rate" not in theme.persona_section_html(pp.persona_section_for(_breakdown(), "Ready Toppers"))
 
 
 def test_folded_other_row_shows_only_lead_count():
@@ -100,41 +102,45 @@ def test_total_line_equals_card_expected_joiners():
 
 
 def test_html_has_takeaway_escapes_and_no_actions():
-    out = pp.breakdown_html(_breakdown())
-    assert "Expected joiners" in out and "Leads (share)" in out
-    assert "Takeaway &amp; more: lead with it." in out
+    # Part 7 (7.1, 7.4, 7.7): sentence rows + "Total For" line + takeaway via persona_view.
+    out = theme.persona_section_html(pp.persona_section_for(_breakdown(), "Ready Toppers"))
+    assert "Expected Joiners By Persona" in out
+    assert "likely to join" in out and "Leads (share)" not in out
     assert "Digital &lt;b&gt;Natives&lt;/b&gt;" in out
     assert "<b>Natives" not in out
-    assert "Push the" not in out  # actions moved to the expander
-    assert "Total" in out and "110.0" in out
+    assert "Push the" not in out  # actions stay in the expander
+    assert "Total For Ready Toppers: about 110 of 1,000 likely to join" in out
     assert "expected_joiners" not in out and "lead_share_pct" not in out
 
 
-def test_empty_breakdown_shows_takeaway_only():
+def test_empty_breakdown_shows_not_generated_line_only():
+    # Part 7 (7.10): an empty breakdown gives the "personas not generated" line.
     b = CardPersonaBreakdown("P900", "Not Now", (), 0, 0.0, "No sendable leads in this card.")
-    assert "No sendable leads in this card." in pp.breakdown_html(b)
+    out = theme.persona_section_html(pp.persona_section_for(b, "Not Now"))
+    assert "Personas were not generated for this run." in out
+    assert "Total For" not in out
     assert pp.breakdown_table_rows(b) == []
 
 
 def test_group_total_row_and_note_text_exact():
+    # Part 7 (7.4, 7.5, 7.9): "Total For <Segment>" and no group index in any string.
     b = _group_bd()
-    rows = pp.breakdown_table_rows(b, pp.group_total_name("25-34"))
-    assert rows[-1]["Persona"] == "Total for 25-34"
+    rows = pp.breakdown_table_rows(b)
+    assert rows[-1]["Persona"] == "Total"
     assert rows[-1]["Expected joiners"] == "26.0"
-    assert (
-        pp.group_note_text("25-34", 110.0, 26.0)
-        == "This card's Joiners across all groups: 110.0 (25-34 is 26.0 of it)."
-    )
-    out = pp.breakdown_html(b)
-    assert "Total for 25-34" in out
-    assert "This card&#x27;s Joiners across all groups: 110.0 (25-34 is 26.0 of it)." in out
-    assert "Savers join most." in out
+    section = pp.persona_section_for(b, "Ready Toppers")
+    assert section.total_line == "Total For Ready Toppers"
+    out = theme.persona_section_html(section)
+    assert "Total For Ready Toppers" in out
+    assert "25-34" not in out and "across all groups" not in out
+    assert "Savers is" in out  # note: "<top> is N of the <Segment> total"
 
 
-def test_too_few_group_card_shows_only_message():
+def test_too_few_group_card_shows_not_generated_line():
+    # Part 7: a too-few group card has no persona rows; it gets the "not generated" line.
     b = _group_bd(too_few=True)
-    out = pp.breakdown_html(b)
-    assert b.too_few_message in out
+    out = theme.persona_section_html(pp.persona_section_for(b, "Ready Toppers"))
+    assert "Personas were not generated for this run." in out
     assert "<table" not in out and "across all groups" not in out
 
 

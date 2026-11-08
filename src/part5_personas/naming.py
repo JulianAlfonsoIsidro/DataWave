@@ -47,6 +47,11 @@ from __future__ import annotations
 import math
 from typing import Protocol, TypedDict, runtime_checkable
 
+try:  # Python 3.11+
+    from typing import NotRequired
+except ImportError:  # pragma: no cover - Python 3.10
+    from typing_extensions import NotRequired
+
 from part5_personas.labels import (
     attribute_label,
     category_phrase,
@@ -64,11 +69,15 @@ class PersonaNaming(TypedDict):
         description: A single-line description derived from the profile.
         actions: Between 2 and 3 recommended campaign actions (never fewer than
             2, never more than 3) derived from the profile (Requirement 4.5).
+        difference: Optional one-sentence statement of why the persona differs
+            from the others (Part 7 Requirement 6.3). Additive: absent for
+            ``RuleBasedNamer`` output.
     """
 
     name: str
     description: str
     actions: list[str]
+    difference: NotRequired[str]
 
 
 @runtime_checkable

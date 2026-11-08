@@ -80,6 +80,14 @@ SEGMENT_SLUG_COLUMN = "segment_slug"
 MIX_TOTAL_PERCENT = 100.0
 
 
+# Narration modes for run_personas: "rule" keeps the RuleBasedNamer (default);
+# "ai" builds the BedrockNamer, which falls back to Mock text per persona.
+NARRATION_RULE = "rule"
+NARRATION_AI = "ai"
+NARRATION_BEDROCK = "Bedrock"
+NARRATION_DEMO = "Demo"
+
+
 def segment_slug(segment: str) -> str:
     """Slugify a segment label exactly as the Part 4 Reporter does.
 
@@ -148,6 +156,10 @@ class PersonaRunResult:
     persona_sets: list[PersonaSet]
     labels: pd.DataFrame
     joined_attributes: pd.DataFrame
+    # "Bedrock" when every persona text came from Bedrock, else "Demo" (any Mock
+    # text, or a rule-based run). Defaulted so older constructors stay valid
+    # (Requirement 6.11).
+    narration_source: str = NARRATION_DEMO
 
 
 # --------------------------------------------------------------------------- #
@@ -319,8 +331,14 @@ def run_personas(
     cfg: Config | None = None,
     *,
     live_leads: pd.DataFrame | None = None,
+    narration: str = NARRATION_RULE,
 ) -> PersonaRunResult:
     """Run one in-memory persona generation and return its result (Requirements 3, 5).
+
+    ``narration`` picks the namer when ``namer`` is not given: ``"rule"``
+    (default) uses the RuleBasedNamer; ``"ai"`` builds a BedrockNamer here and
+    records ``narration_source`` on the result (Requirement 6.11). Clustering is
+    identical in both modes.
 
     Builds the Joined_Attribute_Set from ``cfg`` (Requirement 1), then runs the
     chosen level / two-step grouping / clustering / profiling / naming via
@@ -351,7 +369,15 @@ def run_personas(
         (with cell keys when a leads universe was available), and the joined set.
     """
     cfg = cfg or Config()
-    namer = namer or RuleBasedNamer()
+    bedrock_namer = None
+    if namer is None:
+        if narration == NARRATION_AI:
+            from ai.persona_narrator import BedrockNamer
+
+            bedrock_namer = BedrockNamer()
+            namer = bedrock_namer
+        else:
+            namer = RuleBasedNamer()
 
     if not spec.clustering_attributes:
         raise ValueError(
@@ -393,10 +419,17 @@ def run_personas(
         leads_universe = None
     labels = _attach_cells(labels, leads_universe)
 
+    source = NARRATION_DEMO
+    if bedrock_namer is not None:
+        used = bedrock_namer.sources
+        if used and all(v == NARRATION_BEDROCK for v in used.values()):
+            source = NARRATION_BEDROCK
+
     return PersonaRunResult(
         persona_sets=persona_sets,
         labels=labels,
         joined_attributes=joined,
+        narration_source=source,
     )
 
 
