@@ -1,9 +1,9 @@
 """Streamlit entry point for the Promo Audience Navigator (Part 5 webapp).
 
 This file is the declarative composition layer: it sets the wide desktop
-layout, injects the single stylesheet once, renders the page chrome (slim top
-bar, a text brand, a current-run context banner, and a hero with a
-red-gradient KPI panel), then the Title Case tabs (New Promo, Results,
+layout, injects the single stylesheet once, renders the page chrome (a
+current-run context banner, then a hero with a red-gradient KPI panel; the
+former utility bar and brand bar were removed in Part 8, Requirement 6), then the Title Case tabs (New Promo, Results,
 What-If, Personas, Past Promos, Ask Assistant), and routes to each tab body. All real
 logic lives in ``src/webapp_core`` (model reload, eligibility, promo-id, run
 orchestration) and ``app/theme`` (styling) -- this module only wires them to
@@ -40,6 +40,7 @@ st.set_page_config(
 )
 
 import theme  # noqa: E402  (imported after set_page_config by design)
+import p8_effects  # noqa: E402  (Part 8 effects: job ring state)
 import persona_page  # noqa: E402  (Persona_Page tab body; imported like theme)
 import upload_panel  # noqa: E402  (Upload Campaign File tab body)
 import assistant_page  # noqa: E402  (Ask Assistant tab body)
@@ -361,7 +362,10 @@ def _render_fill_in_details(*, segment_options: list[str], auto_promo_id: str) -
             )
             upload_panel.field_tag("channels")
 
-        submitted = st.form_submit_button("Run Analysis")
+        with st.container(key=p8_effects.P8_BTN_RUN_ANALYSIS):
+            # Ring slot sits before the button, inside the form (Requirement 7).
+            ring_slot = p8_effects.ring_slot("analysis")
+            submitted = st.form_submit_button("Run Analysis")
 
     # With no usable ADB the error is shown above and the run is blocked
     # (Requirement 5.11).
@@ -376,10 +380,23 @@ def _render_fill_in_details(*, segment_options: list[str], auto_promo_id: str) -
             min_adb=float(min_adb),
             channels=list(channels),
         )
-        with theme.loading("analysis", "Scoring and segmenting your audience..."):
-            st.session_state[FLASH_KEY] = _execute_run(spec)
-        # Refresh once so the hero KPI at the top shows the new run's number.
-        st.rerun()
+        # Keyboard guard (Requirements 7.11, 7.12): the same inputs re-submitted
+        # within the window of the previous Job's end start no second Job.
+        # promo_id is excluded because it is auto-generated per run.
+        signature = repr(sorted(
+            (k, v) for k, v in dataclasses.asdict(spec).items() if k != "promo_id"
+        ))
+        if not p8_effects.is_duplicate("analysis", signature):
+            # Running ring streams to the browser before the blocking call.
+            p8_effects.start_job("analysis", ring_slot)
+            with theme.loading("analysis", "Scoring and segmenting your audience..."):
+                messages = _execute_run(spec)
+            st.session_state[FLASH_KEY] = messages
+            # Empty audience and missing model end with the error ring (D3).
+            ok = any(level == "success" for level, _ in messages)
+            p8_effects.end_job("analysis", ok, signature)
+            # Refresh once so the hero KPI at the top shows the new run's number.
+            st.rerun()
 
 
 # The four Part 3 Segment_Labels laid out as the 2x2 Results grid:
@@ -779,9 +796,12 @@ def main() -> None:
     """Compose the BPI-web app shell and route to the tabs."""
     theme.inject_css()
 
-    # --- page chrome: slim bar, brand, current-run context banner ---
-    theme.utility_bar()
-    theme.nav_bar()
+    # Effects slot lives outside the tabs (inactive panels are display:none).
+    p8_effects.fx_container()
+
+    # --- page chrome: current-run context banner only (Part 8, Req 6) ---
+    # The slim utility bar and brand bar were removed; the hero carries the
+    # app name. theme.utility_bar()/nav_bar()/header() remain available.
     theme.context_banner(_run_context_items())
 
     # --- hero: title + subtitle on the left, red-gradient KPI panel right ---

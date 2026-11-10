@@ -1105,6 +1105,23 @@ def _run_personas_cached(
     )
 
 
+def _job_signature(spec: PersonaRunSpec, live_leads: pd.DataFrame | None) -> str:
+    """Return the Build Personas duplicate-submit signature (Requirements 7.11, 7.12).
+
+    The same fingerprints that key the run cache (design D3): the spec
+    fingerprint as text plus a SHA-1 digest of the live-pool fingerprint, so a
+    large live audience does not bloat session state.
+    """
+    import hashlib
+
+    from part5_personas.config import Config
+
+    live = hashlib.sha1(
+        repr(_live_leads_fingerprint(live_leads)).encode("utf-8")
+    ).hexdigest()
+    return f"{_spec_fingerprint(spec, Config().random_seed)!r}|live:{live}"
+
+
 # --------------------------------------------------------------------------- #
 # Rendering helpers (lazy ``streamlit`` import)                               #
 # --------------------------------------------------------------------------- #
@@ -1732,6 +1749,10 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
             (Requirement 5.2).
     """
     import streamlit as st
+    import p8_effects
+
+    # Effects slot (idempotent per run; main.py creates it first, outside the tabs).
+    p8_effects.fx_container()
 
     st.subheader("Build Personas")
     st.caption(
@@ -1853,7 +1874,10 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
         st.warning(_warning)
 
     # --- Run control + validation (Requirements 6.1, 6.2) ---
-    run_clicked = st.button("Build Personas", type="primary", key="persona_run")
+    with st.container(key=p8_effects.P8_BTN_BUILD_PERSONAS):
+        # Ring slot sits before the button inside the keyed container (Req 7).
+        ring_slot = p8_effects.ring_slot("personas")
+        run_clicked = st.button("Build Personas", type="primary", key="persona_run")
     if run_clicked:
         error = validation_error(len(selected_attributes), k, level)
         if error is not None:
@@ -1870,6 +1894,7 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
                 campaign_pool=campaign_pool,
                 grouping_attributes=grouping_attributes,
                 run_result_key=run_result_key,
+                ring_slot=ring_slot,
             )
 
     # --- results: summary cards + charts + cards-with-mix + downloads ---
@@ -1963,8 +1988,12 @@ def _handle_run(
     campaign_pool: str | None,
     grouping_attributes: list[str],
     run_result_key: str,
+    ring_slot=None,
 ) -> None:
     """Execute a validated persona run and stash the result + exports in session.
+
+    ``ring_slot`` is the Build Personas ring slot from ``p8_effects.ring_slot``
+    (F2 redesign, Requirement 7); ``None`` draws no ring.
 
     Builds the :class:`PersonaRunSpec`, resolves the live leads for a ``campaign``
     live pool from ``main.py``'s session result (Requirement 5.1), runs the cached
@@ -1987,16 +2016,31 @@ def _handle_run(
 
     live_leads = _live_leads_for(run_result_key) if campaign_pool == "live" else None
 
+    import p8_effects
     import theme
 
+    # Keyboard guard (Requirements 7.11, 7.12): the same persona spec (the cache
+    # fingerprint plus the live pool) re-run within the window starts no Job.
+    signature = _job_signature(spec, live_leads)
+    if p8_effects.is_duplicate("personas", signature):
+        return
+
+    # Running ring, streamed before the blocking call.
+    if ring_slot is not None:
+        p8_effects.start_job("personas", ring_slot)
     with theme.loading("personas", "Grouping leads into personas..."):
         try:
             result = _run_personas_cached(spec, live_leads)
             exports = _build_exports(result)
         except InvalidSegmentFieldError as exc:
+            # No rerun on error: the error ring is drawn in place this run.
+            if ring_slot is not None:
+                p8_effects.fail_job_in_place("personas", ring_slot, signature)
             st.error(str(exc))
             return
         except Exception as exc:  # noqa: BLE001 - surface any backend halt as a message
+            if ring_slot is not None:
+                p8_effects.fail_job_in_place("personas", ring_slot, signature)
             st.error(f"Could not build personas: {exc}")
             return
 
@@ -2025,6 +2069,7 @@ def _handle_run(
     st.session_state[PERSONA_FLASH_KEY] = [
         ("success", f"Built {n_personas} personas across {len(result.persona_sets)} group(s).")
     ]
+    p8_effects.end_job("personas", True, signature)
     st.rerun()
 
 

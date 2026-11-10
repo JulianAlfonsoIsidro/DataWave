@@ -124,6 +124,69 @@
   --pan-dur: 180ms;
   --pan-dur-slow: 250ms;
   --pan-ease: cubic-bezier(0, 0, 0.2, 1);
+
+  /* ---- Part 8 tokens (added only; nothing above changed) ---- */
+
+  /* Part 8 motion */
+  --pan-dur-toast: 4200ms;
+  --pan-dur-story: 1500ms;
+  --pan-dur-roll: 600ms;
+  --pan-dur-xfade: 180ms;
+  --pan-dur-xfade-short: 150ms;
+  --pan-dur-hold: 250ms;
+  --pan-reveal-base: 80ms;
+  --pan-reveal-step: 50ms;
+  --pan-stale-delay: 300ms;
+
+  /* map */
+  --pan-lift: 3px;
+  --pan-dim: 0.6;
+  --pan-map-fill-a:      light-dark(#AE1319, #9C1218);
+  --pan-map-fill-b:      light-dark(#C41E25, #B71C22);
+  --pan-map-selected:    light-dark(#D8232A, #E5373D);
+  --pan-map-muted:       light-dark(#C9CDD3, #3C4350);
+  --pan-map-shadow:      var(--pan-shadow-strong);
+
+  /* input pills and number inputs (outline pair measured >= 3:1 in both modes) */
+  --pan-input-pill-bg:   light-dark(#ECEEF2, #2A2D34);
+  --pan-input-pill-min:  120px;
+  --pan-input-outline:       light-dark(#868C97, #6E7683);
+  --pan-input-outline-hover: light-dark(#6B717C, #8A929F);
+  --pan-radius-textarea: 20px;
+
+  /* toast and loader */
+  --pan-toast-edge:      var(--pan-border-control);
+  --pan-toast-shadow:    0 8px 24px var(--pan-shadow);
+  --pan-loader-ok:       var(--pan-success);
+
+  /* ring glass: levels 1 and 2 (level 2 denser) */
+  --pan-glass-blur-1: 4px;
+  --pan-glass-blur-2: 8px;
+  --pan-glass-sat-1: 1.2;
+  --pan-glass-sat-2: 1.4;
+  --pan-glass-tint-1:     light-dark(rgba(255,255,255,0.35), rgba(27,29,34,0.40));
+  --pan-glass-tint-2:     light-dark(rgba(255,255,255,0.55), rgba(27,29,34,0.60));
+  --pan-glass-edge:       light-dark(rgba(255,255,255,0.60), rgba(255,255,255,0.18));
+  --pan-glass-shadow:     0 6px 16px var(--pan-shadow);
+  --pan-glass-fallback-1: light-dark(rgba(255,255,255,0.55), rgba(27,29,34,0.62));
+  --pan-glass-fallback-2: light-dark(rgba(255,255,255,0.75), rgba(27,29,34,0.80));
+  --pan-glass-scale-1: 0.92;
+  --pan-glass-scale-2: 0.86;
+
+  /* group visual and stale state */
+  --pan-group-visual-h: 360px;
+  --pan-stale-opacity: 0.85;
+
+  /* F2 redesign: Job_Button hover breath, press, running ring, sparks */
+  --pan-dur-breath: 1600ms;
+  --pan-scale-breath: 1.02;
+  --pan-scale-press: 0.97;
+  --pan-dur-ring-lap: 1400ms;
+  --pan-dur-ring-fill: 300ms;
+  --pan-dur-spark: 600ms;
+  --pan-ring-dash: 22;
+  --pan-z-ring: 1000;
+  --pan-breath-glow: light-dark(rgba(174, 19, 25, 0.35), rgba(216, 35, 42, 0.45));
 }
 
 /* ===================================================================== */
@@ -1018,3 +1081,593 @@ div[data-baseweb="input"]:has(input:disabled), div[data-baseweb="select"]:has(in
   font-size: var(--pan-type-caption-size);
 }
 .pan-next b { font-weight: var(--pan-weight-demi); }
+
+/* ===================================================================== */
+/* 8. PART 8 SHARED MOTION: keyframes and small utilities               */
+/* ===================================================================== */
+/* Keyframes only; later Part 8 tasks attach them to their own classes.
+   Opacity and transform only. Revert this section on its own to remove. */
+@keyframes p8-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes p8-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes p8-fade-out {
+  from { opacity: 1; visibility: visible; }
+  to   { opacity: 0; visibility: hidden; pointer-events: none; }
+}
+.p8-rise    { animation: p8-rise var(--pan-dur-slow) var(--pan-ease) both; }
+.p8-fade-in { animation: p8-fade-in var(--pan-dur) var(--pan-ease) both; }
+
+/* ===================================================================== */
+/* 9. PART 8 RERUN STALE STATE: gentler dimming, no flash                */
+/* ===================================================================== */
+/* Streamlit 1.66.1 styles a stale element container with a one-class rule:
+   opacity (theme stale value) plus "opacity 1s ease-in 0.5s". The selector
+   below has more specificity and uses !important, so it wins. Only the
+   element container is restyled; expander headers and tab labels (which
+   also use Streamlit's stale style) are left alone. */
+div[data-testid="stElementContainer"] {
+  transition: opacity var(--pan-dur-fast) var(--pan-ease);
+}
+div[data-testid="stElementContainer"][data-stale="true"] {
+  opacity: var(--pan-stale-opacity) !important;
+  transition: opacity var(--pan-dur) var(--pan-ease) var(--pan-stale-delay) !important;
+}
+
+/* ===================================================================== */
+/* 10. PART 8 TAB FADE: opacity-only fade when a tab panel is shown      */
+/* ===================================================================== */
+/* Streamlit 1.66.1 hides inactive panels with display:none (and marks them
+   inert + data-inert="true"); there is no "hidden" attribute. Showing a
+   panel changes display, which restarts this animation each time. */
+[data-testid="stTabPanel"]:not([data-inert="true"]):not([hidden]),
+[data-baseweb="tab-panel"]:not([hidden]) {
+  animation: p8-fade-in var(--pan-dur-xfade) var(--pan-ease) both;
+}
+
+/* ===================================================================== */
+/* 8-10 REDUCED MOTION                                                   */
+/* ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .p8-rise, .p8-fade-in { animation: none; }
+  div[data-testid="stElementContainer"],
+  div[data-testid="stElementContainer"][data-stale="true"] { transition: none !important; }
+  [data-testid="stTabPanel"]:not([data-inert="true"]):not([hidden]),
+  [data-baseweb="tab-panel"]:not([hidden]) { animation: none; }
+}
+
+/* ===================================================================== */
+/* 11. PART 8 INPUT PILL (F4): st.text_input only                        */
+/* ===================================================================== */
+/* Streamlit 1.66.1 text input DOM (read from static/js/TextInput.*.js):
+     div.stTextInput[data-testid="stTextInput"]            (position: relative)
+       label
+       div[data-testid="stTextInputRootElement"]           (emotion: flex row, 1px border,
+                                                            radius, secondaryBg, overflow hidden,
+                                                            border transition, :focus-within border)
+         input[data-testid="stTextInputField"]             (React Aria input; flex: 1, no border)
+       div[data-testid="InputInstructions"]                (absolute, bottom/left/right 0 of
+                                                            stTextInput, a SIBLING of the root)
+   There is no data-baseweb="input" in the text input, so the old
+   div[data-baseweb="input"] rules never reached it. The line comes from the
+   root's own border. Selects, multiselects, sliders and the shared rules in
+   section 4 are untouched; number input and text area are not styled here.
+   Revert this section on its own to restore Streamlit's default. */
+
+/* Root: drops the border, shadow and fill, so no line is drawn in any state.
+   It hugs the field (fit-content) and no longer clips the focus ring. */
+[data-testid="stTextInput"] [data-testid="stTextInputRootElement"],
+[data-testid="stTextInput"] [data-testid="stTextInputRootElement"]:hover,
+[data-testid="stTextInput"] [data-testid="stTextInputRootElement"]:focus-within,
+[data-testid="stTextInput"] [data-testid="stTextInputRootElement"]:has(input:disabled) {
+  border: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+  transition: none !important;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+}
+
+/* Keep the pill clear of "Press Enter to apply" (right end of stTextInput,
+   shown only while the widget is focused and wide enough). */
+[data-testid="stTextInput"]:has([data-testid="InputInstructions"]) [data-testid="stTextInputRootElement"] {
+  max-inline-size: calc(100% - 12rem);
+}
+
+/* Field: the pill itself. */
+[data-testid="stTextInput"] [data-testid="stTextInputField"] {
+  box-sizing: border-box;
+  field-sizing: content;
+  min-inline-size: var(--pan-input-pill-min);
+  max-inline-size: 100%;
+  block-size: 100%;
+  overflow-x: auto;              /* long values scroll inside; the caret stays visible */
+  background: var(--pan-input-pill-bg) !important;
+  color: var(--pan-text) !important;
+  border: 1px solid var(--pan-input-outline) !important;
+  border-radius: var(--pan-radius-pill) !important;
+  padding-block: 0 !important;
+  padding-inline: var(--pan-space-4) !important;
+  transition: none !important;   /* width changes are instant */
+}
+[data-testid="stTextInput"] [data-testid="stTextInputField"]:hover {
+  border-color: var(--pan-input-outline-hover) !important;
+}
+[data-testid="stTextInput"] [data-testid="stTextInputField"]:focus,
+[data-testid="stTextInput"] [data-testid="stTextInputField"]:focus-visible {
+  outline: 2px solid var(--pan-focus) !important;
+  outline-offset: 2px !important;
+}
+[data-testid="stTextInput"] [data-testid="stTextInputField"]:disabled {
+  background: var(--pan-disabled-bg) !important;
+  color: var(--pan-disabled-text) !important;
+  -webkit-text-fill-color: var(--pan-disabled-text) !important;
+  border: 1px solid var(--pan-input-outline) !important;
+  opacity: 1;
+}
+
+/* No field-sizing: full-width pill with the same look. */
+@supports not (field-sizing: content) {
+  [data-testid="stTextInput"] [data-testid="stTextInputRootElement"],
+  [data-testid="stTextInput"] [data-testid="stTextInputRootElement"]:hover,
+  [data-testid="stTextInput"] [data-testid="stTextInputRootElement"]:focus-within,
+  [data-testid="stTextInput"] [data-testid="stTextInputRootElement"]:has(input:disabled) {
+    inline-size: 100%;
+  }
+  [data-testid="stTextInput"] [data-testid="stTextInputField"] {
+    inline-size: 100%;
+  }
+}
+
+/* ===================================================================== */
+/* 11b. PART 8 INPUT PILL (F4): st.number_input and st.text_area         */
+/* ===================================================================== */
+/* Streamlit 1.66.1 DOM (read from static/js/NumberInput.*.js, TextArea.*.js):
+     div.stNumberInput[data-testid="stNumberInput"]
+       label
+       div[data-testid="stNumberInputContainer"]     (emotion: flex row, 1px border from
+                                                      widgetBorderColor, radius, secondaryBg,
+                                                      overflow hidden, border transition,
+                                                      fixed height; focus colour via $isFocused)
+         input[data-testid="stNumberInputField"]     (flex: 1, no border, transparent)
+         div > button[data-testid="stNumberInputStepDown"|"stNumberInputStepUp"]
+                                                     (fixed width; hover fills with primary)
+       div[data-testid="InputInstructions"]          (absolute sibling)
+     div.stTextArea[data-testid="stTextArea"]
+       label
+       div[data-testid="stTextAreaRootElement"]      (emotion: 1px border, radius, secondaryBg,
+                                                      focus-within border colour)
+         textarea                                    (width 100%, no border, min-height)
+   Neither widget uses data-baseweb="input", so the border/underline is the
+   container / root element's own border. Section 4 rules (.stNumberInput input,
+   textarea, radius md) are overridden here by higher specificity plus !important.
+   The number container keeps overflow: hidden so the stepper hover fill follows the
+   pill radius; an element's own outline is not clipped by its own overflow, so the
+   focus ring stays visible. Revert 11 and 11b together to restore the default. */
+
+/* Number input container: the pill, at the fixed column width. */
+[data-testid="stNumberInput"] [data-testid="stNumberInputContainer"] {
+  box-sizing: border-box;
+  inline-size: 100%;
+  background: var(--pan-input-pill-bg) !important;
+  background-color: var(--pan-input-pill-bg) !important;
+  color: var(--pan-text) !important;
+  border: 1px solid var(--pan-input-outline) !important;
+  border-radius: var(--pan-radius-pill) !important;
+  box-shadow: none !important;
+  outline: none;
+  overflow: hidden;
+  transition: none !important;
+}
+[data-testid="stNumberInput"] [data-testid="stNumberInputContainer"]:hover {
+  border-color: var(--pan-input-outline-hover) !important;
+}
+[data-testid="stNumberInput"] [data-testid="stNumberInputContainer"]:focus-within {
+  border-color: var(--pan-input-outline-hover) !important;
+  outline: 2px solid var(--pan-focus) !important;
+  outline-offset: 2px !important;
+}
+[data-testid="stNumberInput"] [data-testid="stNumberInputContainer"]:has(input:disabled) {
+  background: var(--pan-disabled-bg) !important;
+  background-color: var(--pan-disabled-bg) !important;
+  color: var(--pan-disabled-text) !important;
+  border-color: var(--pan-input-outline) !important;
+  outline: none !important;
+}
+
+/* Inner field: no border, outline or fill of its own; the container draws the pill. */
+[data-testid="stNumberInput"] [data-testid="stNumberInputField"] {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  color: var(--pan-text) !important;
+  padding-inline: var(--pan-space-4) var(--pan-space-2) !important;
+}
+[data-testid="stNumberInput"] [data-testid="stNumberInputField"]:disabled {
+  color: var(--pan-disabled-text) !important;
+  -webkit-text-fill-color: var(--pan-disabled-text) !important;
+}
+
+/* Steppers: fixed size (Streamlit sets the width), so nothing shifts on hover.
+   Feedback is background and opacity only; no width, no layout change. */
+[data-testid="stNumberInput"] [data-testid="stNumberInputStepDown"],
+[data-testid="stNumberInput"] [data-testid="stNumberInputStepUp"] {
+  flex: none;
+  background: transparent !important;
+  color: var(--pan-text) !important;
+  opacity: 0.8;
+  transition: opacity var(--pan-dur-fast) var(--pan-ease),
+              transform var(--pan-dur-fast) var(--pan-ease) !important;
+}
+[data-testid="stNumberInput"] [data-testid="stNumberInputStepDown"]:hover:enabled,
+[data-testid="stNumberInput"] [data-testid="stNumberInputStepUp"]:hover:enabled,
+[data-testid="stNumberInput"] [data-testid="stNumberInputStepDown"]:focus-visible:enabled,
+[data-testid="stNumberInput"] [data-testid="stNumberInputStepUp"]:focus-visible:enabled {
+  background: var(--pan-primary-tint) !important;
+  color: var(--pan-primary-text) !important;
+  opacity: 1;
+}
+[data-testid="stNumberInput"] [data-testid="stNumberInputStepDown"]:active:enabled,
+[data-testid="stNumberInput"] [data-testid="stNumberInputStepUp"]:active:enabled {
+  transform: scale(0.94);
+}
+[data-testid="stNumberInput"] [data-testid="stNumberInputStepDown"]:disabled,
+[data-testid="stNumberInput"] [data-testid="stNumberInputStepUp"]:disabled {
+  color: var(--pan-disabled-text) !important;
+  opacity: 1;
+}
+
+/* Text area: full width, grows with its text, soft 20 px corners. */
+[data-testid="stTextArea"] [data-testid="stTextAreaRootElement"],
+[data-testid="stTextArea"] [data-testid="stTextAreaRootElement"]:hover,
+[data-testid="stTextArea"] [data-testid="stTextAreaRootElement"]:focus-within,
+[data-testid="stTextArea"] [data-testid="stTextAreaRootElement"]:has(textarea:disabled) {
+  box-sizing: border-box;
+  inline-size: 100%;
+  background: var(--pan-input-pill-bg) !important;
+  background-color: var(--pan-input-pill-bg) !important;
+  border: 1px solid var(--pan-input-outline) !important;
+  border-radius: var(--pan-radius-textarea) !important;
+  box-shadow: none !important;
+  outline: none;
+  overflow: visible;
+  transition: none !important;
+}
+[data-testid="stTextArea"] [data-testid="stTextAreaRootElement"]:hover {
+  border-color: var(--pan-input-outline-hover) !important;
+}
+[data-testid="stTextArea"] [data-testid="stTextAreaRootElement"]:focus-within {
+  border-color: var(--pan-input-outline-hover) !important;
+  outline: 2px solid var(--pan-focus) !important;
+  outline-offset: 2px !important;
+}
+[data-testid="stTextArea"] [data-testid="stTextAreaRootElement"]:has(textarea:disabled) {
+  background: var(--pan-disabled-bg) !important;
+  background-color: var(--pan-disabled-bg) !important;
+  border-color: var(--pan-input-outline) !important;
+}
+[data-testid="stTextArea"] [data-testid="stTextAreaRootElement"] textarea {
+  box-sizing: border-box;
+  field-sizing: content;
+  inline-size: 100%;
+  min-block-size: calc(var(--pan-space-6) * 2);
+  background: transparent !important;
+  color: var(--pan-text) !important;
+  border: 0 !important;
+  border-radius: var(--pan-radius-textarea) !important;
+  outline: none !important;
+  padding: var(--pan-space-3) var(--pan-space-4) !important;
+  overflow-wrap: anywhere;
+  transition: none !important;   /* height changes are instant */
+}
+[data-testid="stTextArea"] [data-testid="stTextAreaRootElement"] textarea:disabled {
+  color: var(--pan-disabled-text) !important;
+  -webkit-text-fill-color: var(--pan-disabled-text) !important;
+}
+
+/* ===================================================================== */
+/* 12. PART 8 JOB BUTTON STATES (F2 redesign)                            */
+/* ===================================================================== */
+/* Streamlit 1.66.1 DOM (read from static/js/index.*.js, BaseButton.*.js):
+     div[data-testid="stLayoutWrapper"].st-key-<key>      (st.container(key=...): the key class
+                                                           sits on the wrapper, not the block)
+       div[data-testid="stVerticalBlock"]
+         div[data-testid="stElementContainer"]            ring slot (st.empty(); display:none
+                                                           while empty)
+           div[data-testid="stMarkdown"] > ... > div.p8-ring   (theme.job_ring_html)
+         div[data-testid="stElementContainer"]
+           div.stButton[data-testid="stButton"]
+             button[data-testid="stBaseButton-primary"]   (Build Personas, st.button primary)
+           div.stFormSubmitButton[data-testid="stFormSubmitButton"]
+             button[data-testid="stBaseButton-secondaryFormSubmit"]   (Run Analysis)
+   Only the two Job_Button containers (keys start p8_btn_) are affected.
+   States (Requirement 4.2, 4.3, 4.12-4.14; approved F2 redesign exceptions):
+     rest     gradient button; hover fades in a breathing glow plate (::after);
+              press scales to --pan-scale-press, release eases back.
+     running  .p8-ring--running in the slot: a dash travels the border in a
+              --pan-dur-ring-lap loop (linear, the one allowed linear timing),
+              resumed at --p8-phase so a rerun does not restart it; the button
+              shows the disabled plate (::before) and takes no clicks.
+     done     .p8-ring--done: the dash fills to a full ring, a glow flashes,
+              sparks fly out, then the ring fades out (about 1.15 s total).
+     error    .p8-ring--error: the travel loop continues while the ring fades.
+   Revert this section on its own to remove the feature. */
+
+/* Injected-effects container: no layout space and not display:none. It is the
+   layout wrapper that is a flex item of the page block, so it is taken out of
+   flow there; that also removes the gap Streamlit would put around it. */
+.st-key-p8_fx {
+  position: absolute;
+  inline-size: 0;
+  block-size: 0;
+  overflow: visible;
+  margin: 0;
+  padding: 0;
+  gap: 0;
+  pointer-events: none;
+}
+.st-key-p8_fx > *,
+.st-key-p8_fx [data-testid="stElementContainer"] {
+  margin: 0;
+  padding: 0;
+  min-block-size: 0;
+}
+
+/* ---- Container: hugs the button; the ring slot takes no layout space ---- */
+[class*="st-key-p8_btn_"] {
+  position: relative;
+  inline-size: fit-content !important;
+  max-inline-size: 100%;
+}
+[class*="st-key-p8_btn_"] > [data-testid="stVerticalBlock"] {
+  position: relative;
+  gap: 0;
+}
+[class*="st-key-p8_btn_"] [data-testid="stElementContainer"]:has(.p8-ring) {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+[class*="st-key-p8_btn_"] [data-testid="stElementContainer"]:has(.p8-ring) [data-testid="stMarkdown"],
+[class*="st-key-p8_btn_"] [data-testid="stElementContainer"]:has(.p8-ring) [data-testid="stMarkdownContainer"] {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+}
+
+/* ---- Button: press scale, no shared hover lift, plates under the label ---- */
+[class*="st-key-p8_btn_"] :is(.stButton, .stFormSubmitButton) > button {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+  transition: transform var(--pan-dur) var(--pan-ease), color var(--pan-dur) var(--pan-ease);
+}
+/* Hover look comes from the ::after plate fading in, so the base gradient
+   stays put underneath and the shared lift is cancelled. */
+[class*="st-key-p8_btn_"] :is(.stButton, .stFormSubmitButton) > button:hover {
+  background: linear-gradient(135deg, var(--pan-primary-from), var(--pan-primary-to));
+  transform: none;
+}
+[class*="st-key-p8_btn_"] :is(.stButton, .stFormSubmitButton) > button:active:not(:disabled) {
+  transform: scale(var(--pan-scale-press));
+  transition: transform var(--pan-dur-fast) var(--pan-ease);
+}
+[class*="st-key-p8_btn_"] :is(.stButton, .stFormSubmitButton) > button::before,
+[class*="st-key-p8_btn_"] :is(.stButton, .stFormSubmitButton) > button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+}
+/* Disabled plate, shown while running. */
+[class*="st-key-p8_btn_"] :is(.stButton, .stFormSubmitButton) > button::before {
+  background: var(--pan-disabled-bg);
+  transition: opacity var(--pan-dur) var(--pan-ease);
+}
+/* Hover breath plate: always breathing, so leaving fades out from any phase. */
+[class*="st-key-p8_btn_"] :is(.stButton, .stFormSubmitButton) > button::after {
+  background: linear-gradient(135deg, var(--pan-primary-hover-from), var(--pan-primary-hover-to));
+  box-shadow: 0 0 18px 2px var(--pan-breath-glow);
+  transition: opacity var(--pan-dur-slow) var(--pan-ease);
+  animation: p8-breath calc(var(--pan-dur-breath) / 2) var(--pan-ease) infinite alternate;
+}
+/* Breathing glow layer on the container. Its opacity is driven only by the
+   keyframes (always running); hover in/out is a transform scale from 0 (fully
+   hidden, a blurred shadow cannot be tucked under the button) to 1. The
+   button's element container sits above it. */
+[class*="st-key-p8_btn_"] [data-testid="stElementContainer"]:not(:has(.p8-ring)) {
+  position: relative;
+  z-index: 1;
+}
+[class*="st-key-p8_btn_"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--pan-radius-md);
+  box-shadow: 0 0 20px 4px var(--pan-breath-glow);
+  pointer-events: none;
+  z-index: 0;
+  transform: scale(0);
+  transition: transform var(--pan-dur-slow) var(--pan-ease);
+  animation: p8-breath-glow calc(var(--pan-dur-breath) / 2) var(--pan-ease) infinite alternate;
+}
+[class*="st-key-p8_btn_"]:hover::before {
+  transform: scale(1);
+}
+@keyframes p8-breath-glow {
+  from { opacity: 0.35; }
+  to   { opacity: 1; }
+}
+[class*="st-key-p8_btn_"] :is(.stButton, .stFormSubmitButton) > button:hover::after {
+  opacity: 1;
+}
+@keyframes p8-breath {
+  from { transform: scale(1); }
+  to   { transform: scale(var(--pan-scale-breath)); }
+}
+
+/* ---- Running: disabled look, no clicks, above the loader overlay ---- */
+[class*="st-key-p8_btn_"]:has(.p8-ring--running) {
+  pointer-events: none;
+  cursor: progress;
+  z-index: var(--pan-z-ring);
+}
+[class*="st-key-p8_btn_"]:has(.p8-ring--running)::before {
+  transform: scale(0);
+}
+[class*="st-key-p8_btn_"]:has(.p8-ring--running) :is(.stButton, .stFormSubmitButton) > button {
+  color: var(--pan-disabled-text);
+  transition: color var(--pan-dur) var(--pan-ease);
+}
+[class*="st-key-p8_btn_"]:has(.p8-ring--running) :is(.stButton, .stFormSubmitButton) > button::before {
+  opacity: 1;
+}
+[class*="st-key-p8_btn_"]:has(.p8-ring--running) :is(.stButton, .stFormSubmitButton) > button::after {
+  opacity: 0;
+}
+
+/* ---- Ring geometry ---- */
+.p8-ring {
+  position: absolute;
+  inset: -4px;
+}
+.p8-ring-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.p8-ring-line,
+.p8-ring-glow {
+  x: 2px;
+  y: 2px;
+  width: calc(100% - 4px);
+  height: calc(100% - 4px);
+  rx: calc(var(--pan-radius-md) + 2px);
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+.p8-ring-line {
+  stroke: var(--pan-primary);
+  stroke-width: 2px;
+  stroke-linecap: round;
+}
+.p8-ring-glow {
+  stroke: var(--pan-primary-to);
+  stroke-width: 6px;
+  opacity: 0;
+}
+
+/* ---- Running and error: the dash travels, resumed at --p8-phase ---- */
+.p8-ring--running {
+  animation: p8-fade-in var(--pan-dur-fast) var(--pan-ease) both;
+  animation-delay: calc(var(--p8-phase) * var(--pan-dur-ring-lap) * -1);
+}
+.p8-ring--running .p8-ring-line,
+.p8-ring--error .p8-ring-line {
+  stroke-dasharray: var(--pan-ring-dash) calc(100 - var(--pan-ring-dash));
+  animation: p8-ring-travel var(--pan-dur-ring-lap) linear infinite;
+  animation-delay: calc(var(--p8-phase) * var(--pan-dur-ring-lap) * -1);
+}
+@keyframes p8-ring-travel {
+  from { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: -100; }
+}
+.p8-ring--error {
+  animation: p8-fade-out var(--pan-dur-slow) var(--pan-ease) forwards;
+}
+
+/* ---- Done: fill, glow, sparks, then fade out ---- */
+.p8-ring--done {
+  animation: p8-fade-out var(--pan-dur-slow) var(--pan-ease) forwards;
+  animation-delay: calc(var(--pan-dur-ring-fill) + var(--pan-dur-spark));
+}
+.p8-ring--done .p8-ring-line {
+  stroke-dasharray: 100 0;
+  stroke-dashoffset: calc(var(--p8-phase) * -100);
+  animation: p8-ring-fill var(--pan-dur-ring-fill) var(--pan-ease) forwards;
+}
+@keyframes p8-ring-fill {
+  from { stroke-dasharray: var(--pan-ring-dash) calc(100 - var(--pan-ring-dash)); }
+  to   { stroke-dasharray: 100 0; }
+}
+.p8-ring--done .p8-ring-glow {
+  animation: p8-ring-glow calc(var(--pan-dur-ring-fill) + var(--pan-dur-slow)) var(--pan-ease) both;
+  animation-delay: calc(var(--pan-dur-ring-fill) * 0.6);
+}
+@keyframes p8-ring-glow {
+  0%   { opacity: 0; }
+  50%  { opacity: 0.45; }
+  100% { opacity: 0; }
+}
+.p8-sparks {
+  position: absolute;
+  inset: 2px;
+}
+.p8-spark {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: 10px;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 1px;
+  background: var(--c);
+  transform-origin: 0 50%;
+  opacity: 0;
+  animation: p8-spark var(--pan-dur-spark) var(--pan-ease) forwards;
+  animation-delay: calc(var(--pan-dur-ring-fill) + var(--pan-dur-fast) * var(--i) / 20);
+}
+@keyframes p8-spark {
+  0%   { opacity: 1; transform: rotate(var(--a)) translateX(2px) scaleX(0.4); }
+  45%  { opacity: 1; transform: rotate(var(--a)) translateX(10px) scaleX(1); }
+  100% { opacity: 0; transform: rotate(var(--a)) translateX(18px) scaleX(0.2); }
+}
+
+/* ---- Reduced motion: no breath, no press scale, static ring ---- */
+@media (prefers-reduced-motion: reduce) {
+  [class*="st-key-p8_btn_"]::before,
+  [class*="st-key-p8_btn_"]:hover::before {
+    animation: none;
+    transform: scale(0);
+  }
+  [class*="st-key-p8_btn_"] :is(.stButton, .stFormSubmitButton) > button::after,
+  [class*="st-key-p8_btn_"] :is(.stButton, .stFormSubmitButton) > button:hover::after {
+    animation: none;
+    opacity: 0;
+  }
+  /* Without the plate, hover falls back to an instant gradient swap. */
+  [class*="st-key-p8_btn_"] :is(.stButton, .stFormSubmitButton) > button:hover {
+    background: linear-gradient(135deg, var(--pan-primary-hover-from), var(--pan-primary-hover-to));
+  }
+  [class*="st-key-p8_btn_"] :is(.stButton, .stFormSubmitButton) > button:active:not(:disabled) {
+    transform: none;
+  }
+  .p8-ring--running { animation: none; }
+  .p8-ring--running .p8-ring-line,
+  .p8-ring--done .p8-ring-line {
+    stroke-dasharray: none;
+    animation: none;
+  }
+  .p8-ring--done .p8-ring-glow { animation: none; }
+  .p8-ring--done .p8-sparks { display: none; }
+  .p8-ring--done { animation: p8-fade-out var(--pan-dur-xfade-short) var(--pan-ease) forwards; }
+  .p8-ring--error { display: none; }
+}

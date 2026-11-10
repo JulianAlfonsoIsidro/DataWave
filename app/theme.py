@@ -30,7 +30,9 @@ Streamlit server.
 from __future__ import annotations
 
 import html
+import re
 from contextlib import contextmanager
+from functools import lru_cache
 from pathlib import Path
 
 # --- palette: LIGHT values, mirrored from styles.css section 1 ---
@@ -41,6 +43,8 @@ PALETTE = {
     "ACCENT_GOLD": "#E0A800",   # decorative accent only (never carries text)
     "PANEL_WHITE": "#FFFFFF",   # white surface
     "TEXT_DARK": "#1F2328",     # body text
+    "MAP_RED": "#AE1319",           # --pan-map-fill-a (light)
+    "MAP_RED_SELECTED": "#D8232A",  # --pan-map-selected (light)
 }
 
 # Convenience module-level aliases.
@@ -151,6 +155,185 @@ SEGMENT_STYLES = {
 
 # The single stylesheet, resolved relative to this file so it loads from any cwd.
 _STYLES_PATH = Path(__file__).resolve().parent / "styles.css"
+
+
+# --- token reader: section 1 of styles.css, for surfaces outside the page CSS ---
+#
+# Iframes (the group picker) cannot see the page's custom properties, so they
+# are handed the resolved light and dark values of the tokens they need. The
+# reader parses ONLY the ``:root`` block under the "1. DESIGN TOKENS" header and
+# never invents a value: anything unreadable or unknown raises TokenError.
+
+# PALETTE key -> section 1 token. Only entries whose light value equals the
+# token's light value are listed (checked against section 1).
+PALETTE_TOKENS = {
+    "PRIMARY_RED": "--pan-primary",           # #AE1319
+    "RED_BRIGHT": "--pan-primary-to",         # #D8232A
+    "ACCENT_GOLD": "--pan-gold",              # #E0A800
+    "PANEL_WHITE": "--pan-surface",           # #FFFFFF
+    "TEXT_DARK": "--pan-text",                # #1F2328
+    "MAP_RED": "--pan-map-fill-a",            # #AE1319
+    "MAP_RED_SELECTED": "--pan-map-selected", # #D8232A
+}
+
+# Tokens the group picker iframe needs (map, glass, surfaces, text, accents,
+# loader).
+PICKER_TOKENS = (
+    "--pan-map-fill-a",
+    "--pan-map-fill-b",
+    "--pan-map-selected",
+    "--pan-map-muted",
+    "--pan-map-shadow",
+    "--pan-lift",
+    "--pan-dim",
+    "--pan-glass-tint-1",
+    "--pan-glass-tint-2",
+    "--pan-glass-edge",
+    "--pan-glass-fallback-1",
+    "--pan-glass-fallback-2",
+    "--pan-focus",
+    "--pan-text",
+    "--pan-text-muted",
+    "--pan-surface",
+    "--pan-surface-2",
+    "--pan-border",
+    "--pan-primary",
+    "--pan-primary-text",
+    "--pan-primary-tint",
+    "--pan-on-primary",
+    "--pan-gold",
+    "--pan-series-1",
+    "--pan-series-2",
+    "--pan-series-3",
+    "--pan-series-4",
+    "--pan-series-5",
+    "--pan-series-6",
+    "--loader-accent",
+    "--loader-accent-alt",
+)
+
+
+class TokenError(KeyError):
+    """A design token is unknown, or the section 1 block cannot be read."""
+
+    def __str__(self) -> str:  # KeyError would repr() the message otherwise
+        return str(self.args[0]) if self.args else ""
+
+
+_SECTION_1_HEADER = "1. DESIGN TOKENS"
+_VAR_RE = re.compile(r"var\(\s*(--[\w-]+)\s*\)")
+
+
+def _split_top_level(text: str, sep: str) -> list[str]:
+    """Split ``text`` at ``sep`` outside any parentheses."""
+    parts, depth, start = [], 0, 0
+    for i, ch in enumerate(text):
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+        elif ch == sep and depth == 0:
+            parts.append(text[start:i])
+            start = i + 1
+    parts.append(text[start:])
+    return parts
+
+
+def _section_one_declarations(css: str) -> dict[str, str]:
+    """Return ``{--name: raw value}`` from the ``:root`` block of section 1."""
+    at = css.find(_SECTION_1_HEADER)
+    if at < 0:
+        raise TokenError("styles.css section 1 (design tokens) block not found")
+    # Comments hold the header itself, so strip them only after locating it.
+    text = re.sub(r"/\*.*?\*/", "", css[at:], flags=re.S)
+    m = re.search(r":root\s*\{", text)
+    if not m:
+        raise TokenError("styles.css section 1 (design tokens) :root block not found")
+    depth, end = 1, None
+    for i in range(m.end(), len(text)):
+        if text[i] == "{":
+            depth += 1
+        elif text[i] == "}":
+            depth -= 1
+            if depth == 0:
+                end = i
+                break
+    if end is None:
+        raise TokenError("styles.css section 1 (design tokens) :root block is not closed")
+    out: dict[str, str] = {}
+    for decl in _split_top_level(text[m.end():end], ";"):
+        name, colon, value = decl.partition(":")
+        name = name.strip()
+        if colon and name.startswith("--") and value.strip():
+            out[name] = value.strip()
+    return out
+
+
+def _resolve_pair(
+    name: str, raw: dict[str, str], stack: tuple[str, ...] = ()
+) -> tuple[str, str]:
+    """Resolve one token to its ``(light, dark)`` pair, following ``var()``."""
+    if name in stack:
+        raise TokenError("token cycle: " + " -> ".join(stack + (name,)))
+    if name not in raw:
+        raise TokenError(f"unknown design token {name}")
+    value, stack = raw[name], stack + (name,)
+
+    def side(expr: str, idx: int) -> str:
+        return _VAR_RE.sub(
+            lambda m: _resolve_pair(m.group(1), raw, stack)[idx], expr.strip()
+        )
+
+    if value.startswith("light-dark(") and value.endswith(")"):
+        parts = _split_top_level(value[len("light-dark("):-1], ",")
+        if len(parts) == 2:
+            return side(parts[0], 0), side(parts[1], 1)
+        raise TokenError(f"design token {name} has a malformed light-dark() value")
+    return side(value, 0), side(value, 1)
+
+
+@lru_cache(maxsize=8)
+def _read_cached(path: str, mtime_ns: int) -> dict[str, tuple[str, str]]:
+    try:
+        css = Path(path).read_text(encoding="utf-8-sig")
+    except OSError as exc:
+        raise TokenError(f"styles.css section 1 (design tokens) unreadable: {exc}") from exc
+    raw = _section_one_declarations(css)
+    return {name: _resolve_pair(name, raw) for name in raw}
+
+
+def read_tokens(css_path: Path = _STYLES_PATH) -> dict[str, tuple[str, str]]:
+    """Return every section 1 custom property as a ``(light, dark)`` pair.
+
+    Plain values give ``(v, v)``; ``light-dark(a, b)`` gives ``(a, b)``;
+    ``var(--x)`` is resolved against the block, each side separately. Only
+    section 1 is read. Results are cached per path and modification time.
+    Raises :class:`TokenError` for an unreadable file, a missing block or a
+    reference cycle; there are no fallback values.
+    """
+    try:
+        mtime = Path(css_path).stat().st_mtime_ns
+    except OSError as exc:
+        raise TokenError(f"styles.css section 1 (design tokens) unreadable: {exc}") from exc
+    return dict(_read_cached(str(css_path), mtime))
+
+
+def token_pair(name: str) -> tuple[str, str]:
+    """Return the ``(light, dark)`` pair of one token; unknown names raise."""
+    tokens = read_tokens()
+    if name not in tokens:
+        raise TokenError(f"unknown design token {name}")
+    return tokens[name]
+
+
+def iframe_palette(names) -> dict[str, dict[str, str]]:
+    """Return ``{"light": {name: value}, "dark": {name: value}}`` for ``names``."""
+    palette: dict[str, dict[str, str]] = {"light": {}, "dark": {}}
+    for name in names:
+        light, dark = token_pair(name)
+        palette["light"][name] = light
+        palette["dark"][name] = dark
+    return palette
 
 
 def build_css() -> str:
@@ -540,3 +723,89 @@ def loading(kind: str, message: str, *, slow: bool = False):
         yield
     finally:
         slot.empty()
+
+
+# --- Part 8: Job button ring (F2 redesign, Requirement 7) ---
+
+_RING_STATES = ("running", "done", "error")
+
+# Spark placement for the Completion_Fireworks (Requirement 4.14): 4 corners,
+# 2 on the top edge, 2 on the bottom edge, left and right middles.
+# (x, y, outward angle in degrees)
+_SPARKS = (
+    ("0%", "0%", -135),
+    ("100%", "0%", -45),
+    ("100%", "100%", 45),
+    ("0%", "100%", 135),
+    ("33%", "0%", -90),
+    ("67%", "0%", -90),
+    ("33%", "100%", 90),
+    ("67%", "100%", 90),
+    ("0%", "50%", 180),
+    ("100%", "50%", 0),
+)
+_SPARK_COLOURS = ("--pan-primary", "--pan-primary-to", "--pan-gold")
+
+
+def job_ring_html(state: str, phase: float = 0.0) -> str:
+    """Return the Job_Button ring markup for the F2 redesign (Requirement 7).
+
+    ``state`` is ``"running"``, ``"done"`` or ``"error"`` (anything else raises
+    ``ValueError``). ``phase`` is the ring position as a fraction of one lap
+    (from ``webapp_core.job_motion.ring_phase``), clamped into ``[0, 1)``;
+    a non-finite value becomes 0. Styling lives in ``styles.css`` and the slot
+    wiring in ``app/p8_effects.py``.
+
+    Markup contract (CSS and wiring depend on it exactly)::
+
+        <div class="p8-ring p8-ring--{state}" style="--p8-phase:{phase:.4f}"
+             aria-hidden="true">
+          <svg class="p8-ring-svg" preserveAspectRatio="none" focusable="false">
+            <rect class="p8-ring-glow" pathLength="100"/>
+            <rect class="p8-ring-line" pathLength="100"/>
+          </svg>
+          <!-- "done" only: -->
+          <span class="p8-sparks">
+            <span class="p8-spark"
+                  style="--x:0%;--y:0%;--a:-135deg;--i:0;--c:var(--pan-primary)"></span>
+            ... 10 sparks in total ...
+          </span>
+        </div>
+
+    - ``--p8-phase`` is a unitless number (not a duration) and the outer
+      ``style`` is its only inline style; the rects carry no geometry
+      attributes (CSS sets width, height, x, y and rx).
+    - Sparks: corners (0%/100%, angles -135, -45, 45, 135), top edge at 33% and
+      67% (angle -90), bottom edge at 33% and 67% (angle 90), left middle
+      (angle 180), right middle (angle 0). ``--i`` is 0..9 for the stagger and
+      ``--c`` cycles ``--pan-primary``, ``--pan-primary-to``, ``--pan-gold``.
+    - The ring is decorative, so the whole element is ``aria-hidden``.
+    """
+    if state not in _RING_STATES:
+        raise ValueError(f"state must be one of {_RING_STATES}, got {state!r}")
+    try:
+        value = float(phase)
+    except (TypeError, ValueError):
+        value = 0.0
+    if value != value or value in (float("inf"), float("-inf")):
+        value = 0.0
+    # 0.9999 keeps the formatted value below 1 at 4 decimals.
+    value = min(max(value, 0.0), 0.9999)
+    sparks = ""
+    if state == "done":
+        spans = "".join(
+            f'<span class="p8-spark" style="--x:{x};--y:{y};--a:{a}deg;--i:{i};'
+            f'--c:var({_SPARK_COLOURS[i % len(_SPARK_COLOURS)]})"></span>'
+            for i, (x, y, a) in enumerate(_SPARKS)
+        )
+        sparks = f'<span class="p8-sparks">{spans}</span>'
+    return (
+        f'<div class="p8-ring p8-ring--{state}" style="--p8-phase:{value:.4f}" '
+        'aria-hidden="true">'
+        '<svg class="p8-ring-svg" preserveAspectRatio="none" focusable="false">'
+        '<rect class="p8-ring-glow" pathLength="100"/>'
+        '<rect class="p8-ring-line" pathLength="100"/>'
+        "</svg>"
+        f"{sparks}"
+        "</div>"
+    )
