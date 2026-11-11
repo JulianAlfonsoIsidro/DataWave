@@ -385,6 +385,16 @@ def run_personas(
             "(Requirement 3.3)"
         )
 
+    # Steps 3 and 4 cluster the same groups the same way; the memo makes the
+    # second pass (per-lead label recovery) reuse the first instead of refitting.
+    from part5_personas.cluster import cluster_memo
+
+    with cluster_memo():
+        return _run_personas_body(spec, cfg, namer, bedrock_namer, live_leads)
+
+
+def _run_personas_body(spec, cfg, namer, bedrock_namer, live_leads):
+    """The body of :func:`run_personas` (inside its clustering memo)."""
     # 1. Build the Joined_Attribute_Set (join stage; the only input gate).
     joined, _report = build_joined_attributes(cfg)
 
@@ -431,6 +441,121 @@ def run_personas(
         joined_attributes=joined,
         narration_source=source,
     )
+
+
+# --------------------------------------------------------------------------- #
+# suggest_persona_count                                                       #
+# --------------------------------------------------------------------------- #
+SUGGEST_SAMPLE_SIZE = 300
+SUGGEST_MAX_ITER = 15   # the curve's shape is enough; full convergence is not needed
+
+
+@dataclass(frozen=True)
+class PersonaSuggestion:
+    """A suggested persona count with its plain-language reason."""
+
+    k: int
+    costs: dict[int, float]
+    text: str
+
+
+def suggest_persona_count(
+    spec: PersonaRunSpec,
+    cfg: Config | None = None,
+    *,
+    live_leads: pd.DataFrame | None = None,
+    sample_size: int = SUGGEST_SAMPLE_SIZE,
+) -> PersonaSuggestion:
+    """Suggest how many personas to build for ``spec``'s leads and attributes.
+
+    One light elbow scan over the whole audience (a split is ignored: the page
+    uses one persona count for every group): a seeded sample of at most
+    ``sample_size`` leads is fitted at each k in 2..6 and the k where the cost
+    curve bends most (the point farthest below the straight line from the first
+    to the last cost) is suggested. Deterministic for a given spec and data.
+    """
+    import numpy as np
+
+    from part5_personas.cluster import _to_matrix, select_model_kind
+    from part5_personas.config import ELBOW_K_RANGE
+
+    cfg = cfg or Config()
+    attributes = list(spec.clustering_attributes)
+    if spec.business_segment_field and spec.level in (LEVEL_BUSINESS_SEGMENT, LEVEL_CAMPAIGN):
+        attributes = [a for a in attributes if a != spec.business_segment_field]
+    if not attributes:
+        raise ValueError("Pick at least one attribute first.")
+
+    joined, _report = build_joined_attributes(cfg)
+    frame = joined
+    if spec.level == LEVEL_CAMPAIGN:
+        pool = set(_campaign_pool_ids(spec, cfg, live_leads) or [])
+        frame = joined[joined[CLIENT_ID_COLUMN].astype(str).isin(pool)]
+    frame = frame.sort_values(CLIENT_ID_COLUMN).reset_index(drop=True)
+    if len(frame) < cfg.min_group_size:
+        raise ValueError("Not enough leads to suggest a number.")
+    if len(frame) > sample_size:
+        rng = np.random.default_rng(cfg.random_seed)
+        keep = np.sort(rng.choice(len(frame), size=sample_size, replace=False))
+        frame = frame.iloc[keep].reset_index(drop=True)
+
+    preprocessed, cat_indices = preprocess(frame, attributes, spec.type_overrides or None)
+    X = _to_matrix(preprocessed.reset_index(drop=True))
+    costs = _quick_costs(X, cat_indices, cfg, select_model_kind)
+    ks = [k for k in ELBOW_K_RANGE if k in costs and cfg.k_min <= k <= cfg.k_max]
+    if len(ks) < 2:
+        k = ks[0] if ks else cfg.default_k
+        return PersonaSuggestion(k, costs, f"Suggested: {k} personas.")
+
+    # Elbow: normalise both axes, pick the k farthest below the chord.
+    c = np.array([costs[k] for k in ks], dtype=float)
+    x = (np.array(ks, dtype=float) - ks[0]) / (ks[-1] - ks[0])
+    span = c[0] - c[-1]
+    y = (c - c[-1]) / span if span > 0 else np.zeros_like(c)
+    k = ks[int(np.argmax((1 - x) - y))] if span > 0 else cfg.default_k
+
+    if k == ks[-1]:
+        text = f"Suggested: {k} personas, the most this page builds."
+    else:
+        nxt = ks[ks.index(k) + 1]
+        gain = 0.0 if costs[k] <= 0 else max(0.0, (costs[k] - costs[nxt]) / costs[k] * 100)
+        if gain < 1:
+            text = (f"Suggested: {k} personas. Splitting into {nxt} would not make "
+                    "them any more distinct.")
+        else:
+            text = (f"Suggested: {k} personas. Splitting into {nxt} would make them only "
+                    f"about {gain:.0f}% more distinct.")
+    return PersonaSuggestion(k, costs, text)
+
+
+def _quick_costs(X, cat_indices, cfg: Config, select_model_kind) -> dict[int, float]:
+    """Seeded cost per k in 2..6 with a capped iteration count (suggestion only)."""
+    import numpy as np
+    from kmodes.kmodes import KModes
+    from kmodes.kprototypes import KPrototypes
+    from sklearn.cluster import KMeans
+
+    from part5_personas.config import ELBOW_K_RANGE
+
+    kind = select_model_kind(cat_indices, X.shape[1])
+    costs: dict[int, float] = {}
+    for k in ELBOW_K_RANGE:
+        if k > len(X):
+            continue
+        if kind == "kmeans":
+            m = KMeans(n_clusters=k, n_init=1, max_iter=SUGGEST_MAX_ITER,
+                       random_state=cfg.random_seed).fit(np.asarray(X, dtype=float))
+            costs[k] = float(m.inertia_)
+        elif kind == "kmodes":
+            m = KModes(n_clusters=k, init="Huang", n_init=1, max_iter=SUGGEST_MAX_ITER,
+                       random_state=cfg.random_seed).fit(X)
+            costs[k] = float(m.cost_)
+        else:
+            m = KPrototypes(n_clusters=k, init="Huang", n_init=1, max_iter=SUGGEST_MAX_ITER,
+                            random_state=cfg.random_seed)
+            m.fit_predict(X, categorical=cat_indices or None)
+            costs[k] = float(m.cost_)
+    return costs
 
 
 # --------------------------------------------------------------------------- #

@@ -29,6 +29,7 @@ Streamlit server.
 
 from __future__ import annotations
 
+import contextvars
 import html
 import re
 from contextlib import contextmanager
@@ -450,19 +451,228 @@ def next_step(text: str) -> None:
     st_markdown(next_step_html(text))
 
 
-def hero_kpi_html(number: str, label: str, foot: str = "") -> str:
+# --- Part 8 polish: count-up after a Job (fix 9) ---
+# A section rendered inside ``counting(el)`` draws every number in its text
+# as NumberFlow-style digit columns that roll from 0 to the value: each digit
+# is a 0-9 strip; the ones place spins two extra cycles and the tens one, so
+# it reads as counting. Words, commas, the peso sign and percent stay fixed.
+# ``el`` (seconds since the Job's generation) is a negative animation delay,
+# so a rerun during the roll continues it; outside the window callers pass
+# None and the plain text renders. Screen readers get the final text only.
+_COUNT_STATE: contextvars.ContextVar = contextvars.ContextVar("p8_count", default=None)
+_NUMBER_RE = re.compile(r"\d[\d,]*(?:\.\d+)?")
+
+
+@contextmanager
+def counting(el: float | None, gen: str = ""):
+    """Numbers drawn inside count up (staggered in reading order) when ``el``
+    is not None; with None this does nothing. ``gen`` (the generation id) goes
+    into the class names, so a new generation always gets fresh elements and
+    replays, while the same generation never does."""
+    if el is None:
+        yield
+        return
+    token = _COUNT_STATE.set([float(el), 0, re.sub(r"[^a-z0-9-]", "", str(gen).lower())])
+    try:
+        yield
+    finally:
+        _COUNT_STATE.reset(token)
+
+
+def counting_el() -> float | None:
+    """The active count-up elapsed time, or None outside :func:`counting`."""
+    state = _COUNT_STATE.get()
+    return None if state is None else state[0]
+
+
+def _gen_class() -> str:
+    state = _COUNT_STATE.get()
+    return f" p8-g-{state[2]}" if state is not None and state[2] else ""
+
+
+def _digit_column(ch: str, digits_right: int) -> str:
+    cycles = 2 if digits_right == 0 else 1 if digits_right == 1 else 0
+    strip = "".join(f"<span>{d}</span>" for _ in range(cycles + 1) for d in "0123456789")
+    return (
+        f'<span class="p8-cd"><span class="p8-cs{_gen_class()}" style="--d:{cycles * 10 + int(ch)}">'
+        f"{strip}</span></span>"
+    )
+
+
+def count_up_html(text: str, el: float, start: int = 0) -> tuple[str, int]:
+    """Count-up markup for ``text`` and the next stagger index.
+
+    Text without digits comes back escaped and unchanged.
+    """
+    text = str(text)
+    parts: list[str] = []
+    n, last = start, 0
+    for m in _NUMBER_RE.finditer(text):
+        parts.append(html.escape(text[last:m.start()]))
+        num = m.group(0)
+        left = sum(c.isdigit() for c in num)
+        cells = []
+        for c in num:
+            if c.isdigit():
+                left -= 1
+                cells.append(_digit_column(c, left))
+            else:
+                cells.append(f'<span class="p8-cc">{html.escape(c)}</span>')
+        parts.append(f'<span class="p8-cnum" style="--n:{n}">{"".join(cells)}</span>')
+        n += 1
+        last = m.end()
+    if n == start:
+        return html.escape(text), n
+    parts.append(html.escape(text[last:]))
+    return (
+        f'<span class="p8-count" style="--p8-el:{float(el):.3f}s">'
+        f'<span class="p8-sr">{html.escape(text)}</span>'
+        f'<span class="p8-count-vis" aria-hidden="true"><!--cv-->{"".join(parts)}<!--/cv--></span></span>',
+        n,
+    )
+
+
+def count_text_html(text: str) -> str:
+    """``text`` escaped, or as a count-up inside an active :func:`counting`."""
+    state = _COUNT_STATE.get()
+    if state is None:
+        return html.escape(str(text))
+    markup, state[1] = count_up_html(text, state[0], state[1])
+    return markup
+
+
+_CARD_GROUP: contextvars.ContextVar = contextvars.ContextVar("p8_card_group", default="page")
+
+
+@contextmanager
+def card_group(name: str):
+    """Cards drawn inside stagger among themselves (one group per tab), so a
+    change on a hidden tab never delays the cards on the visible one."""
+    token = _CARD_GROUP.set(str(name))
+    try:
+        yield
+    finally:
+        _CARD_GROUP.reset(token)
+
+
+_CV_RE = re.compile(r"<!--cv-->.*?<!--/cv-->", re.S)
+_TAG_RE = re.compile(r"<[^>]+>")
+
+
+def _card_sig(heading: str, body_html: str) -> str:
+    """Fingerprint of what a card says (count-up columns and markup ignored),
+    so a rerun that only re-renders the same content never replays it."""
+    import hashlib
+
+    text = _TAG_RE.sub(" ", _CV_RE.sub("", f"{heading}\n{body_html}"))
+    return hashlib.sha1(" ".join(text.split()).encode("utf-8")).hexdigest()[:16]
+
+
+def swoop_attrs(heading: str, body_html: str) -> tuple[str, str]:
+    """``(class, style)`` for a card that is new or changed: it fades in while
+    rising, one by one in reading order (Part 8 polish). Empty otherwise."""
+    try:
+        import p8_effects
+
+        sig = _card_sig(heading, body_html)
+        motion = p8_effects.card_motion(heading, sig, _CARD_GROUP.get())
+    except Exception:  # noqa: BLE001 - presentation only, never block a render
+        motion = None
+    if motion is None:
+        return "", ""
+    el, slot, variant = motion
+    # After a Job the cards wait for the finishing loader to fade.
+    start = "var(--pan-reveal-start)" if counting_el() is not None else "var(--pan-dur-none)"
+    # The content tag makes the class differ whenever the content does, so
+    # React rewrites it (clearing the played marker) even when a new card
+    # lands in the old card's place; the a/b name restarts a running entrance.
+    cls = f" p8-swoop p8-swoop-{'b' if variant else 'a'} p8-c-{sig[:8]}"
+    return cls, f"--i:{slot};--p8-el:{el:.3f}s;--p8-sw-start:{start}"
+
+
+def text_in_attrs() -> tuple[str, str]:
+    """``(class, style)`` for an important text box inside :func:`counting`:
+    it fades in from the top once per generation (fix 6). Empty outside."""
+    el = counting_el()
+    if el is None:
+        return "", ""
+    return f" p8-text-in{_gen_class()}", f"--p8-el:{el:.3f}s"
+
+
+def roll_number_html(cells, *, plain: str) -> str:
+    """CSS number roll markup (Part 8, F5, Requirement 11).
+
+    ``cells`` come from ``webapp_core.number_roll.plan_roll``. The plain value
+    sits in a screen-reader span (so readers and AppTest find the same text as
+    the static number); the drawn cells are ``aria-hidden``. A ``roll`` cell is
+    a clipped 0-9 strip that slides from the previous digit to the new one.
+    """
+    parts = []
+    for c in cells:
+        ch = html.escape(c.char)
+        if c.kind == "roll":
+            strip = "".join(f"<span>{d}</span>" for d in "0123456789")
+            parts.append(
+                f'<span class="p8-d is-roll" style="--p8-from:{int(c.prev)};--p8-to:{int(c.char)}">'
+                f'<span class="p8-strip">{strip}</span></span>'
+            )
+        elif c.kind == "enter":
+            parts.append(f'<span class="p8-c is-enter">{ch}</span>')
+        else:
+            parts.append(f'<span class="p8-c">{ch}</span>')
+    return (
+        '<span class="p8-num">'
+        f'<span class="p8-sr">{html.escape(plain)}</span>'
+        f'<span class="p8-num-vis" aria-hidden="true">{"".join(parts)}</span>'
+        "</span>"
+    )
+
+
+def selected_readout_html(text: str, prev: str | None = None) -> str:
+    """The "Selected: <value>" line under a threshold slider (caption style).
+
+    With a ``prev`` that differs, the changed digits roll from the old value
+    to the new one (:func:`roll_number_html`); otherwise the text is static.
+    """
+    value_html = html.escape(str(text))
+    if prev is not None:
+        from webapp_core.number_roll import plan_roll
+
+        cells = plan_roll(prev, str(text))
+        if any(c.kind != "static" for c in cells):
+            value_html = roll_number_html(cells, plain=str(text))
+    return f'<div class="pan-selected">Selected: {value_html}</div>'
+
+
+def hero_kpi_html(number: str, label: str, foot: str = "", *, prev: str | None = None) -> str:
     """Return the HTML for the hero's red-gradient KPI panel.
 
     Large white ``number`` over a small ``label``, with an optional ``foot``
     line. Used on the right side of the hero in place of a photo.
+
+    Part 8 (F5): ``prev`` is the previously shown text of this number. With
+    ``None`` the output is exactly the static markup; otherwise the number is
+    drawn as a CSS roll from ``prev`` (all-static cells when unchanged).
     """
     foot_html = (
         f'<div class="kpi-foot">{html.escape(foot)}</div>' if foot else ""
     )
+    number_html = html.escape(str(number))
+    if counting_el() is not None:
+        # After a Job: count up from 0 (fix 9); the roll is for later changes.
+        number_html = count_text_html(str(number))
+    elif prev is not None:
+        from webapp_core.number_roll import plan_roll
+
+        cells = plan_roll(prev, str(number))
+        # Roll markup only in the render where something changes; every other
+        # render keeps the plain static markup (one-shot, Requirement 11.5).
+        if any(c.kind != "static" for c in cells):
+            number_html = roll_number_html(cells, plain=str(number))
     return (
         '<div class="pan-hero-kpi">'
         f'<div class="kpi-label">{html.escape(label)}</div>'
-        f'<div class="kpi-number">{html.escape(str(number))}</div>'
+        f'<div class="kpi-number">{number_html}</div>'
         f"{foot_html}</div>"
     )
 
@@ -478,13 +688,14 @@ def hero_text_html(title: str, subtitle: str) -> str:
 
 
 # --- metric_panel kept as a thin compatibility wrapper over the KPI panel ---
-def metric_panel(number: str, caption: str) -> None:
+def metric_panel(number: str, caption: str, *, prev: str | None = None) -> None:
     """Render the headline KPI as the red-gradient hero panel.
 
     Retained for callers that show the standalone headline number (e.g. the
     WHAT-IF tab). Renders the same red-gradient KPI block used in the hero.
+    ``prev`` turns on the Part 8 number roll (see :func:`hero_kpi_html`).
     """
-    st_markdown(hero_kpi_html(number, caption))
+    st_markdown(hero_kpi_html(number, caption, prev=prev))
 
 
 # --- cards, tiles, chips, fields, tables ---
@@ -503,11 +714,39 @@ def segment_marker_html(heading: str) -> tuple[str, str]:
     return "", ""
 
 
-def card(heading: str, body_html: str) -> None:
-    """Render a surface card: marker (for segments), heading, divider, body."""
+REVEAL_MAX_INDEX = 5  # items after the sixth start with the sixth (Req 17.4)
+
+
+def card(
+    heading: str,
+    body_html: str,
+    *,
+    reveal_index: int | None = None,
+    xfade: bool | str = False,
+) -> None:
+    """Render a surface card: marker (for segments), heading, divider, body.
+
+    Part 8: ``reveal_index`` (0-based) adds the one-shot Results_Reveal rise
+    with its stagger slot capped at :data:`REVEAL_MAX_INDEX` (F8); ``xfade``
+    ("a" or "b", alternating per group change so back-to-back changes each
+    replay) adds the one-shot Group_Change_Crossfade. With neither, the markup
+    is unchanged.
+    """
     marker, seg_class = segment_marker_html(heading)
+    extra, style = "", ""
+    el = counting_el()
+    if reveal_index is not None:
+        extra = f" p8-reveal{_gen_class()}"
+        slot = min(max(int(reveal_index), 0), REVEAL_MAX_INDEX)
+        style = f' style="--i:{slot}"' if el is None else f' style="--i:{slot};--p8-el:{el:.3f}s"'
+    elif xfade:
+        variant = xfade if xfade in ("a", "b") else "a"
+        extra = f" p8-xfade p8-xfade-{variant}"
+    else:
+        extra, sw_style = swoop_attrs(heading, body_html)
+        style = f' style="{sw_style}"' if sw_style else ""
     st_markdown(
-        f'<div class="pan-card {seg_class}">'
+        f'<div class="pan-card {seg_class}{extra}"{style}>'
         f'<div class="pan-card-heading">{marker}{html.escape(heading)}</div>'
         '<hr class="pan-divider" />'
         f"{body_html}"
@@ -524,8 +763,10 @@ def tile(title: str, body_html: str, *, emphasis: bool = False) -> None:
     """
     kind = "red" if emphasis else "white"
     marker, seg_class = segment_marker_html(title)
+    text_cls, text_style = swoop_attrs(title, body_html)
+    style = f' style="{text_style}"' if text_style else ""
     st_markdown(
-        f'<div class="pan-tile {kind} {seg_class}">'
+        f'<div class="pan-tile {kind} {seg_class}{text_cls}"{style}>'
         f'<div class="pan-tile-title">{marker}{html.escape(title)}</div>'
         f"{body_html}</div>"
     )
@@ -572,24 +813,31 @@ def badge_html(text: str, kind: str = "neutral") -> str:
 
 def banner_html(text: str, kind: str = "info") -> str:
     """Return a full-width message banner."""
+    text_cls, text_style = text_in_attrs()
+    style = f' style="{text_style}"' if text_style else ""
     return (
-        f'<div class="pan-banner{_kind_class("pan-banner", kind)}" role="status">'
+        f'<div class="pan-banner{_kind_class("pan-banner", kind)}{text_cls}"{style} role="status">'
         f"{html.escape(text)}</div>"
     )
 
 
 def tooltip_html(label: str, tip: str) -> str:
-    """Return ``label`` with a hover/focus tooltip (also a native title)."""
+    """Return ``label`` with one hover/focus tooltip (the styled one only).
+
+    No native ``title``: it drew a second box. The tip text is the focusable
+    span's accessible description, so keyboard and screen-reader users still
+    get it. Numbers in ``label`` count up inside :func:`counting`.
+    """
     return (
-        f'<span class="pan-tip" tabindex="0" title="{html.escape(tip, quote=True)}">'
-        f"{html.escape(label)}"
+        f'<span class="pan-tip" tabindex="0" aria-label="{html.escape(label + ". " + tip, quote=True)}">'
+        f"{count_text_html(label)}"
         f'<span class="pan-tip-text" aria-hidden="true">{html.escape(tip)}</span></span>'
     )
 
 
 def stat_tile_html(label: str, tip: str = "") -> str:
     """Return one stat tile; the tooltip is attached when ``tip`` is given."""
-    inner = tooltip_html(label, tip) if tip else html.escape(label)
+    inner = tooltip_html(label, tip) if tip else count_text_html(label)
     return f'<div class="pan-stat">{inner}</div>'
 
 
@@ -663,13 +911,46 @@ def decision_card_body_html(view, extra_html: str = "") -> str:
 # --- loading: shown only on a real wait ---
 
 _LOADER_SUBTEXT = {
+    "suggest": "Comparing how distinct 2 to 6 personas would be.",
     "analysis": "This can take a moment.",
     "rescore": "Updating the results for the new threshold.",
     "personas": "This can take a moment for larger audiences.",
 }
 
 
+# "Suggest a number" motif: 20 small red and gold dots whooshing round little
+# orbits with cartoon speed lines. (orbit centre x, radius, lap factor, phase,
+# direction) per dot; the finish reads the same table, so the server-side
+# fallback start positions match the running loader.
+_SG_DOTS = tuple(
+    (cx, r, f, ph, d)
+    for cx, r, f, ph, d in (
+        (-78, 16, 0.72, 0.05, 1), (-62, 30, 0.95, 0.40, -1), (-44, 20, 0.80, 0.71, 1),
+        (-30, 36, 1.10, 0.18, -1), (-14, 14, 0.68, 0.55, 1), (0, 26, 0.88, 0.90, -1),
+        (12, 40, 1.15, 0.33, 1), (28, 18, 0.76, 0.62, -1), (44, 32, 1.02, 0.08, 1),
+        (60, 22, 0.84, 0.47, -1), (76, 14, 0.70, 0.83, 1), (-70, 40, 1.20, 0.27, 1),
+        (-50, 12, 0.66, 0.95, -1), (-22, 24, 0.90, 0.12, 1), (6, 34, 1.06, 0.68, -1),
+        (22, 12, 0.64, 0.37, 1), (38, 26, 0.92, 0.79, -1), (54, 38, 1.18, 0.22, 1),
+        (70, 30, 0.98, 0.58, -1), (-4, 18, 0.78, 0.44, 1),
+    )
+)
+
+
+def _suggest_visual() -> str:
+    dots = []
+    for i, (cx, r, f, ph, d) in enumerate(_SG_DOTS):
+        colour = "gold" if i % 2 else "red"
+        dots.append(
+            f'<span class="pan-sg-orbit{" rev" if d < 0 else ""}" '
+            f'style="--cx:{cx}px;--r:{r}px;--f:{f};--ph:{ph}">'
+            f'<span class="pan-sg-dot {colour}"></span></span>'
+        )
+    return f'<div class="pan-sg" aria-hidden="true">{"".join(dots)}</div>'
+
+
 def _loader_visual(kind: str) -> str:
+    if kind == "suggest":
+        return _suggest_visual()
     if kind == "personas":
         # Tiles a-h and their colours match the swap plan in styles.css section 5.
         tiles = "".join(
@@ -685,7 +966,34 @@ def _loader_visual(kind: str) -> str:
     )
 
 
-def loader_html(kind: str, message: str, *, slow: bool = False) -> str:
+def _trace_html(state: str, phase: float = 0.0) -> str:
+    """The line that travels around the loader card (Part 8 polish, fix 4).
+
+    ``running`` loops until the Job ends; ``done`` grows from the line's
+    current position (``phase``, a fraction of one lap) to the full border,
+    then the finishing overlay fades. Decorative: ``aria-hidden``.
+    """
+    try:
+        ph = float(phase)
+    except (TypeError, ValueError):
+        ph = 0.0
+    ph = ph % 1.0 if ph == ph and ph not in (float("inf"), float("-inf")) else 0.0
+    return (
+        f'<svg class="pan-trace pan-trace--{state}" style="--p8-phase:{ph:.4f}" '
+        'aria-hidden="true" focusable="false" preserveAspectRatio="none">'
+        '<rect class="pan-trace-line" pathLength="100"/></svg>'
+    )
+
+
+def loader_html(
+    kind: str,
+    message: str,
+    *,
+    slow: bool = False,
+    status: str = "",
+    trace: str = "running",
+    phase: float = 0.0,
+) -> str:
     """Return the loader overlay markup.
 
     ``kind`` is ``"analysis"`` / ``"rescore"`` (documents under a magnifier) or
@@ -693,36 +1001,345 @@ def loader_html(kind: str, message: str, *, slow: bool = False) -> str:
     viewport, so showing it never moves the page, and the stylesheet keeps it
     invisible for a short delay (longer when ``slow``) so a fast or cached run
     never flashes it. There is no progress bar: the wait length is unknown.
+
+    ``status`` is the live stage line (the former toast wording), announced
+    politely; :meth:`LoaderHandle.status` swaps it in place, so the loader's
+    animations keep running. A line travels around the card (``trace``).
     """
     delay_class = " pan-loading--slow" if slow else ""
     sub = _LOADER_SUBTEXT.get(kind, "")
     sub_html = f'<div class="pan-loading-sub">{html.escape(sub)}</div>' if sub else ""
     return (
-        f'<div class="pan-loading{delay_class}" role="status" aria-live="polite">'
+        f'<div class="pan-loading{delay_class}" aria-busy="true">'
         '<div class="pan-loading-card">'
+        f"{_trace_html(trace, phase)}"
         f"{_loader_visual(kind)}"
         f'<div class="pan-loading-msg">{html.escape(message)}</div>'
         f"{sub_html}"
+        '<div class="pan-loading-status" role="status" aria-live="polite">'
+        f"{html.escape(status)}</div>"
         '<div class="pan-skel" aria-hidden="true"><span></span><span></span><span></span></div>'
         "</div></div>"
     )
 
 
+class LoaderHandle:
+    """Handle yielded by :func:`loading`.
+
+    ``keep()`` leaves the overlay up: on a successful Job the overlay stays in
+    place through ``st.rerun()``, so there is never a frame without an
+    overlay; the completion render then draws the finishing overlay above it,
+    which fades out (design section l, Requirement 22.16).
+
+    ``status(text)`` updates the live stage line. The markup keeps the same
+    structure, so Streamlit patches only the text and every loader animation
+    (motif, skeleton, trace) keeps running.
+    """
+
+    def __init__(self, slot, kind: str = "", message: str = "", slow: bool = False) -> None:
+        self.slot = slot
+        self.kept = False
+        self._kind, self._message, self._slow = kind, message, slow
+
+    def keep(self) -> None:
+        self.kept = True
+
+    def status(self, text: str) -> None:
+        self.slot.markdown(
+            loader_html(self._kind, self._message, slow=self._slow, status=text),
+            unsafe_allow_html=True,
+        )
+
+
 @contextmanager
-def loading(kind: str, message: str, *, slow: bool = False):
+def loading(kind: str, message: str, *, slow: bool = False, status: str = ""):
     """Show the loader while the ``with`` body runs, then remove it.
 
     Drop-in replacement for ``st.spinner``: it only wraps the existing call and
-    changes no computation or caching.
+    changes no computation or caching. Yields a :class:`LoaderHandle`; a body
+    that calls ``handle.keep()`` and ends without an exception leaves the
+    overlay in place (cleared by the next run). Any exception clears it.
+    ``status`` is the first live stage line.
     """
     import streamlit as st
 
     slot = st.empty()
-    slot.markdown(loader_html(kind, message, slow=slow), unsafe_allow_html=True)
+    slot.markdown(loader_html(kind, message, slow=slow, status=status), unsafe_allow_html=True)
+    handle = LoaderHandle(slot, kind, message, slow)
     try:
-        yield
-    finally:
+        yield handle
+    except BaseException:
         slot.empty()
+        raise
+    else:
+        if not handle.kept:
+            slot.empty()
+
+
+# --- Part 8: finishing overlay (F3, design section l) ---
+
+LOADER_MESSAGES = {
+    "suggest": "Finding a good number of personas...",
+    "analysis": "Scoring and segmenting your audience...",
+    "personas": "Grouping leads into personas...",
+}
+
+
+# Finishing stories (Part 8 polish). Both run on --pan-dur-finish, exactly as
+# long as the trace takes to fill the border, so the fireworks, the end of the
+# story and the headline land together. The overlay is drawn over the still
+# running loader; app/static/p8_page_lock.js copies the live positions (trace,
+# document strip, magnifier, tiles) into the start frame, so nothing jumps.
+# The values computed here are only the fallback when that script is absent.
+FINISH_HEADLINES = {"analysis": "Promo Analyzed", "personas": "Personas Built",
+                    "suggest": "Number Suggested"}
+_DOC_PITCH = 84.0     # .pan-docs: --doc-w 56px + --doc-gap 28px
+_DOC_LAP_S = 1.6      # pan-docs-slide duration (styles.css section 5)
+_DOC_SETTLE = 21.5    # px the strip glides while it stops (speed-matched)
+_LENS_X = 112.0       # lens centre: left 50% of the 224px strip
+_TILE_BASE = {k: (28 * (i % 4), 28 * (i // 4)) for i, k in enumerate("abcdefgh")}
+_TILE_GOLD = ("a", "c", "e", "f")
+_TILE_RED = ("b", "d", "g", "h")
+_SLOTS_RED = ((3, 2), (27, 2), (3, 26), (27, 26))
+_SLOTS_GOLD = ((57, 2), (81, 2), (57, 26), (81, 26))
+_BLOB = {"red": (15, 14), "gold": (69, 14)}
+# Firework particles around the card: (x, y, outward angle in degrees).
+_FIREWORKS = (
+    ("0%", "0%", -135), ("100%", "0%", -45), ("100%", "100%", 45), ("0%", "100%", 135),
+    ("25%", "0%", -100), ("50%", "0%", -90), ("75%", "0%", -80),
+    ("25%", "100%", 100), ("50%", "100%", 90), ("75%", "100%", 80),
+    ("0%", "33%", 190), ("0%", "67%", 170), ("100%", "33%", -10), ("100%", "67%", 10),
+)
+_FIREWORK_COLOURS = ("--pan-primary", "--pan-gold", "--pan-primary-to")
+
+
+def _finish_analysis(elapsed: float) -> str:
+    """Magnifier story: the strip glides to a stop, the lens slides onto the
+    nearest document and zooms in, the others dim, a check draws in the lens."""
+    phase = (max(0.0, float(elapsed)) % _DOC_LAP_S) / _DOC_LAP_S
+    x0 = -_DOC_PITCH * phase
+    x1 = x0 - _DOC_SETTLE
+    target = round((_DOC_PITCH - 28 - x1 + (_LENS_X - _DOC_PITCH)) / _DOC_PITCH)
+    dx = target * _DOC_PITCH + 28 + x1 - _LENS_X
+    docs = "".join(
+        f'<span class="pan-doc{" is-target" if i == target else ""}"></span>' for i in range(5)
+    )
+    return (
+        f'<div class="pan-docs is-story" aria-hidden="true" style="--x0:{x0:.1f}px;'
+        f'--x1:{x1:.1f}px;--lens-dx:{dx:.1f}px">'
+        f'<div class="pan-docs-viewport"><div class="pan-docs-track">{docs}</div></div>'
+        '<span class="pan-mag"><svg class="pan-fin-check" viewBox="0 0 32 32" focusable="false">'
+        '<path d="M8 16.5 L14 22.5 L24.5 10.5" pathLength="1"/></svg></span></div>'
+    )
+
+
+def _finish_personas() -> str:
+    """Tile story: each square hops to a wrong spot, then to its colour, the
+    colours smash into one red and one gold blob, and both jump and squish."""
+    tiles = []
+    for group, keys, slots, other in (
+        ("red", _TILE_RED, _SLOTS_RED, _SLOTS_GOLD),
+        ("gold", _TILE_GOLD, _SLOTS_GOLD, _SLOTS_RED),
+    ):
+        for i, k in enumerate(keys):
+            bx, by = _TILE_BASE[k]
+            (fx, fy), (mx, my), (gx, gy) = slots[i], other[i], _BLOB[group]
+            tiles.append(
+                f'<span class="pan-pz-tile pan-pz-{k}{" gold" if group == "gold" else ""}" '
+                f'style="--x0:0px;--y0:0px;--s0:1;--xm:{mx - bx}px;--ym:{my - by}px;'
+                f'--xf:{fx - bx}px;--yf:{fy - by}px;--xb:{gx - bx}px;--yb:{gy - by}px"></span>'
+            )
+    return f'<div class="pan-pz is-story" aria-hidden="true">{"".join(tiles)}</div>'
+
+
+def _finish_suggest(elapsed: float) -> str:
+    """Dot story: the 20 dots leave their orbits, find their colour, gather,
+    then squish together like soft clay into one red and one gold blob (an
+    SVG goo filter fuses them as they touch)."""
+    import math
+
+    lap = 1.4  # --pan-dur-ring-lap; fallback start only (the page script corrects it)
+    parts = []
+    counts = {"red": 0, "gold": 0}
+    for i, (cx, r, f, ph, d) in enumerate(_SG_DOTS):
+        colour = "gold" if i % 2 else "red"
+        turn = (ph + max(0.0, float(elapsed)) / (lap * f)) % 1.0
+        ang = 2 * math.pi * turn * (1 if d > 0 else -1)
+        x0, y0 = cx + r * math.cos(ang), r * math.sin(ang)
+        n = counts[colour]
+        counts[colour] += 1
+        bx = -46 if colour == "red" else 46
+        sa = 2 * math.pi * n / 10
+        # Tight gathering ring: the colour reads as one mass, never a donut.
+        sx, sy = bx + 3 * math.cos(sa), 3 * math.sin(sa)
+        parts.append(
+            f'<span class="pan-sg-fdot {colour}" style="--x0:{x0:.1f}px;--y0:{y0:.1f}px;'
+            f'--xs:{sx:.1f}px;--ys:{sy:.1f}px;--xb:{bx}px;--yb:0px;--i:{i}"></span>'
+        )
+    goo = (
+        '<svg class="pan-sg-defs" aria-hidden="true" focusable="false"><filter id="pan-goo">'
+        '<feGaussianBlur in="SourceGraphic" stdDeviation="3.2" result="b"/>'
+        '<feColorMatrix in="b" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -8"/>'
+        "</filter></svg>"
+    )
+    return f'{goo}<div class="pan-sg is-story" aria-hidden="true">{"".join(parts)}</div>'
+
+
+def _fireworks_html() -> str:
+    parts = []
+    for i, (x, y, a) in enumerate(_FIREWORKS):
+        c = _FIREWORK_COLOURS[i % len(_FIREWORK_COLOURS)]
+        style = f"--x:{x};--y:{y};--a:{a}deg;--i:{i};--c:var({c})"
+        parts.append(f'<span class="pan-fin-spark" style="{style}"></span>')
+        parts.append(f'<span class="pan-fin-dot" style="{style}"></span>')
+    return f'<span class="pan-fin-sparks" aria-hidden="true">{"".join(parts)}</span>'
+
+
+def finishing_overlay_html(
+    kind: str, phase: float = 0.0, elapsed: float = 0.0, headline: str | None = None
+) -> str:
+    """The loader's finish (Requirement 22.16, Part 8 polish).
+
+    Same scrim and card as :func:`loader_html`, visible at once. The trace
+    grows from where the running line was (``phase``, a fraction of one lap)
+    around the whole border while the story plays (``elapsed`` is the seconds
+    the Job ran, the fallback start of the document strip); when the border
+    is full, fireworks burst, the headline ("Promo Analyzed" or "Personas
+    Built") has replaced the loading text, and the overlay then fades and lets
+    clicks through. It never locks the page (``is-finishing``).
+    """
+    message = LOADER_MESSAGES.get(kind, "")
+    sub = _LOADER_SUBTEXT.get(kind, "")
+    sub_html = f'<div class="pan-loading-sub">{html.escape(sub)}</div>' if sub else ""
+    if kind == "personas":
+        story = _finish_personas()
+    elif kind == "suggest":
+        story = _finish_suggest(elapsed)
+    else:
+        story = _finish_analysis(elapsed)
+    headline = headline or FINISH_HEADLINES.get(kind, "")
+    return (
+        f'<div class="pan-loading is-finishing pan-fin--{html.escape(kind)}" aria-hidden="true">'
+        '<div class="pan-loading-card">'
+        f"{_trace_html('done', phase)}"
+        f"{_fireworks_html()}"
+        f"{story}"
+        # The text block keeps the loader's height; the headline is centred
+        # in it as the loading text fades out, so the card never resizes.
+        '<div class="pan-loading-textblock">'
+        f'<div class="pan-loading-msg">{html.escape(message)}</div>'
+        f"{sub_html}"
+        '<div class="pan-loading-status"></div>'
+        '<div class="pan-skel"><span></span><span></span><span></span></div>'
+        f'<div class="pan-loading-done">{html.escape(headline)}</div>'
+        "</div></div></div>"
+    )
+
+
+# --- Part 8: toasts and completion stories (F3, Requirements 8, 9) ---
+
+def _story_analysis() -> str:
+    """Magnifier story: docs slide in, the lens zooms, lines fade, check draws."""
+    def doc(x: int, cls: str) -> str:
+        lines = "".join(
+            f'<rect x="{x + 4}" y="{y}" width="{w}" height="2" rx="1"/>'
+            for y, w in ((21, 14), (26, 12), (31, 14), (36, 9))
+        )
+        return (
+            f'<g class="p8-s-doc {cls}"><rect class="p8-s-paper" x="{x}" y="15" '
+            f'width="22" height="30" rx="3"/><g class="p8-s-lines">{lines}</g></g>'
+        )
+
+    return (
+        '<svg class="p8-story p8-story--analysis" viewBox="0 0 96 64" aria-hidden="true" '
+        'focusable="false">'
+        f'<g class="p8-s-docs">{doc(6, "p8-s-l")}{doc(37, "p8-s-c")}{doc(68, "p8-s-r")}</g>'
+        '<g class="p8-s-lens">'
+        '<circle cx="48" cy="30" r="13"/>'
+        '<line x1="57.5" y1="39.5" x2="65" y2="47"/>'
+        '<path class="p8-s-check" d="M42 30.5 L46.5 35 L54.5 26" pathLength="1"/>'
+        "</g></svg>"
+    )
+
+
+# Persona squares: tiles a-h in the loader's 2 x 4 grid and colours (gold for
+# a, c, e, f), sliding into a red 2 x 2 cluster (left) and a gold one (right).
+_SQ_GRID = {k: (14 + 16 * (i % 4), 18 + 16 * (i // 4)) for i, k in enumerate("abcdefgh")}
+_SQ_FINAL = {
+    "b": (24, 22), "d": (34, 22), "g": (24, 32), "h": (34, 32),
+    "a": (52, 22), "c": (62, 22), "e": (52, 32), "f": (62, 32),
+}
+# One last shuffle: each tile starts on a neighbour's grid cell.
+_SQ_SHUFFLE = {"a": "b", "b": "a", "c": "d", "d": "c", "e": "f", "f": "e", "g": "h", "h": "g"}
+
+
+def _story_personas(uid: str) -> str:
+    """Squares story: last shuffle, slide into two clusters, gooey merge."""
+    fid = f"p8-goo-{uid}"
+
+    def tile(k: str) -> str:
+        fx, fy = _SQ_FINAL[k]
+        gx, gy = _SQ_GRID[k]
+        sx, sy = _SQ_GRID[_SQ_SHUFFLE[k]]
+        return (
+            f'<rect class="p8-s-tile" x="{fx}" y="{fy}" width="10" height="10" rx="2" '
+            f'style="--gx:{gx - fx}px;--gy:{gy - fy}px;--sx:{sx - fx}px;--sy:{sy - fy}px"/>'
+        )
+
+    red = "".join(tile(k) for k in "bdgh")
+    gold = "".join(tile(k) for k in "acef")
+    return (
+        '<svg class="p8-story p8-story--personas" viewBox="0 0 96 64" aria-hidden="true" '
+        'focusable="false">'
+        f'<defs><filter id="{fid}" x="-20%" y="-20%" width="140%" height="140%">'
+        '<feGaussianBlur in="SourceGraphic" stdDeviation="3" result="b"/>'
+        '<feColorMatrix in="b" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7"/>'
+        "</filter></defs>"
+        f'<g class="p8-s-red" filter="url(#{fid})">{red}</g>'
+        f'<g class="p8-s-gold" filter="url(#{fid})">{gold}</g>'
+        "</svg>"
+    )
+
+
+def completion_story_html(job: str, uid: str = "0") -> str:
+    """The Completion_Story for ``job`` ("analysis" or "personas")."""
+    return _story_personas(uid) if job == "personas" else _story_analysis()
+
+
+def toast_stack_html(views) -> str:
+    """The bottom-right Toast_Stack for a sequence of ``ToastView`` (Req 8).
+
+    Each toast carries ``--p8-el`` (seconds since it appeared; negative while
+    a completion toast waits for its entry), so a rerun continues every
+    animation where it was instead of replaying it (Requirement 5.7). Text is
+    real text from the first frame; the story art is ``aria-hidden``.
+    """
+    items = []
+    for v in views:
+        t = v.toast
+        uid = re.sub(r"[^a-z0-9]", "", str(t.id).lower()) or "0"
+        # Each toast gets its own custom element tag. React keeps an element
+        # when the tag at a position is unchanged and only patches attributes,
+        # which would let a new toast inherit the previous toast's finished
+        # animation clock; a distinct tag per toast makes it a new element.
+        tag = f"p8-toast-{uid}"
+        evict = " is-evicting" if v.evicting else ""
+        art = (
+            completion_story_html(t.job, uid)
+            if t.kind == "done"
+            else '<span class="p8-toast-dot" aria-hidden="true"></span>'
+        )
+        # (React writes "class" on a custom element as a literal "classname"
+        # attribute, so the tag is a bare wrapper; CSS gives it
+        # display: contents.)
+        items.append(
+            f'<{tag}><div class="p8-toast-pos" style="--p8-slot:{int(v.slot)}">'
+            f'<div class="p8-toast p8-toast--{t.kind} p8-toast--{t.job}{evict}" '
+            f'role="status" aria-live="polite" style="--p8-el:{v.elapsed_s:.3f}s">'
+            f'{art}<div class="p8-toast-text">{html.escape(t.text)}</div>'
+            f"</div></div></{tag}>"
+        )
+    return f'<div class="p8-toasts">{"".join(items)}</div>'
 
 
 # --- Part 8: Job button ring (F2 redesign, Requirement 7) ---

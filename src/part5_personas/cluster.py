@@ -255,6 +255,48 @@ def elbow_costs(
     return costs
 
 
+# Per-run memo for :func:`cluster` (see :func:`cluster_memo`). ``None`` when no
+# memo is active, so the CLI and tests behave exactly as before.
+_RUN_MEMO: dict | None = None
+
+
+class cluster_memo:
+    """Reuse identical :func:`cluster` results within one run.
+
+    The web app clusters every group once to build the personas and then needs
+    the same per-lead labels again; clustering is deterministic in its inputs
+    (matrix, categorical columns, client order, k, seed, sample cap), so a
+    repeat call with byte-identical inputs returns the stored result instead of
+    refitting. Anything that differs is a miss and is computed normally.
+
+        with cluster_memo():
+            ...  # every cluster() call in here shares one memo
+    """
+
+    def __enter__(self):
+        global _RUN_MEMO
+        self._outer = _RUN_MEMO
+        _RUN_MEMO = {} if self._outer is None else self._outer
+        return self
+
+    def __exit__(self, *exc):
+        global _RUN_MEMO
+        _RUN_MEMO = self._outer
+        return False
+
+
+def _memo_key(full_X: np.ndarray, cat_indices, client_ids, k: int, cfg: Config):
+    import hashlib
+
+    h = hashlib.sha1()
+    h.update(repr((full_X.shape, str(full_X.dtype))).encode())
+    h.update(np.ascontiguousarray(full_X).tobytes() if full_X.dtype != object
+             else repr(full_X.tolist()).encode())
+    h.update(repr([str(c) for c in list(client_ids)]).encode())
+    return (h.hexdigest(), tuple(cat_indices or ()), int(k),
+            cfg.random_seed, cfg.max_sample_size, cfg.compute_elbow)
+
+
 def cluster(
     frame_preprocessed: pd.DataFrame,
     cat_indices: list[int],
@@ -303,6 +345,13 @@ def cluster(
     full_X = _to_matrix(frame)
     categorical = cat_indices or None
 
+    memo_key = None
+    if _RUN_MEMO is not None:
+        memo_key = _memo_key(full_X, cat_indices, client_ids, validated_k, cfg)
+        hit = _RUN_MEMO.get(memo_key)
+        if hit is not None:
+            return hit[0].copy(), dict(hit[1])
+
     sub_pos = subsample_indices(client_ids, cfg)
     X_sub = full_X[sub_pos]
 
@@ -311,5 +360,8 @@ def cluster(
     # Assign the full group to the nearest learned prototype (total coverage).
     labels = np.asarray(model.predict(full_X, categorical=categorical), dtype=int)
 
-    elbow = elbow_costs(X_sub, cat_indices, cfg)
+    # The elbow sweep (five extra fits) only when the caller wants the plot.
+    elbow = elbow_costs(X_sub, cat_indices, cfg) if cfg.compute_elbow else {}
+    if memo_key is not None:
+        _RUN_MEMO[memo_key] = (labels.copy(), dict(elbow))
     return labels, elbow

@@ -366,12 +366,18 @@ The first build (container `p8_btn_*`, `running_style_html` in `p8_fx`, rotating
 
 | State | What the user sees | How |
 |---|---|---|
-| Hover breath | Soft glow behind the label breathes; label still | `button::after` glow plate (same red, static soft shadow) at `z-index: -1` inside the isolated button, `scale(1)` to `scale(var(--pan-scale-breath))`, infinite, alternate, `--pan-dur-breath` 1600 ms, `--pan-ease`. Its `opacity` transitions 0 to 1 on hover and back to 0 on leave over `--pan-dur-slow`, so leaving fades out from any phase. Job buttons drop the shared `translateY(-1px)` hover lift. |
+| Hover breath | Soft glow behind the button breathes; label still | Revised 2026-11-10 (decision A4) after diagnosing the jitter: two glow layers fought each other (a scaling plate inside the button plus a container glow growing from `scale(0)`), the ease-out curve bounced at each turn of the alternate loop, and the scaled plate's edge poked past the rounded corners. Now: the hover colour lives on a `button::after` plate that only fades (no scale). The breath is ONE halo on the container `::before` (box-shadow in `--pan-breath-glow`, behind the button's element container). Its opacity is `--p8-hover × --p8-breath`, two `@property` numbers: `--p8-hover` transitions 0↔1 on hover/leave over `--pan-dur-slow` with `--pan-ease`; `--p8-breath` loops 0.45↔1 together with `scale(1 → --pan-scale-breath)`, alternate, half of `--pan-dur-breath` per leg, `--pan-ease-breath`. The loop always runs, so leaving fades out from any phase and hovering never restarts it. `will-change: transform, opacity`. Job buttons drop the shared `translateY(-1px)` hover lift. |
 | Press | Button dips to 0.97 and releases | `:active` `transform: scale(var(--pan-scale-press))` over `--pan-dur-fast`, release over `--pan-dur`. |
 | Running | Red line travels round the border at constant speed | Rect stroke `--pan-primary`, `stroke-dasharray: var(--pan-ring-dash) calc(100 - var(--pan-ring-dash))` (22 78), `stroke-dashoffset` 0 to -100, `linear`, infinite, `--pan-dur-ring-lap` 1400 ms. Seamless because the dash pattern repeats exactly every 100 units of `pathLength`. Ring fades in over `--pan-dur-fast`. A `button::before` plate with the disabled tokens crossfades in by `opacity`; label colour transitions over `--pan-dur`. Container `pointer-events: none`; the breath fades out on its own as the handoff. |
 | Done | Line grows to fill the border, border glows, ~10 sparks burst once, then rest | `.p8-ring--done` drawn at the same slot index. Fill: dasharray from `22 78` to `100 0`, starting at the phase offset, over `--pan-dur-ring-fill` 300 ms, `--pan-ease`. Glow: a wider duplicate rect at low opacity fades in and out (~200 ms). Sparks: 10 absolutely positioned spans at corners and edge midpoints/thirds, each `rotate(<outward angle>) translateX(0)` to `translateX(14px)` with a `scaleX` shrink and `opacity` 1 to 0, staggered 0 to 60 ms, over `--pan-dur-spark` 600 ms, colours `--pan-primary`, `--pan-primary-to`, `--pan-gold`. Ring fades out at the end; about 1 s total. The disabled plate fades out at the start. The Completion_Toast enters as the sparks fade. |
 | Error | Line fades out where it is; no fill, no sparks | `.p8-ring--error` continues the running loop from the phase and fades out over `--pan-dur-slow`. |
 | Reduced motion | Static | No breath, no press scale. Running: static full rect stroke. Done: full rect highlight fading out within 150 ms. Error: instant removal. |
+
+**Stacking (revised 2026-11-10).** The container takes `z-index: var(--pan-z-ring)` whenever any ring is present (`:has(.p8-ring)`: running, done or error), not only while running, so the fill, glow and sparks are never drawn under a scrim. F3's finishing overlay must sit below `--pan-z-ring`.
+
+**Reduced motion done (revised 2026-11-10).** The full-ring highlight holds for `--pan-dur-hold`, then fades over `--pan-dur-xfade-short` (150 ms).
+
+**Hook for F3.** The sparks end at `--pan-dur-ring-fill + --pan-dur-spark` (about 900 ms) after the completion render; the Completion_Toast should enter as they fade.
 
 **Phase continuity.** Python records `started_at` (server time) when the click is processed. Every ring markup carries `--p8-phase = ((now - started_at) / lap) mod 1`, from `ring_phase`. The running loop uses `animation-delay: calc(var(--p8-phase) * var(--pan-dur-ring-lap) * -1)`, so a re-mounted ring continues where it was. The done and error rings start from the same phase. Latency error is a few percent of the perimeter.
 
@@ -379,7 +385,7 @@ The first build (container `p8_btn_*`, `running_style_html` in `p8_fx`, rotating
 
 **Job end record.** `p8_job_end[job] = {"ok": bool, "started_at": float, "ended_at": float, "signature": str}` is set before `st.rerun()` and consumed once on the completion render (one-shot). It replaces `p8_settle_<job>`.
 
-**Keyboard guard (Requirement 7.12).** On a click, `is_duplicate_submit(last_end, signature, now, window_s=1.5)` is checked first; when true the click is ignored (no Job, no Start_Toast, no Completion_Toast). The signature is the PromoSpec fields except `promo_id` for analysis, and the persona spec fingerprint for personas. `last_end` is the last job-end record for that job, kept after the one-shot is consumed.
+**Keyboard guard (Requirement 7.12).** On a click, `is_duplicate_submit(last_end, signature, now, window_s=1.5)` is checked first; when true the click is ignored (no Job, no Start_Toast, no Completion_Toast). Revised 2026-11-10 (decision A6): a keypress during a Job makes Streamlit interrupt the run at its next Streamlit call, which is the loader's cleanup. So the results, flash messages and `end_job` record are now stored inside the `theme.loading` block, before that cleanup; otherwise the first Job's messages were lost and the guard never saw an end record. The signature is the PromoSpec fields except `promo_id` for analysis, and the persona spec fingerprint for personas. `last_end` is the last job-end record for that job, kept after the one-shot is consumed.
 
 **New pure helpers** in `src/webapp_core/job_motion.py`:
 
@@ -816,6 +822,18 @@ Read from the shipped JS bundle, not confirmed in a browser unless the checklist
 | `stMainMenu` / `stMainMenuButton` | hidden or left alone chrome | Chrome tweaks stop applying. |
 | `stSkeleton` | left unstyled | None. |
 | Component protocol: `streamlit:componentReady`, `streamlit:setComponentValue`, `streamlit:setFrameHeight`, `streamlit:render` (with `args`, `theme`) | `picker.js` | The picker stops working; the dropdown still works (Requirement 12.10). |
+
+Added for the page lock (decision A7), checked in headless Chrome against 1.66.1:
+
+| Internal | Used by | What breaks if it changes |
+|---|---|---|
+| `header[data-testid="stHeader"]` z-index 999990 | `--pan-z-loader` (999991) and `--pan-z-ring` (999992) sit above it | The menu would show above the scrim (it stays inert, so still locked). |
+| `stMain` (the scroll container; its children get `inert`, it stays live so scrolling works), `stHeader`, `stSkipToContent`, `stSidebar`, `stBottom` | `p8_page_lock.js` sets `inert` on them | Keyboard lock stops for a renamed area; the overlay still blocks clicks. |
+| `components.html` iframe has `allow-same-origin` | the lock script is copied into the main page | No keyboard lock; the click block still applies. |
+| `st.container(key=...)` puts `st-key-*` on the inner `stVerticalBlock`; the `stLayoutWrapper` parent is the flex item | `p8_fx` takes both out of flow | A 16 px gap above the banner. |
+| `stMain:focus-visible::before` inset box-shadow (sticky, 3.75rem from the top) | suppressed for `stMain` only | A faint frame round the page when focus lands on stMain. |
+
+A tab-panel fade that keeps filling (`animation-fill-mode: both`) makes the panel a stacking context and traps the loader below the header, so the tab fade uses `backwards`.
 
 When upgrading Streamlit, re-run the browser checklist rows tied to these (stale override, tab fade, pill, number inputs, alerts, picker).
 

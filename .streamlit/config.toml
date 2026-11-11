@@ -16,6 +16,10 @@
 # server restart.
 [server]
 enableStaticServing = true
+# Campaign uploads are capped at 10 MB (src/ai/extractor.py MAX_UPLOAD_BYTES);
+# telling Streamlit too makes the uploader say "10MB per file" and refuse
+# larger files before uploading them. Keep the two in sync.
+maxUploadSize = 10
 
 [client]
 # "viewer" keeps the Settings menu (theme switch) but hides developer options.

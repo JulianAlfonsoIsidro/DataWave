@@ -110,6 +110,7 @@ from part5_personas.labels import is_flag_attribute as _is_flag_attribute
 from part5_personas.labels import is_text_category
 from part5_personas.profile import PersonaProfile
 from webapp_core.card_view import build_card_view
+from webapp_core.group_picker_items import group_changed, plan_picker
 from webapp_core.persona_view import build_persona_section
 from webapp_core.personas import (
     EQUAL_TAKEAWAY,
@@ -1054,7 +1055,11 @@ def _run_personas_impl(
     """
     from part5_personas.config import Config
 
-    return run_personas(_spec, cfg=Config(), live_leads=_live_leads, narration="ai")
+    # compute_elbow=False: the page never shows the Elbow_Plot, and its sweep
+    # (five extra fits per group) was most of a build's time.
+    return run_personas(
+        _spec, cfg=Config(compute_elbow=False), live_leads=_live_leads, narration="ai"
+    )
 
 
 # Lazily-built ``st.cache_data`` wrapper around :func:`_run_personas_impl`. Built
@@ -1244,11 +1249,18 @@ def _available_promo_meta() -> dict[str, str]:
 def _show_messages(messages: list[tuple[str, str]]) -> None:
     """Display ``(level, text)`` messages as Streamlit alerts (mirrors main.py)."""
     import streamlit as st
+    import p8_effects
 
     for level, text in messages:
-        {"error": st.error, "warning": st.warning, "success": st.success}.get(
+        show = {"error": st.error, "warning": st.warning, "success": st.success}.get(
             level, st.info
-        )(text)
+        )
+        if level in ("success", "warning"):
+            # Quiet style so the flash reads below the Completion_Toast (Req 8.14).
+            with p8_effects.quiet_container(level):
+                show(text)
+        else:
+            show(text)
 
 
 def _persona_card_html(
@@ -1269,10 +1281,11 @@ def _persona_card_html(
     """
     import theme
 
+    # Inside theme.counting (the build reveal) these count up from 0.
     chips = theme.chips_html(
         [
-            f'<span class="pan-chip">{size:,} leads</span>',
-            f'<span class="pan-chip">{pct:.1f}%</span>',
+            f'<span class="pan-chip">{theme.count_text_html(f"{size:,} leads")}</span>',
+            f'<span class="pan-chip">{theme.count_text_html(f"{pct:.1f}%")}</span>',
         ]
     )
     desc_html = html.escape(str(description))
@@ -1288,7 +1301,14 @@ def _persona_card_html(
     )
 
 
-def _render_summary_cards(result: PersonaRunResult) -> None:
+def _render_summary_cards(
+    result: PersonaRunResult,
+    *,
+    visual=None,
+    reveal: bool = False,
+    xfade: bool | str = False,
+    reveal_el: float | None = None,
+) -> None:
     """Render one summary card per persona, across every persona set (Req 6.3, 6.10).
 
     Walks the run's :class:`PersonaSet` list. A set flagged ``too_small`` renders
@@ -1296,13 +1316,24 @@ def _render_summary_cards(result: PersonaRunResult) -> None:
     clustered set, each persona gets a card (name, description, integer size,
     one-decimal percentage, plain distinguishing sentence, campaign-guidance
     actions). Cards are laid out two per row to match the Results tab.
+
+    Part 8: ``visual`` draws the Group_Visual after the "Demo Mode" notice and
+    before the cards (Requirement 12.9) and returns True when it drew one.
+    ``reveal`` staggers the cards in after a build (F8, Requirement 17; the
+    visual is item 1 when drawn); ``xfade`` fades them in once after a group
+    change (Requirement 22.13). Neither changes any text. ``reveal_el`` is
+    the seconds since the build's generation: the cards drop in top to bottom
+    and their numbers count up, continuing (not replaying) across a rerun.
     """
+    import p8_effects
     import streamlit as st
     import theme
 
     if getattr(result, "narration_source", "Bedrock") != "Bedrock":
         # Some persona text is Mock text (Requirement 6.11).
         st.markdown(theme.badge_html("Demo Mode", "warning"), unsafe_allow_html=True)
+
+    item = 1 if (visual is not None and visual()) else 0
 
     for persona_set in result.persona_sets:
         if persona_set.group_key:
@@ -1321,7 +1352,9 @@ def _render_summary_cards(result: PersonaRunResult) -> None:
             pair = personas[i : i + 2]
             cols = st.columns(2)
             for col, persona in zip(cols, pair):
-                with col:
+                with col, theme.counting(
+                    reveal_el if reveal else None, p8_effects.generation("personas") or ""
+                ):
                     sentence = distinguishing_sentences(persona.profile, profiles)
                     theme.card(
                         persona.name,
@@ -1333,7 +1366,10 @@ def _render_summary_cards(result: PersonaRunResult) -> None:
                             sentence,
                             persona.actions,
                         ),
+                        # Entrances come from theme.card's swoop: a new build
+                        # or a group change brings new cards, one by one.
                     )
+                    item += 1
 
 
 def _group_lead_count(result: PersonaRunResult, group_key: str) -> int | None:
@@ -1687,6 +1723,86 @@ def _render_downloads(selected_group: str | None = None) -> None:
     st.caption(group_download_caption(selected_group, len(campaign_frame), "leads"))
 
 
+SUGGEST_STATE_KEY = "persona_k_suggestion"
+_CACHED_SUGGESTER = None
+
+
+def _suggest_impl(key: tuple, _spec: PersonaRunSpec, _live_leads):
+    """Cached behind ``st.cache_data`` by ``key`` (leads + attributes)."""
+    from part5_personas.config import Config
+    from webapp_core.personas import suggest_persona_count
+
+    s = suggest_persona_count(_spec, Config(), live_leads=_live_leads)
+    return {"k": int(s.k), "text": s.text}
+
+
+def _get_suggester():
+    global _CACHED_SUGGESTER
+    if _CACHED_SUGGESTER is None:
+        import streamlit as st
+
+        _CACHED_SUGGESTER = st.cache_data(show_spinner=False)(_suggest_impl)
+    return _CACHED_SUGGESTER
+
+
+def _use_suggestion(k: int) -> None:
+    import streamlit as st
+
+    st.session_state["persona_k_input"] = int(k)
+
+
+def _render_suggest_helper(*, level, attributes, business_segment_field, campaign_pool,
+                           run_result_key) -> None:
+    """"Not sure how many? Suggest a number" above Build Personas.
+
+    On click, one light scan of the whole audience (cached per leads and
+    attributes) runs under its own loader, then a note offers "Use N". The
+    note disappears when the attributes or leads change, so it is never stale.
+    """
+    import streamlit as st
+    import p8_effects
+    import theme
+
+    live_leads = _live_leads_for(run_result_key) if campaign_pool == "live" else None
+    key = (level, tuple(sorted(attributes)), business_segment_field, campaign_pool,
+           _live_leads_fingerprint(live_leads))
+    with st.container(key="persona_suggest_row"):
+        clicked = st.button(
+            "Not sure how many? Suggest a number",
+            type="tertiary",
+            key="persona_suggest",
+            disabled=not attributes,
+            help="Compares 2 to 6 personas for these leads and attributes and "
+                 "suggests where more personas stop adding much.",
+        )
+        if clicked:
+            spec = _build_spec(level, attributes, 3, business_segment_field, campaign_pool, [])
+            p8_effects.start_job("suggest", None)
+            with theme.loading("suggest", "Finding a good number of personas...",
+                               status="Comparing 2 to 6 personas...") as loader:
+                try:
+                    found = _get_suggester()(key, spec, live_leads)
+                except Exception as exc:  # noqa: BLE001 - surface as a message
+                    st.warning(f"Could not suggest a number: {exc}")
+                    return
+                st.session_state[SUGGEST_STATE_KEY] = {"key": key, **found}
+                headline = f"{found['k']} Personas Suggested"
+                p8_effects.end_job("suggest", True, repr(key), headline=headline)
+                loader.status(headline)
+                loader.keep()
+            st.rerun()
+        found = st.session_state.get(SUGGEST_STATE_KEY)
+        if isinstance(found, dict) and found.get("key") == key:
+            st.markdown(theme.banner_html(found["text"], "info"), unsafe_allow_html=True)
+            if int(found["k"]) != int(st.session_state.get("persona_k_input", 3)):
+                st.button(
+                    f"Use {found['k']}",
+                    key="persona_use_suggestion",
+                    on_click=_use_suggestion,
+                    args=(found["k"],),
+                )
+
+
 def _build_spec(
     level: str,
     attributes: list[str],
@@ -1749,10 +1865,13 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
             (Requirement 5.2).
     """
     import streamlit as st
+    import group_picker
     import p8_effects
 
     # Effects slot (idempotent per run; main.py creates it first, outside the tabs).
     p8_effects.fx_container()
+    # Page lock while a loader is shown (idempotent per run; decision A7).
+    p8_effects.install_page_lock()
 
     st.subheader("Build Personas")
     st.caption(
@@ -1760,8 +1879,12 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
         "download a CRM-ready list. Pick the attributes and press Build."
     )
 
-    # Flash messages from the previous Run survive the post-Run rerun.
-    _show_messages(st.session_state.pop(PERSONA_FLASH_KEY, []))
+    # Flash messages from the previous Run survive the post-Run rerun. They sit
+    # in a container that is always present, so when the one-time flash goes
+    # away nothing below shifts slot; otherwise Streamlit remounts the group
+    # map on the next rerun and cuts its fill and flight animations short.
+    with st.container():
+        _show_messages(st.session_state.pop(PERSONA_FLASH_KEY, []))
 
     columns = _joined_attribute_columns()
     grouped = group_attributes_by_theme(columns)
@@ -1787,15 +1910,17 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
         )
         level = level_label_to_value(level_label)
     with ctl_right:
+        # Default through session state (not value=), so "Use N" from the
+        # suggestion can set it without a Streamlit default-vs-state warning.
+        st.session_state.setdefault("persona_k_input", 3)
         k = int(
             st.number_input(
                 "Number of personas",
                 min_value=2,
                 max_value=6,
-                value=3,
                 step=1,
                 key="persona_k_input",
-                help="Between 2 and 6. Start at 3 and adjust.",
+                help="Between 2 and 6. Start at 3 and adjust, or use Suggest a number below.",
             )
         )
 
@@ -1873,6 +1998,15 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
     if _warning is not None:
         st.warning(_warning)
 
+    # --- Suggest a number (optional helper; never runs during a build) ---
+    _render_suggest_helper(
+        level=level,
+        attributes=selected_attributes,
+        business_segment_field=business_segment_field,
+        campaign_pool=campaign_pool,
+        run_result_key=run_result_key,
+    )
+
     # --- Run control + validation (Requirements 6.1, 6.2) ---
     with st.container(key=p8_effects.P8_BTN_BUILD_PERSONAS):
         # Ring slot sits before the button inside the keyed container (Req 7).
@@ -1908,6 +2042,11 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
         # more than one group. Filters already-computed data -- never refits.
         options = group_options(result)
         if options:
+            # Part 8: a Group_Visual pick is applied before the dropdown exists,
+            # so it lands in this render with no extra rerun (Req 12.4, 12.14).
+            picked = group_picker.pending_selection(st.session_state, options)
+            if picked is not None:
+                st.session_state[GROUP_SELECT_KEY] = picked
             if st.session_state.get(GROUP_SELECT_KEY) not in options:
                 st.session_state[GROUP_SELECT_KEY] = default_group(options)
             selected_group = st.selectbox(
@@ -1920,11 +2059,32 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
             )
         scoped = scope_result_to_group(result, selected_group)
 
+        # Part 8: the build reveal (keyed to the personas generation, so it
+        # plays once and continues across a rerun) wins over the group-change
+        # crossfade; the previous group is stored every render (Req 22.14).
+        p8_effects.consume_oneshot("personas")
+        reveal_el = p8_effects.reveal_el("personas")
+        reveal = reveal_el is not None
+        prev_group = st.session_state.get(p8_effects.P8_GROUP_PREV)
+        xfade: bool | str = False
+        if group_changed(prev_group, selected_group, reveal=reveal):
+            flip = "b" if st.session_state.get("p8_xfade_flip") == "a" else "a"
+            st.session_state["p8_xfade_flip"] = flip
+            xfade = flip
+        st.session_state[p8_effects.P8_GROUP_PREV] = selected_group
+
         st.subheader("Personas")
         _caption = clustering_kind_caption(st.session_state.get(PERSONA_KIND_KEY))
         if _caption is not None:
             st.caption(_caption)
-        _render_summary_cards(scoped)
+        _render_summary_cards(
+            scoped,
+            visual=(lambda: _render_group_visual(result, options, selected_group, reveal))
+            if options else None,
+            reveal=reveal,
+            xfade=xfade,
+            reveal_el=reveal_el,
+        )
         # How the Personas Differ comparison table (Requirement 6.4).
         _render_persona_comparison(scoped)
         # Expected joiners by persona over the current New Promo run; uses the
@@ -2025,10 +2185,19 @@ def _handle_run(
     if p8_effects.is_duplicate("personas", signature):
         return
 
-    # Running ring, streamed before the blocking call.
+    # One loading screen only: the former toast wording (naming the split by
+    # display label) is its live status line, streamed before the blocking call.
     if ring_slot is not None:
         p8_effects.start_job("personas", ring_slot)
-    with theme.loading("personas", "Grouping leads into personas..."):
+    from webapp_core.toast_queue import DONE_TEXT, start_text
+
+    with theme.loading(
+        "personas",
+        "Grouping leads into personas...",
+        status=start_text(
+            "personas", [attribute_display_label(c) for c in (grouping_attributes or [])]
+        ),
+    ) as loader:
         try:
             result = _run_personas_cached(spec, live_leads)
             exports = _build_exports(result)
@@ -2044,33 +2213,92 @@ def _handle_run(
             st.error(f"Could not build personas: {exc}")
             return
 
-    st.session_state[PERSONA_RESULT_KEY] = result
-    st.session_state[PERSONA_EXPORTS_KEY] = exports
-    st.session_state[PERSONA_KIND_KEY] = selection_kind(
-        effective_clustering_attributes(level, attributes, business_segment_field),
-        _joined_attribute_kinds(),
-    )
+        # Everything below is stored inside the loader block, before its
+        # cleanup makes the next Streamlit call. A keypress queued during the
+        # Job interrupts the run at that call; with the result and job-end
+        # record already stored, the guard above skips the repeat on the next
+        # run (Requirements 7.11, 7.12). No Streamlit call happens in between.
+        st.session_state[PERSONA_RESULT_KEY] = result
+        st.session_state[PERSONA_EXPORTS_KEY] = exports
+        st.session_state[PERSONA_KIND_KEY] = selection_kind(
+            effective_clustering_attributes(level, attributes, business_segment_field),
+            _joined_attribute_kinds(),
+        )
 
-    # Per-group lead counts for the too-small message (Req 6.10). Campaign-level
-    # membership is restricted by the pool, so no count is derived there.
-    group_counts: dict[str, int] = {}
-    if level != LEVEL_CAMPAIGN:
-        if level == LEVEL_BUSINESS_SEGMENT:
-            group_columns = [business_segment_field] if business_segment_field else []
-        else:
-            group_columns = list(grouping_attributes or [])
-        try:
-            group_counts = group_lead_counts(result.joined_attributes, group_columns)
-        except Exception:  # noqa: BLE001 - display helper must never block a run
-            group_counts = {}
-    st.session_state[PERSONA_GROUP_COUNTS_KEY] = group_counts
+        # Per-group lead counts for the too-small message (Req 6.10). Campaign-level
+        # membership is restricted by the pool, so no count is derived there.
+        group_counts: dict[str, int] = {}
+        if level != LEVEL_CAMPAIGN:
+            if level == LEVEL_BUSINESS_SEGMENT:
+                group_columns = [business_segment_field] if business_segment_field else []
+            else:
+                group_columns = list(grouping_attributes or [])
+            try:
+                group_counts = group_lead_counts(result.joined_attributes, group_columns)
+            except Exception:  # noqa: BLE001 - display helper must never block a run
+                group_counts = {}
+        st.session_state[PERSONA_GROUP_COUNTS_KEY] = group_counts
 
-    n_personas = sum(len(ps.personas) for ps in result.persona_sets)
-    st.session_state[PERSONA_FLASH_KEY] = [
-        ("success", f"Built {n_personas} personas across {len(result.persona_sets)} group(s).")
-    ]
-    p8_effects.end_job("personas", True, signature)
+        n_personas = sum(len(ps.personas) for ps in result.persona_sets)
+        st.session_state[PERSONA_FLASH_KEY] = [
+            ("success", f"Built {n_personas} personas across {len(result.persona_sets)} group(s).")
+        ]
+        # Remembered for the group picker (which visual fits the split).
+        st.session_state[p8_effects.P8_LAST_SPLIT] = _split_for_level(
+            level, business_segment_field, grouping_attributes
+        )
+        p8_effects.end_job("personas", True, signature)
+        loader.status(DONE_TEXT["personas"])
+        # The overlay stays through the rerun; the completion render fades it
+        # out (design section l). The error paths above return and clear it.
+        loader.keep()
     st.rerun()
+
+
+def _render_group_visual(
+    result: PersonaRunResult,
+    options: list[str],
+    selected_group: str | None,
+    reveal: bool,
+) -> bool:
+    """Draw the Group_Visual (map, ring or Toggle_Card) for this run.
+
+    Part 8 (F6, F7, F9; Requirement 12). The visual follows the split of the
+    run that is on screen (``P8_LAST_SPLIT``); a run with 0 or 1 group, a
+    Multi_Split above 12 groups, or missing files draw nothing and the
+    dropdown alone stays. Returns True when a visual was drawn.
+    """
+    import streamlit as st
+    import group_picker
+    import p8_effects
+
+    split = list(st.session_state.get(p8_effects.P8_LAST_SPLIT) or [])
+    group_keys = [o for o in options if o != ALL_GROUPS_LABEL]
+    counts = dict(st.session_state.get(PERSONA_GROUP_COUNTS_KEY) or {})
+    plan = plan_picker(split, group_keys, counts, attribute_display_label)
+    if plan.kind == "none" or not group_picker.files_ready(plan):
+        return False
+    column_label = attribute_display_label(split[0]) if len(split) == 1 else "Groups"
+    # The visual reveals itself inside the iframe (carousel inside out, map
+    # and toggles bottom to top), once per persona generation.
+    with st.container(key=p8_effects.P8_GROUP_VISUAL):
+        drawn = group_picker.render_group_picker(
+            plan,
+            selected_group if selected_group != ALL_GROUPS_LABEL else None,
+            column_label=column_label,
+            front_value=group_keys[0] if group_keys else None,
+            reveal_gen=p8_effects.generation("personas") if reveal else None,
+        )
+    return drawn
+
+
+def _split_for_level(
+    level: str, business_segment_field: str | None, grouping_attributes: list[str] | None
+) -> list[str]:
+    """The columns a run was split by (mirrors the group-key construction)."""
+    if level == LEVEL_BUSINESS_SEGMENT:
+        return [business_segment_field] if business_segment_field else []
+    return list(grouping_attributes or [])
 
 
 def _live_leads_for(run_result_key: str) -> pd.DataFrame | None:

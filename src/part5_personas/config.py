@@ -52,6 +52,10 @@ class Config:
     # Inclusive lower/upper bounds on an accepted integer k.
     k_min: int = 2
     k_max: int = 6
+    # Sweep the Elbow_Plot costs during clustering. The CLI keeps it (it draws
+    # the plot); the web app turns it off because it never shows the plot and
+    # the sweep was most of a build's time.
+    compute_elbow: bool = True
 
 
 # Substring that marks a forbidden Answer_Key_File (Requirement 1.10).

@@ -57,6 +57,7 @@ from webapp_core.past_promos import (  # noqa: E402
 )
 from webapp_core.audience import latest_adb  # noqa: E402
 from webapp_core.promo_id import next_promo_id  # noqa: E402
+from webapp_core import toast_queue  # noqa: E402  (Part 8 loader stage texts)
 from webapp_core.run_promo import PromoSpec, run_promo  # noqa: E402
 from webapp_core.threshold import (  # noqa: E402
     THRESHOLD_SPECS,
@@ -120,8 +121,26 @@ def _load_latest_adb_series() -> pd.Series | None:
 
 
 def _slider_format(spec) -> str:
-    """The Streamlit printf format for a threshold slider (peso or percent)."""
-    return "%d%%" if spec.is_percent else "₱%d"
+    """The Streamlit format for a threshold slider.
+
+    Peso amounts use Streamlit's "localized" preset so the handle and the
+    min/max labels show thousands separators (512,500); the peso sign is in
+    the slider's label ("Top-Up Amount (₱)"). Percentages stay "50%".
+    """
+    return "%d%%" if spec.is_percent else "localized"
+
+
+def _threshold_readout(threshold_type: ThresholdType, value: float, key: str) -> None:
+    """The "Selected: ₱512,500" line under a threshold slider.
+
+    When the value changes, its digits roll from the previous amount to the
+    new one (the same digit columns as the other animated numbers); the peso
+    sign, commas and percent stay put. The first render and unchanged
+    reruns are static. The plain value stays readable for screen readers.
+    """
+    text = format_value(threshold_type, value)
+    prev = p8_effects.number_prev(f"{key}:{threshold_type.name}", text)
+    st.markdown(theme.selected_readout_html(text, prev), unsafe_allow_html=True)
 
 
 def _threshold_kwargs(
@@ -185,9 +204,15 @@ FLASH_KEY = "flash_messages"
 def _show_messages(messages: list[tuple[str, str]]) -> None:
     """Display (level, text) messages as Streamlit alerts."""
     for level, text in messages:
-        {"error": st.error, "warning": st.warning, "success": st.success}.get(
+        show = {"error": st.error, "warning": st.warning, "success": st.success}.get(
             level, st.info
-        )(text)
+        )
+        if level in ("success", "warning"):
+            # Quiet style so the flash reads below the Completion_Toast (Req 8.14).
+            with p8_effects.quiet_container(level):
+                show(text)
+        else:
+            show(text)
 
 
 def _execute_run(spec: PromoSpec) -> list[tuple[str, str]]:
@@ -302,7 +327,7 @@ def _render_fill_in_details(*, segment_options: list[str], auto_promo_id: str) -
             key=slider_key,
         )
         upload_panel.field_tag("threshold_value")
-    st.caption(f"Selected: {format_value(threshold_type, threshold_value)}")
+    _threshold_readout(threshold_type, threshold_value, "new_promo_threshold")
     threshold_fields, threshold_error, threshold_note = _threshold_kwargs(
         threshold_type, threshold_value
     )
@@ -387,14 +412,29 @@ def _render_fill_in_details(*, segment_options: list[str], auto_promo_id: str) -
             (k, v) for k, v in dataclasses.asdict(spec).items() if k != "promo_id"
         ))
         if not p8_effects.is_duplicate("analysis", signature):
-            # Running ring streams to the browser before the blocking call.
+            # One loading screen only: the former toast wording is its live
+            # status line, streamed before the blocking call.
             p8_effects.start_job("analysis", ring_slot)
-            with theme.loading("analysis", "Scoring and segmenting your audience..."):
+            with theme.loading(
+                "analysis",
+                "Scoring and segmenting your audience...",
+                status=toast_queue.start_text("analysis", spec.promo_id),
+            ) as loader:
                 messages = _execute_run(spec)
-            st.session_state[FLASH_KEY] = messages
-            # Empty audience and missing model end with the error ring (D3).
-            ok = any(level == "success" for level, _ in messages)
-            p8_effects.end_job("analysis", ok, signature)
+                # Saved inside the loader block, before its cleanup makes the
+                # next Streamlit call. A keypress queued during the Job
+                # interrupts the run at that call; with the flash and job-end
+                # record already stored, the guard above skips the repeat on
+                # the next run (Requirements 7.11, 7.12).
+                st.session_state[FLASH_KEY] = messages
+                # Empty audience and missing model end with the error ring (D3).
+                ok = any(level == "success" for level, _ in messages)
+                p8_effects.end_job("analysis", ok, signature)
+                if ok:
+                    loader.status(toast_queue.DONE_TEXT["analysis"])
+                    # The overlay stays through the rerun; the completion render
+                    # fades it out (design section l). Errors clear it as before.
+                    loader.keep()
             # Refresh once so the hero KPI at the top shows the new run's number.
             st.rerun()
 
@@ -436,11 +476,12 @@ def _tile_body_html(card: dict | None, *, emphasis: bool) -> str:
     else:
         n_clients = int(card.get("n_clients", 0) or 0)
         joiners = float(card.get("expected_joiners", 0.0) or 0.0)
+    # Numbers count up from 0 after a run (theme.counting, Part 8 polish).
     return (
         '<div class="pan-tile-k">Clients</div>'
-        f'<div class="pan-tile-v">{n_clients:,}</div>'
+        f'<div class="pan-tile-v">{theme.count_text_html(f"{n_clients:,}")}</div>'
         '<div class="pan-tile-k pan-tile-k--spaced">Expected Joiners</div>'
-        f'<div class="pan-tile-accent">{joiners:,.1f}</div>'
+        f'<div class="pan-tile-accent">{theme.count_text_html(f"{joiners:,.1f}")}</div>'
     )
 
 
@@ -542,22 +583,28 @@ def _render_results_tab() -> None:
 
     cards_by_segment = _cards_by_segment()
 
+    # After a run, the headline numbers fade in and count up once (keyed to
+    # the analysis generation; plain and static on every later rerun).
+    run_el = p8_effects.reveal("analysis")
+
     # --- 2x2 Results grid (four rounded tiles) ---
     st.subheader("Results Grid")
-    for _row_label, cols in RESULTS_GRID:
-        grid_cols = st.columns(2)
-        for grid_col, (_col_label, segment_label) in zip(grid_cols, cols):
-            with grid_col:
-                card = cards_by_segment.get(segment_label)
-                emphasis = segment_label == EMPHASIS_SEGMENT
-                theme.tile(
-                    segment_label,
-                    _tile_body_html(card, emphasis=emphasis),
-                    emphasis=emphasis,
-                )
+    with theme.counting(*run_el):
+        for _row_label, cols in RESULTS_GRID:
+            grid_cols = st.columns(2)
+            for grid_col, (_col_label, segment_label) in zip(grid_cols, cols):
+                with grid_col:
+                    card = cards_by_segment.get(segment_label)
+                    emphasis = segment_label == EMPHASIS_SEGMENT
+                    theme.tile(
+                        segment_label,
+                        _tile_body_html(card, emphasis=emphasis),
+                        emphasis=emphasis,
+                    )
 
     # --- Impact Summary banner and tiles (Req 8.3, 8.5-8.8) ---
-    _render_impact_summary(result)
+    with theme.counting(*run_el):
+        _render_impact_summary(result)
 
     # --- decision cards, two per row on wide screens ---
     st.subheader("Decision Cards")
@@ -576,7 +623,8 @@ def _render_results_tab() -> None:
                 view = build_card_view(
                     card, persona=_results_persona_section(result, card, segment_label)
                 )
-                theme.card(view.title, theme.decision_card_body_html(view))
+                with theme.counting(*run_el):
+                    theme.card(view.title, theme.decision_card_body_html(view))
 
     # --- Download Leads: one per-segment Sendable_Leads CSV ---
     st.subheader("Download Leads")
@@ -712,6 +760,7 @@ def _render_whatif_tab() -> None:
         format=_slider_format(t_spec),
         key=f"whatif_threshold_{t_type.name}",
     )
+    _threshold_readout(t_type, new_threshold, "whatif_threshold")
 
     fields, error, note = _threshold_kwargs(t_type, new_threshold)
     if note:
@@ -726,9 +775,12 @@ def _render_whatif_tab() -> None:
         result = st.session_state.get(RUN_RESULT_KEY)
 
     number, caption = _metric_from_run()
-    theme.metric_panel(number, caption)
-    if result is not None:
-        _render_impact_summary(result)
+    # Counts up once after a run; later slider changes roll from the last
+    # shown value (Part 8, F5). The insight box below fades in once too.
+    with theme.counting(*p8_effects.reveal("analysis")):
+        theme.metric_panel(number, caption, prev=p8_effects.number_prev("whatif", number))
+        if result is not None:
+            _render_impact_summary(result)
     if result is not None and result.cards:
         st.caption(
             f"Threshold ₱{float(result.promo_spec.threshold_php):,.0f}: "
@@ -798,6 +850,8 @@ def main() -> None:
 
     # Effects slot lives outside the tabs (inactive panels are display:none).
     p8_effects.fx_container()
+    # Locks the page while a job loader is shown (decision A7).
+    p8_effects.install_page_lock()
 
     # --- page chrome: current-run context banner only (Part 8, Req 6) ---
     # The slim utility bar and brand bar were removed; the hero carries the
@@ -816,11 +870,14 @@ def main() -> None:
             ),
             unsafe_allow_html=True,
         )
-    with hero_right:
+    with hero_right, theme.counting(*p8_effects.reveal("analysis")):
         st.markdown(
             theme.hero_kpi_html(
                 number,
                 caption,
+                # Counts up once after a run; rolls from the last shown value
+                # on later changes (Part 8, F5).
+                prev=p8_effects.number_prev("hero", number),
                 foot=(
                     "Across all segments"
                     if st.session_state.get(RUN_RESULT_KEY) is not None
@@ -841,17 +898,18 @@ def main() -> None:
         ask_assistant_tab,
     ) = st.tabs(theme.TAB_LABELS)
 
-    with new_promo_tab:
+    # Each tab staggers its own card entrances (theme.card_group).
+    with new_promo_tab, theme.card_group("new_promo"):
         _render_new_promo_tab()
-    with results_tab:
+    with results_tab, theme.card_group("results"):
         _render_results_tab()
-    with whatif_tab:
+    with whatif_tab, theme.card_group("whatif"):
         _render_whatif_tab()
-    with personas_tab:
+    with personas_tab, theme.card_group("personas"):
         persona_page.render_persona_tab(run_result_key=RUN_RESULT_KEY)
-    with past_promos_tab:
+    with past_promos_tab, theme.card_group("past_promos"):
         _render_past_promos_tab()
-    with ask_assistant_tab:
+    with ask_assistant_tab, theme.card_group("assistant"):
         _render_ask_assistant_tab()
 
 

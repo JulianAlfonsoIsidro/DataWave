@@ -1,0 +1,27 @@
+Third-party asset notice for ph_regions.svg (Part 8 region map)
+
+Asset:    Philippine region boundaries, country level, low resolution
+Source:   https://github.com/faeldon/philippines-json-maps
+File:     latest/geojson/country/lowres/country.0.001.json
+Version:  v1.1.1 (tag commit 680e32e62baeccbcd8845d3b1387bc67c1baf78a)
+
+ph_regions.svg is derived from that file by scripts/build_ph_regions.py:
+the 18 region shapes are merged into four areas (NCR, Luzon, Visayas,
+Mindanao), simplified, and reprojected. No other file from the source is used.
+
+Licences:
+- The repository's scripts and map files: MIT License, Copyright (c) James Faeldon.
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions: The above copyright
+  notice and this permission notice shall be included in all copies or
+  substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS",
+  WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.
+- The underlying administrative boundaries: CC BY-IGO 3.0, from the OCHA
+  Common Operational Dataset (COD-AB) for the Philippines, produced by NAMRIA
+  and PSA.
+
+Attribution shown below the map: "NAMRIA, PSA via OCHA"
