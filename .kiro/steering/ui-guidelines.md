@@ -33,6 +33,19 @@ DataWave is an analytical CRM tool for bank campaign planners. The UI should fee
 - Respect `prefers-reduced-motion`.
 - No motion on large tables or charts.
 
+## Part 8 motion and feedback
+
+- Jobs (Run Analysis, Build Personas, What-If rescore) show a loader that locks the page: clicks, Tab and the top-right menu are blocked, wheel scroll still works. Script: `app/static/p8_page_lock.js`.
+- Toasts: a Start_Toast on job start and a Completion_Toast after the finishing overlay. Each toast sits in its own custom element (`<p8-toast-tN>`) so React does not reuse a finished animation clock.
+- Hero and What-If numbers roll (about 600 ms) only on the render where the value changed. Pass `prev=` to `hero_kpi_html` / `metric_panel`. Unrelated reruns show static numbers.
+- Persona cards get a one-shot reveal and a 150 ms group crossfade. Tables and charts do not move.
+- Success and warning flashes are wrapped in `quiet_container` (`p8_quiet_<level>_<n>`) because alerts do not expose their kind in the DOM.
+- Z-order and timing come from tokens (`--pan-z-loader/-finish/-ring/-toast`, `--pan-ease-breath`, `--pan-dur-toast-delay`). Do not hardcode them.
+- Ring and map animate only `transform` and `opacity`. Never animate blur or use `preserve-3d` with `backdrop-filter`.
+- Map credit "NAMRIA, PSA via OCHA" stays visible below the map. The header brand line is removed; the hero title is the only "Promo Audience Navigator".
+- Every motion item must also work with Reduced_Motion on, in light and dark, and must not replay on an unrelated rerun.
+- Known gap: dimmed map areas are low contrast in dark mode. Raise `--pan-dim` or the dark lattice tones if needed.
+
 ## Scope
 
 - Styling and layout only.

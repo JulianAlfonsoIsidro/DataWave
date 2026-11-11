@@ -8,7 +8,13 @@ DataWave/
 │   ├── main.py           # Streamlit entry point; builds the tabs and wires widgets to webapp_core
 │   ├── persona_page.py   # Personas tab: controls, persona cards, comparison table, downloads
 │   ├── theme.py          # palette, CSS injection, and page chrome helpers
-│   └── styles.css
+│   ├── p8_effects.py     # Part 8 motion: toasts, finishing overlay, page lock, number_prev, quiet_container
+│   ├── group_picker.py   # declare_component wrapper for the Group_Visual (ring / Toggle_Card / map)
+│   ├── styles.css
+│   └── static/
+│       ├── p8_page_lock.js        # page lock while a job loader is shown
+│       └── group_picker/          # iframe component: index.html, picker.js, picker.css, SVG assets, licence
+├── scripts/              # one-off build scripts (e.g. build_ph_regions.py)
 ├── data/                 # input CSVs (customer_dna, transactions, promo_history, ...)
 │   ├── gen_data.py       # synthetic data generator
 │   └── _answer_key_*.csv # FORBIDDEN as model inputs
@@ -63,6 +69,8 @@ Output-producing steps (writing the model, scores, cards, leads) run **last**, a
 - `src/webapp_core/` holds all real logic (model reload, eligibility, promo-id generation, run orchestration). It reuses the Part 1/3/4 APIs and adds no modelling.
 - `src/webapp_core/personas.py` runs the in-memory persona generation and computes the persona mix for the live cards.
 - Keep Streamlit imports out of `webapp_core`; keep business logic out of `app/`.
+- Part 8 presentation logic that is pure lives in `webapp_core`: `toast_queue.py` (toast queue and view planning), `number_roll.py` (digit-diff plan for the CSS number roll), `region_map.py` (four Map_Areas, PSGC codes, lead-count entries), `group_picker_items.py` (which Group_Visual fits a run, items, glass level, ring step, value sync, group-change check).
+- `app/group_picker.py` is the only bridge to the picker iframe. Read its component value (`pending_selection`) before the group dropdown renders. Widget keys and labels are unchanged; new keys are `p8_*` containers and the component key `p8_group_picker`.
 
 ### Tabs in `app/main.py`
 
@@ -84,3 +92,4 @@ Output-producing steps (writing the model, scores, cards, leads) run **last**, a
 - Tests live in `tests/` and are named `test_<area>_<kind>.py` where kind is `unit`, `integration`, `property`, or `edge`.
 - Property-based tests (hypothesis) are the primary style; shared input generators live in `tests/strategies*.py`.
 - `tests/conftest.py` makes `src/` importable — never hardcode `sys.path` in individual tests.
+- Part 8 tests are `tests/test_part8_*_unit.py` (tokens, toast_queue, job_motion, number_roll, region_map, group_picker, assets). `picker.js` has no Python test; check it in the browser.

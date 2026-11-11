@@ -12,12 +12,19 @@
 - **xgboost** — the Part 1 propensity booster.
 - **shap** — per-lead top-3 driver explanations.
 - **kmodes** — `KPrototypes` for persona clustering and `KModes` for the categorical-only fallback.
-- **streamlit** — the webapp.
+- **streamlit** — the webapp. Part 8 was built and checked on 1.66.1; it relies on some Streamlit internals (alert test ids, component protocol messages, `components.html` iframe), so recheck after upgrades.
 - **python-dotenv** — environment config.
 - **pytest** — unit and integration tests.
 - **hypothesis** — property-based testing (the dominant test style here).
 
 Dependencies live in `requirements.txt` (unpinned). Install into the repo's `.venv`.
+
+## Front-end assets (Part 8)
+
+- The picker is a vanilla `declare_component` iframe in `app/static/group_picker/`: plain HTML, JS and CSS. No build step, no npm, no external host or CDN.
+- The page lock script is injected with `st.components.v1.html`. Streamlit logs that this will be replaced by `st.iframe`. If removed, the CSS click block remains.
+- `scripts/build_ph_regions.py` is a one-off stdlib script that builds `ph_regions.svg`. It is not part of the runtime. The vendored map asset carries `LICENSE-ph-regions.txt`.
+- FF Dax and Avenir Next are not bundled, so the fallback stacks in `app/theme.py` render.
 
 ## Clustering (personas)
 
@@ -62,4 +69,5 @@ Stages accept `--<name>` CLI flags to override input/output paths; defaults are 
 - pytest plus hypothesis; property tests are the primary style.
 - Set `deadline=None` on hypothesis tests that fit real models.
 - The Personas page has Streamlit `AppTest` smoke tests (`tests/test_part5_personas_apptest_smoke.py`).
+- Part 8 affected-test set: `test_part5_theme`, `test_part5_personas_apptest_smoke` and every `tests/test_part8_*_unit.py` (67 passed at last run).
 - Six Part 1 Hypothesis timeouts fail today. They are pre-existing and unrelated to personas.

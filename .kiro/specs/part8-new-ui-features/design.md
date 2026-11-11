@@ -1,4 +1,4 @@
-# Design Document: Part 8 New UI Features
+﻿# Design Document: Part 8 New UI Features
 
 ## Overview
 
@@ -24,7 +24,7 @@ Streamlit 1.66.1 facts checked in `.venv/Lib/site-packages/streamlit` (read from
 | Container keys | `st.container(key="x")` yields class `st-key-x`. |
 | Text input DOM | `data-testid="stTextInput"` > `stTextInputRootElement` > `stTextInputField` (the `<input>`). Number input: `stNumberInputContainer`, `stNumberInputField`, `stNumberInputStepUp/Down`. Existing CSS selects `div[data-baseweb="input"]`, which may not exist in 1.66; new CSS uses `data-testid` first. Confirm by DOM inspection in the first F4 task. |
 | `st.markdown(unsafe_allow_html=True)` | Rendered through `rehype-raw`, no DOMPurify. `<style>` works. `<script>` does not run. Inline `<svg>` should keep `<filter>`; not seen in a browser, so F3 starts with a 5-minute check and has a fallback. |
-| Alert DOM | `data-testid="stAlertContainer"` inside `stAlert`. Icon selector confirmed at implementation. |
+| Alert DOM | `data-testid="stAlertContainer"` inside `stAlert`, with `stAlertDynamicIcon` for the icon. The alert kind is not in the DOM, so flashes are wrapped in `p8_quiet_*` containers. |
 | Element containers | Every element sits in `div[data-testid="stElementContainer"]`; while a rerun has not yet re-rendered it, it carries `data-stale="true"` and the frontend dims it with a reduced opacity and a transition (exact values are in the minified bundle and not pinned here). |
 | Tab panels | `stTabPanel` exists in the bundle (BaseWeb tab panel with the `hidden` attribute toggled client-side). Selector to confirm in the browser. |
 
@@ -43,8 +43,8 @@ I did not open the four image files. The descriptions come from the brief. Every
 
 Three delivery paths, chosen to keep iframes and vendored files at the minimum (Requirement 1.8):
 
-1. Injected CSS and HTML in the main page: toasts, running state, completion stories, number roll, input pills, quiet alerts, reveal, stale override, tab fade. No JS, no iframe, no vendored file.
-2. One iframe component (`group_picker`): map, ring with glass depth, Toggle_Card. It needs JS for the 3D ring, keyboard handling and returning a value.
+1. Injected CSS and HTML in the main page: toasts, running state, completion stories, number roll, input pills, quiet alerts, reveal, stale override, tab fade. No iframe and no vendored file. The one exception is the page lock script (`app/static/p8_page_lock.js`, decision A7), copied into the main page with `st.components.v1.html`. Streamlit logs that this will be replaced by `st.iframe`; if removed, the CSS click block remains.
+2. One iframe component (`group_picker`): map, ring with glass depth, Toggle_Card. It needs JS for the ring layout and animation, keyboard handling and returning a value.
 3. Pure Python in `src/webapp_core/`: everything that can be unit tested without Streamlit.
 
 ```mermaid
@@ -424,8 +424,9 @@ Recommendation (approved): A. No vendored file, no iframe, no build step (Requir
 - Surviving `st.rerun()`. Each toast carries `--p8-el: <elapsed seconds>` and uses `animation-delay: calc(0s - var(--p8-el))`. A toast already past its entry renders mid-hold, so it does not replay or restart its timer. Toasts older than `LIFE_S` are pruned. Honest limit: hover pause cannot carry across a rerun, because elapsed time is measured by the server clock.
 - Start timing. The Start_Toast is pushed and rendered before the blocking call, so it animates while the job runs.
 - Texts (approved, D2). Run Analysis: "Running analysis for <Promo ID>...". Build Personas: "Building personas by <labels>..." using `attribute_display_label` for each selected column in order; with no split, "Building personas for all leads...". Completion: "Analysis complete" and "Personas ready".
-- Completion toast timing (approved, D3). Run Analysis: when the existing success flash is produced (`result.cards` non-empty). The empty-audience warning and the missing-model error show none. Build Personas: after `run_personas` returns, before `st.rerun()`.
-- Flash alerts. `st.success` and `st.warning` keep text, role and trigger. CSS makes `[data-testid="stAlert"]` compact, with a subtle status tint and no large icon. Contrast stays at least 4.5:1. Errors and info are not restyled. The existing `pan-fade-in` stays.
+- Completion toast timing (approved, D3, revised). The Completion_Toast is queued on the completion render, not before `st.rerun()`, because queueing it earlier used up its time during the rerun. It enters after `--pan-dur-toast-delay` (ring fill plus half the sparks, about 600 ms), as the sparks fade (Requirement 7.7); the reveal starts 80 ms later (Requirement 17.1). Run Analysis shows it only when `result.cards` is non-empty. The empty-audience warning and the missing-model error show none.
+- Toast element identity. Each toast is wrapped in its own custom element (`<p8-toast-tN>`, `display: contents`). React reuses a DOM element when the tag at a position is unchanged, so without this a new toast inherited the previous toast's finished animation clock. The group crossfade alternates two identical keyframes for the same reason.
+- Flash alerts. `st.success` and `st.warning` keep text, role and trigger. Streamlit 1.66.1 alerts do not expose their kind in the DOM, so each flash is wrapped in a keyed container (`p8_quiet_<level>_<n>`, via `quiet_container`) and CSS makes it compact, with a subtle status tint and no large icon. Contrast stays at least 4.5:1. Errors and info are not restyled. The existing `pan-fade-in` stays.
 
 Completion stories (approved Motion_Exceptions). Both sit in a 96 x 64 px box inside the toast. Keyframes use only `from` states so removing the animation leaves the final frame. Every delay is `calc(<offset> - var(--p8-el))`, so a rerun mid-story continues where it was.
 
@@ -547,12 +548,12 @@ Script steps:
 
 | Split | Groups in run | Visual |
 |---|---|---|
-| none, or level `campaign` | any | none |
+| none (no split column) | any | none |
 | any | 0 or 1 | none (no visual, no dropdown, Requirement 12.8) |
 | `region` alone | 2 or more | map |
 | one yes/no column (keys `0`/`1`, also `0.0`/`1.0`) | exactly 2 | Toggle_Card, yes/no layout (column icon, check for 1, cross for 0) |
 | one other column | exactly 2 | Toggle_Card, side-by-side value illustrations and labels |
-| one other column | 3 or more | ring (3D carousel) |
+| one other column | 3 or more | ring (carousel with glass depth) |
 | 2 or more columns (Multi_Split, option A) | 3 to 12 combined groups | ring of combined groups |
 | 2 or more columns | exactly 2 combined groups | Toggle_Card with the combined labels (joined with " · ") as option text |
 | 2 or more columns | more than 12 combined groups | none; dropdown only |
@@ -563,9 +564,9 @@ Notes:
 - `region` alone with exactly 2 groups gives the map, not a Toggle_Card. Requirement 13.1 is specific to `region` and wins over the generic two-value rule in 15.12; the two present areas are selectable and the other two are muted.
 - "Dropdown only" does not apply to 0 or 1 group: there the dropdown is hidden too (Requirement 12.8).
 
-**Ring (Group_Carousel).** Items sit on a ring with `rotateY(i * 360 / n deg) translateZ(r)` inside a `perspective` container. The ring step changes `transform: rotateY()` over 250 ms (`--pan-dur-slow`) with `--pan-ease`.
+**Ring (Group_Carousel).** `picker.js` lays the items out on a ring in 2D: a sin/cos projection of each item's angle, with depth shown by scale and z-index. It is not a CSS `preserve-3d` ring. The ring is animated with requestAnimationFrame on the shared `--pan-ease` curve over `--pan-dur-slow` (250 ms), and a multi-step move rotates along the arc. Only `transform` moves.
 
-Direction, defined once: item `k` sits at `rotateY(k * 360/n)`; showing item `k` at the front sets the ring to `rotateY(-k * 360/n)`. Pressing the left arrow or button brings the left neighbour (index `k-1`) to the front, which increases the ring angle by `360/n` (clockwise seen from above). Right does the opposite. Wrap-around (last to first) takes one step.
+Direction, defined once: item `k` sits at angle `k * 360/n`; showing item `k` at the front puts that angle at the front position. Pressing the left arrow or button brings the left neighbour (index `k-1`) to the front; right does the opposite. Wrap-around (last to first) takes one step, and a click rotates by the shortest direction.
 
 Left and right buttons (`aria-label="Rotate left"`/`"Rotate right"`) and the Left/Right keys step once, and update a polite live region ("Mid-Market, 412 leads"). A press during a rotation queues at most one more step. With "All groups" selected, the first value in dropdown order is at the front and nothing is marked selected. Ring radius is derived from `n` so 12 items fit. Each item shows its value as visible text under the illustration.
 
@@ -578,7 +579,7 @@ Left and right buttons (`aria-label="Rotate left"`/`"Rotate right"`) and the Lef
   - `.glass-2`: the same with the `-2` tokens (more blur, more tint).
 - **Key technique so only opacity animates:** each item always holds both `.glass-1` and `.glass-2` with fixed blur values. The item's level decides which layer has `opacity: 1` (the other, and both for the front item, have `opacity: 0`). On rotation the layers crossfade by `opacity` over `--pan-dur-slow` with `--pan-ease`, in step with the ring `transform`. The arriving front item defrosts (glass opacity to 0) and the leaving item frosts over. Blur is never transitioned.
 - Performance: up to about 12 items with two layers each is 24 `backdrop-filter` layers. They are static and modest in blur, with `will-change: opacity` on the layers. If the browser pass shows stutter at 12 items, the fallback is to build only the layer for the current level (swap on rotation end) for rings above 8 items.
-- 3D caveat: `backdrop-filter` can render wrongly inside a `transform-style: preserve-3d` context, because it blurs what is behind the element within its stacking context. Safe build: only the ring element is `preserve-3d`. Each item card is a flat child positioned by its own `rotateY() translateZ()`, with `transform-style: flat`, and the glass layer is a child of the card with its own flat stacking context. The glass then blurs what is behind the card (the ring backdrop and farther cards). This is checked in the browser checklist, since I cannot confirm it here.
+- No 3D context: `backdrop-filter` is unreliable inside `transform-style: preserve-3d`, so the ring uses no `preserve-3d`. Items are flat cards positioned by `translate` and `scale`, and each glass layer is a child of its card. The glass blurs what is behind the card (the ring backdrop and farther cards). Verified in a browser harness.
 - Fallback: inside `@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)))` each layer is a solid translucent tint (`--pan-glass-fallback-1` / `-2`) with the same edge highlight.
 - Clicking a glass item rotates it to the front by the shortest direction and sets the Selected_Group. Pointer events sit on the card; the glass layer has `pointer-events: none`, so the item stays clickable and focusable through the glass.
 - Labels: the front label meets 4.5:1 in light and dark. Labels on glass items are readable but secondary; the live region and each item's `aria-label` carry the information.
@@ -972,7 +973,7 @@ For any state mapping and key, after `consume_flag(state, key)` the key is absen
 
 For any split column list, group key list and lead counts:
 
-- with 0 or 1 groups, or with level `campaign` or no split column, the kind is `none`;
+- with 0 or 1 groups, or with no split column, the kind is `none` (level `campaign` does not force `none`; a split with 2+ groups gets its visual);
 - for `region` alone with 2 or more groups, the kind is `map`;
 - for one other column with exactly 2 groups, the kind is `toggle`, with `yes_no` true exactly when the keys are 0 and 1 (also `0.0` and `1.0`);
 - for one other column with 3 or more groups, the kind is `carousel`;
@@ -1117,3 +1118,9 @@ The component shell (`group_picker.py`, `index.html`, sync rule) is built in F7 
 - Animating tables, charts, the Past Promos rates, Results tiles, Impact tiles.
 - Licensed Dax and Avenir Next files. If they are missing, the Change_Report names each missing font, the `--pan-font-*` token it backs, and the fallback family used.
 - The existing hero lag after a What-If move.
+
+## Build notes
+
+- Number roll cells are `1lh` tall so roll and static markup share one line box. Roll markup is drawn only on the render where the text changed.
+- Any run with a split and 2+ groups gets its Group_Visual, including level `campaign` (Requirement 12.8).
+- Open reviewer items: dark-mode map contrast (raise `--pan-dim` or the dark lattice tones if too faint) and the unchecked motion-feel items in the browser checklist.

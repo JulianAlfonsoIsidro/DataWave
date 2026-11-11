@@ -17,6 +17,7 @@ The product is built as four batch pipeline stages plus an interactive webapp an
 - Leads are split into groups first, then clustered into personas within each group.
 - Each persona gets a name, plain-language traits, and recommended actions.
 - The live New Promo cards show an "Expected Joiners By Persona" breakdown.
+- A Group_Visual follows the Demo Mode notice when a run has a split with 2+ groups: a 3D ring, a yes/no Toggle_Card, or a Philippine region map (four areas plus an NCR callout). Selecting an item sets the group dropdown. Runs with more than 12 combined groups use the dropdown only.
 - Persona generation is optional and runs on demand; it does not change the Part 1–4 outputs.
 
 ## Past Promos
