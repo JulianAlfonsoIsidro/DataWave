@@ -582,7 +582,7 @@ def swoop_attrs(heading: str, body_html: str) -> tuple[str, str]:
         return "", ""
     el, slot, variant = motion
     # After a Job the cards wait for the finishing loader to fade.
-    start = "var(--pan-reveal-start)" if counting_el() is not None else "var(--pan-dur-none)"
+    start = "var(--p8-gen-start)" if counting_el() is not None else "var(--pan-dur-none)"
     # The content tag makes the class differ whenever the content does, so
     # React rewrites it (clearing the played marker) even when a new card
     # lands in the old card's place; the a/b name restarts a running entrance.
@@ -1080,6 +1080,7 @@ def loading(kind: str, message: str, *, slow: bool = False, status: str = ""):
 
 LOADER_MESSAGES = {
     "suggest": "Finding a good number of personas...",
+    "rescore": "Rescoring at the new threshold...",
     "analysis": "Scoring and segmenting your audience...",
     "personas": "Grouping leads into personas...",
 }
@@ -1092,7 +1093,7 @@ LOADER_MESSAGES = {
 # document strip, magnifier, tiles) into the start frame, so nothing jumps.
 # The values computed here are only the fallback when that script is absent.
 FINISH_HEADLINES = {"analysis": "Promo Analyzed", "personas": "Personas Built",
-                    "suggest": "Number Suggested"}
+                    "suggest": "Number Suggested", "rescore": "Promo Rescored"}
 _DOC_PITCH = 84.0     # .pan-docs: --doc-w 56px + --doc-gap 28px
 _DOC_LAP_S = 1.6      # pan-docs-slide duration (styles.css section 5)
 _DOC_SETTLE = 21.5    # px the strip glides while it stops (speed-matched)
@@ -1196,7 +1197,8 @@ def _fireworks_html() -> str:
 
 
 def finishing_overlay_html(
-    kind: str, phase: float = 0.0, elapsed: float = 0.0, headline: str | None = None
+    kind: str, phase: float = 0.0, elapsed: float = 0.0, headline: str | None = None,
+    uid: int = 0,
 ) -> str:
     """The loader's finish (Requirement 22.16, Part 8 polish).
 
@@ -1218,8 +1220,15 @@ def finishing_overlay_html(
     else:
         story = _finish_analysis(elapsed)
     headline = headline or FINISH_HEADLINES.get(kind, "")
+    # Successive endings alternate the outer element (div / section): React
+    # then always builds a new element. Reusing the previous ending's element
+    # (only its class changes) kept its finished animations, so a second ending
+    # in a session never played. "is-held" starts the story frozen until the
+    # page script sees the browser free (p8_page_lock.js), so a busy rerun
+    # cannot use the ending up unseen.
+    tag = "section" if int(uid) % 2 else "div"
     return (
-        f'<div class="pan-loading is-finishing pan-fin--{html.escape(kind)}" aria-hidden="true">'
+        f'<{tag} class="pan-loading is-finishing is-held pan-fin--{html.escape(kind)}" aria-hidden="true">'
         '<div class="pan-loading-card">'
         f"{_trace_html('done', phase)}"
         f"{_fireworks_html()}"
@@ -1232,7 +1241,7 @@ def finishing_overlay_html(
         '<div class="pan-loading-status"></div>'
         '<div class="pan-skel"><span></span><span></span><span></span></div>'
         f'<div class="pan-loading-done">{html.escape(headline)}</div>'
-        "</div></div></div>"
+        f"</div></div></{tag}>"
     )
 
 

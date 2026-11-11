@@ -55,7 +55,6 @@
     return { a: v[0], e: v[4], f: v[5] };
   }
   function adopt(fin) {
-    fin.setAttribute("data-p8-adopted", "");
     var run = document.querySelector(LOADER);
     if (!run) return;                                   // fallbacks from the server stay
     var line = run.querySelector(".pan-trace-line"), trace = fin.querySelector(".pan-trace");
@@ -100,8 +99,39 @@
     });
   }
 
+  // The ending is drawn at the start of the rerun that follows a job, but the
+  // rest of that rerun can keep the browser too busy to paint for seconds, and
+  // the ending would play unseen. So it is held on its first frame until the
+  // browser is free again: the old running loader has been replaced (the rerun
+  // reached it) and three animation frames in a row arrive on time. Then the
+  // live positions are copied and it plays. A 4 s cap means it never waits
+  // forever.
+  function hold(fin) {
+    fin.setAttribute("data-p8-adopted", "");
+    fin.classList.add("is-held");
+    var t0 = performance.now(), last = t0, smooth = 0;
+    fin.setAttribute("data-p8-held-at", String(Math.round(t0)));
+    function release() {
+      adopt(fin);
+      // Restart the overlay's own fade so its hold-and-fade counts from now.
+      fin.style.animation = "none";
+      void fin.offsetWidth;
+      fin.style.animation = "";
+      fin.classList.remove("is-held");
+      fin.setAttribute("data-p8-released-after", String(Math.round(performance.now() - t0)));
+    }
+    function frame(now) {
+      var oldGone = !document.querySelector(LOADER);
+      smooth = (now - last < 50) ? smooth + 1 : 0;
+      last = now;
+      if ((oldGone && smooth >= 3) || now - t0 > 4000) { release(); return; }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
   function sync() {
-    document.querySelectorAll(".pan-loading.is-finishing:not([data-p8-adopted])").forEach(adopt);
+    document.querySelectorAll(".pan-loading.is-finishing:not([data-p8-adopted])").forEach(hold);
     var on = document.querySelector(LOADER) !== null;
     if (on) {
       lock();
@@ -118,6 +148,15 @@
   // generation must not replay when a hidden tab panel is shown again (a
   // display change restarts CSS animations). When one finishes, its element
   // is marked; CSS then keeps it at its final frame (.p8-anim-done).
+  // A loader ending that has faded out stops delaying reveals (CSS
+  // --p8-gen-start), so tabs opened afterwards show their numbers at once.
+  document.addEventListener("animationend", function (e) {
+    var t = e.target;
+    if (e.animationName === "p8-fade-out" && t && t.classList && t.classList.contains("is-finishing")) {
+      t.classList.add("p8-ended");
+    }
+  }, true);
+
   var ONCE = { "p8-drop-card": 1, "p8-drop-in": 1, "p8-count": 1, "p8-swoop": 1, "p8-swoop-b": 1 };
   document.addEventListener("animationend", function (e) {
     var t = e.target;

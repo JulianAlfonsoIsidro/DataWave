@@ -1810,7 +1810,9 @@ div[data-testid="stElementContainer"][data-stale="true"]:has(.pan-loading) {
   transform: translateY(calc(var(--p8-to) * -1lh));
 }
 .p8-strip > span { block-size: 1lh; }
-.p8-d.is-roll > .p8-strip { animation: p8-roll var(--pan-dur-roll) var(--pan-ease); }
+/* Waits for a loader ending that is on screen (it holds the old value), so
+   a rescore's change is seen rolling instead of happening under the overlay. */
+.p8-d.is-roll > .p8-strip { animation: p8-roll var(--pan-dur-roll) var(--pan-ease) var(--p8-gen-start) backwards; }
 @keyframes p8-roll { from { transform: translateY(calc(var(--p8-from) * -1lh)); } }
 .p8-c.is-enter { animation: p8-rise var(--pan-dur-roll) var(--pan-ease) backwards; }
 @media (prefers-reduced-motion: reduce) {
@@ -1830,7 +1832,7 @@ div[data-testid="stElementContainer"][data-stale="true"]:has(.pan-loading) {
 .p8-reveal {
   /* Top to bottom, one by one (Part 8 polish, fix 5). --p8-el continues the
      reveal if a rerun lands mid-way; its numbers start as the card arrives. */
-  --p8-cu-start: calc(var(--pan-reveal-start) + var(--pan-reveal-base)
+  --p8-cu-start: calc(var(--p8-gen-start) + var(--pan-reveal-base)
                       + var(--i) * var(--pan-reveal-step));
   animation: p8-drop-card var(--pan-dur-reveal) var(--pan-ease) backwards;
   animation-delay: calc(var(--p8-cu-start) - var(--p8-el, var(--pan-dur-none)));
@@ -1922,7 +1924,7 @@ div[data-testid="stElementContainer"][data-stale="true"]:has(.pan-loading) {
 /* Important text boxes (fix 6): fade in from the top once per generation. */
 .p8-text-in {
   animation: p8-drop-in var(--pan-dur-text-in) var(--pan-ease) backwards;
-  animation-delay: calc(var(--pan-reveal-start) - var(--p8-el, var(--pan-dur-none)));
+  animation-delay: calc(var(--p8-gen-start) - var(--p8-el, var(--pan-dur-none)));
 }
 @keyframes p8-drop-in { from { opacity: 0; transform: translateY(-10px); } }
 
@@ -1942,7 +1944,7 @@ div[data-testid="stElementContainer"][data-stale="true"]:has(.pan-loading) {
   flex-direction: column;
   transform: translateY(calc(var(--d) * -1lh));
   animation: p8-count calc(var(--pan-dur-roll) * 2) var(--pan-ease) backwards;
-  animation-delay: calc(var(--p8-cu-start, var(--pan-reveal-start))
+  animation-delay: calc(var(--p8-cu-start, var(--p8-gen-start))
                         + var(--n) * var(--pan-count-step) - var(--p8-el, var(--pan-dur-none)));
 }
 .p8-cs > span { block-size: 1lh; }
@@ -2341,3 +2343,33 @@ div[data-testid="stElementContainer"][data-stale="true"]:has(.pan-loading) {
   .pan-sg-dot::before, .pan-sg-dot::after { display: none; }
   .pan-loading.is-finishing .pan-sg-fdot { animation: none !important; }
 }
+
+/* Tabs: no focus outline. Returning to the window (alt-tab) restores focus
+   on the selected tab and Chrome treats that as keyboard focus, so the
+   site-wide ring drew two vertical lines beside it (the tab list clips the
+   rest). The red underline already marks the selected tab, and arrow keys
+   move that underline, so keyboard users still see where they are. */
+.stTabs [role="tab"]:focus,
+.stTabs [role="tab"]:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Loader endings wait for the page (p8_page_lock.js hold): frozen on their
+   first frame while the rerun after a job is still drawing, then they play
+   in full. The old running loader is hidden as soon as an ending is shown,
+   so it never lingers on screen after the ending fades. */
+/* Only the inside is frozen: the overlay's own fade keeps running as a safety
+   net (if the page script never ran, it still fades out); the script restarts
+   that fade when it releases the hold. */
+.pan-loading.is-finishing.is-held * { animation-play-state: paused !important; }
+body:has(.pan-loading.is-finishing) .pan-loading:not(.is-finishing) { visibility: hidden; }
+
+/* Generation reveals wait for a loader ending only while one is actually on
+   screen. --p8-gen-start is that wait while an ending overlay is showing and
+   0 once it has faded (p8_page_lock.js marks it .p8-ended), so numbers and
+   cards on a tab opened later start at once instead of sitting at 0 for the
+   length of an ending that finished long ago. Animations already running keep
+   the delay they started with. */
+:root { --p8-gen-start: var(--pan-dur-none); }
+:root:has(.pan-loading.is-finishing:not(.p8-ended)) { --p8-gen-start: var(--pan-reveal-start); }

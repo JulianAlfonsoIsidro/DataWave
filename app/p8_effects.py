@@ -25,6 +25,7 @@ P8_TOAST_SEQ = "p8_toast_seq"
 P8_ONESHOT_ANALYSIS = "p8_oneshot_analysis"
 P8_ONESHOT_PERSONAS = "p8_oneshot_personas"
 P8_ONESHOT_SUGGEST = "p8_oneshot_suggest"
+P8_ONESHOT_RESCORE = "p8_oneshot_rescore"
 P8_JOB_STARTED = "p8_job_started"  # {job: started_at}
 P8_JOB_END = "p8_job_end"  # {job: {"ok", "started_at", "ended_at", "signature"}}
 P8_NUM_PREV = "p8_num_prev"
@@ -39,7 +40,7 @@ P8_GEN = "p8_gen"
 P8_GEN_SEQ = "p8_gen_seq"
 # Card entrances: {card key: {"sig": content fingerprint, "at": when it changed}}
 P8_CARD_SIGS = "p8_card_sigs"
-_CARD_RUN_KEY = "p8_card_run"     # (run token, {key: count}, next stagger slot)
+_CARD_RUN_KEY = "p8_card_run"     # (token, {key: count}, {group: next slot}, drawn now, drawn last run)
 CARD_STAGGER_MAX = 9              # later cards start with the tenth
 
 # Last job-end record per job, kept for the duplicate-submit guard. Unlike
@@ -55,9 +56,11 @@ P8_GROUP_VISUAL = "p8_group_visual"
 
 # "suggest" is the Personas page's "Suggest a number" scan: same loader,
 # trace, fireworks and finish clock, its own dot motif.
-_JOBS = ("analysis", "personas", "suggest")
+# "rescore" is the What-If threshold rescore: the Run Analysis loader and
+# finish (magnifier story), with its own headline.
+_JOBS = ("analysis", "personas", "suggest", "rescore")
 _ONESHOT_KEYS = {"analysis": P8_ONESHOT_ANALYSIS, "personas": P8_ONESHOT_PERSONAS,
-                 "suggest": P8_ONESHOT_SUGGEST}
+                 "suggest": P8_ONESHOT_SUGGEST, "rescore": P8_ONESHOT_RESCORE}
 
 # Session-state slot holding (run token, container) for the current run.
 _FX_CACHE_KEY = "p8_fx_cache"
@@ -373,6 +376,7 @@ def fx_container() -> Any:
                 theme.finishing_overlay_html(
                     finishing, phase=job_phase(finishing), elapsed=job_elapsed(finishing),
                     headline=_FINISH_HEADLINE[0],
+                    uid=_FINISH_UID[0],
                 ),
                 unsafe_allow_html=True,
             )
@@ -475,10 +479,14 @@ def _pick_up_completions() -> str | None:
             # already said it; the finishing overlay closes the loader.
             finishing = job
             _FINISH_HEADLINE[0] = record.get("headline")
+            seq = int(_state().get("p8_fin_seq", 0)) + 1
+            _state()["p8_fin_seq"] = seq
+            _FINISH_UID[0] = seq           # alternates the ending's element type
     return finishing
 
 
 _FINISH_HEADLINE: list = [None]
+_FINISH_UID: list = [0]
 
 
 def start_toast(job: str, text: str) -> None:
@@ -520,16 +528,25 @@ def card_motion(key: str, sig: str, group: str = "page") -> tuple[float, int, in
     state = _state()
     run = state.get(_CARD_RUN_KEY)
     if not run or run[0] is not token:
-        run = (token, {}, {})
+        # New run: what the last run drew (per tab group) becomes "previous".
+        prev_drawn = run[3] if run and len(run) > 3 else {}
+        run = (token, {}, {}, {}, prev_drawn)
         state[_CARD_RUN_KEY] = run
     seen = run[1]
     n = seen.get(key, 0)
     seen[key] = n + 1
     full_key = key if n == 0 else f"{key}#{n}"      # repeated headings stay apart
+    run[3].setdefault(group, set()).add(full_key)
+    # A card that was off screen in the previous render of its tab counts as
+    # new even if its content matches what it showed long ago (switching to
+    # group B and back to A). A run that drew no cards in this tab (one that
+    # stopped early, e.g. to rerun) is not evidence of absence.
+    prev_tab = run[4].get(group)
+    reappeared = bool(prev_tab) and full_key not in prev_tab
     store = _store(P8_CARD_SIGS)
     now = time.time()
     rec = store.get(full_key)
-    if not isinstance(rec, dict) or rec.get("sig") != sig:
+    if not isinstance(rec, dict) or rec.get("sig") != sig or reappeared:
         slot = run[2].get(group, 0)
         # The variant flips on every change, so the card's class and its
         # animation name both change and the entrance always restarts.

@@ -454,22 +454,37 @@ def _persona_name(agg: Any, taken: set[str]) -> str:
         index += 1
 
 
-def mock_persona_narration(agg: Any, taken: set[str]) -> dict[str, Any]:
+def mock_persona_narration(
+    agg: Any, taken: set[str], archetypes: Any = None
+) -> dict[str, Any]:
     """Build ``name``, ``description``, ``difference``, ``actions`` from ``agg``.
 
     ``agg`` is a ``PersonaAggregate``. ``taken`` is not mutated; the returned
     name is unique against it (Requirement 6.7 / 4.9 style).
+
+    ``archetypes`` (the persona's traits as :class:`ai.archetypes.Archetype`,
+    strongest first) turns on CRM-style names ("Disciplined Saver",
+    "Digital-First Saver") and a "They are people with ..." description.
     """
+    from ai.archetypes import archetype_name, people_with
+
     phrases = [t.phrase.lower() for t in agg.traits if t.phrase]
 
     # Description: 1-2 sentences within the length cap.
     first = f"This group is about {round(agg.share_pct)}% of the audience, with {agg.size:,} customers."
     description = first
-    for count in range(min(3, len(phrases)), 0, -1):
-        second = f"They stand out for {_join_phrases(phrases[:count])}."
-        if len(first) + 1 + len(second) <= _PERSONA_DESCRIPTION_MAX_CHARS:
-            description = f"{first} {second}"
-            break
+    if archetypes:
+        for count in range(min(3, len(archetypes)), 0, -1):
+            second = f"They are people with {people_with(archetypes, count)}."
+            if len(first) + 1 + len(second) <= _PERSONA_DESCRIPTION_MAX_CHARS:
+                description = f"{first} {second}"
+                break
+    else:
+        for count in range(min(3, len(phrases)), 0, -1):
+            second = f"They stand out for {_join_phrases(phrases[:count])}."
+            if len(first) + 1 + len(second) <= _PERSONA_DESCRIPTION_MAX_CHARS:
+                description = f"{first} {second}"
+                break
 
     # Difference statement within its cap.
     difference = "Compared with other personas, this group has no single standout trait."
@@ -491,8 +506,9 @@ def mock_persona_narration(agg: Any, taken: set[str]) -> dict[str, Any]:
         message = message[:_PERSONA_MESSAGE_MAX_CHARS]
         actions.append(f"{channels[i % len(channels)]}: {angle}. {message}")
 
+    name = (archetype_name(archetypes, taken) if archetypes else None) or _persona_name(agg, taken)
     return {
-        "name": _persona_name(agg, taken),
+        "name": name,
         "description": description,
         "difference": difference,
         "actions": actions,
@@ -508,9 +524,16 @@ class MockPersonaNamer:
 
     def name(self, profile: Any, taken: set[str]) -> Any:
         # Lazy import: persona_narrator imports this module at load time.
-        from ai.persona_narrator import build_aggregate
+        from ai.archetypes import archetypes_for, trait_key
+        from ai.persona_narrator import _focus_category, build_aggregate
+        from part5_personas.labels import is_flag_attribute
 
-        out = mock_persona_narration(build_aggregate(profile), taken)
+        keys = [
+            trait_key(attr, profile.distinguishing_directions.get(attr),
+                      _focus_category(profile, attr), is_flag_attribute(attr))
+            for attr in profile.distinguishing
+        ]
+        out = mock_persona_narration(build_aggregate(profile), taken, archetypes_for(keys))
         return {
             "name": out["name"],
             "description": out["description"],

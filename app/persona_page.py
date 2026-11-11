@@ -1428,7 +1428,18 @@ def _render_persona_comparison(result: PersonaRunResult) -> None:
             rendered_any = True
         if persona_set.group_key:
             st.markdown(f"**Segment: {persona_set.group_key}**")
-        st.dataframe(frame, hide_index=True, use_container_width=True)
+        st.dataframe(
+            frame,
+            hide_index=True,
+            use_container_width=True,
+            # Size stays a number (it still sorts) but sits on the left like the
+            # other columns; separators match the "1,021 leads" on the cards.
+            column_config={
+                "Size": st.column_config.NumberColumn(
+                    "Size", alignment="left", format="localized"
+                ),
+            },
+        )
 
 
 # --------------------------------------------------------------------------- #

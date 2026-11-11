@@ -199,6 +199,7 @@ def _run_context_items() -> list[str] | None:
 
 
 FLASH_KEY = "flash_messages"
+WHATIF_FLASH_KEY = "whatif_flash_messages"   # rescore messages survive its rerun
 
 
 def _show_messages(messages: list[tuple[str, str]]) -> None:
@@ -765,14 +766,34 @@ def _render_whatif_tab() -> None:
     fields, error, note = _threshold_kwargs(t_type, new_threshold)
     if note:
         st.info(note)
+    # Messages from the rescore that just finished (it reruns, like a run).
+    _show_messages(st.session_state.pop(WHATIF_FLASH_KEY, []))
     if error:
         st.error(error)
     elif fields is not None and abs(float(new_threshold) - current) >= (step / 2.0):
+        # Same loading screen as Run Analysis (magnifier, status line, trace),
+        # and the same finish: the rerun draws the ending animation.
         new_spec = dataclasses.replace(result.promo_spec, **fields)
-        with theme.loading("rescore", "Rescoring at the new threshold...", slow=True):
+        p8_effects.start_job("rescore", None)
+        with theme.loading(
+            "rescore",
+            "Rescoring at the new threshold...",
+            status=f"Rescoring at {format_value(t_type, new_threshold)}...",
+        ) as loader:
             messages = _execute_run(new_spec)
-        _show_messages(messages)
-        result = st.session_state.get(RUN_RESULT_KEY)
+            st.session_state[WHATIF_FLASH_KEY] = messages
+            ok = any(level == "success" for level, _ in messages) or bool(
+                (st.session_state.get(RUN_RESULT_KEY) or result).cards
+            )
+            p8_effects.end_job("rescore", ok, repr(fields))
+            if ok:
+                loader.status("Promo rescored")
+                loader.keep()
+        if ok:
+            st.rerun()
+        # A failed rescore leaves the result unchanged; rerunning would retry
+        # forever, so its messages show here and the page carries on.
+        _show_messages(st.session_state.pop(WHATIF_FLASH_KEY, []))
 
     number, caption = _metric_from_run()
     # Counts up once after a run; later slider changes roll from the last
