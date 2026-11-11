@@ -156,6 +156,7 @@ def _build_client(values: Mapping[str, str]) -> Any:
         region_name=values["AWS_REGION"],
         aws_access_key_id=values["AWS_ACCESS_KEY_ID"],
         aws_secret_access_key=values["AWS_SECRET_ACCESS_KEY"],
+        aws_session_token=os.environ.get("AWS_SESSION_TOKEN") or None,
         config=Config(
             connect_timeout=5,
             read_timeout=TIMEOUT_SECONDS,
