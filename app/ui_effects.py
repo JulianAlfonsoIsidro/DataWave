@@ -264,7 +264,7 @@ def generation(job: str) -> str | None:
 def reveal(job: str) -> tuple[float | None, str]:
     """``(reveal_el(job), generation id)``; ``(None, "")`` outside the window.
 
-    Pass straight to ``theme.counting(*p8_effects.reveal(job))``.
+    Pass straight to ``theme.counting(*ui_effects.reveal(job))``.
     """
     el = reveal_el(job)
     return (el, generation(job) or "") if el is not None else (None, "")
@@ -302,7 +302,7 @@ def fail_job_in_place(job: str, slot: Any, signature: str | None = None) -> None
 #   2. the toast slot (st.empty, re-filled whenever a toast is pushed)
 #   3. the finishing overlay, only on a completion render (design section l)
 
-_LOCK_JS_PATH = Path(__file__).resolve().parent / "static" / "p8_page_lock.js"
+_LOCK_JS_PATH = Path(__file__).resolve().parent / "static" / "page_lock.js"
 
 
 def _run_token() -> Any:
@@ -312,8 +312,11 @@ def _run_token() -> Any:
     return ctx.cursors if ctx is not None else None
 
 
-def _page_lock_html(code: str) -> str:
-    """Iframe markup that copies the lock script into the main page once.
+_P9_JS_PATH = Path(__file__).resolve().parent / "static" / "ui_interactions.js"
+
+
+def _page_lock_html(code: str, script_id: str = "p8-page-lock") -> str:
+    """Iframe markup that copies a page script into the main page once.
 
     The script must live in the main page's own realm so it keeps working if
     the zero-height iframe is later re-created; the element id makes the copy
@@ -321,8 +324,8 @@ def _page_lock_html(code: str) -> str:
     """
     return (
         "<script>(function(){try{var d=window.parent.document;"
-        "if(d.getElementById('p8-page-lock'))return;"
-        "var s=d.createElement('script');s.id='p8-page-lock';"
+        f"if(d.getElementById('{script_id}'))return;"
+        f"var s=d.createElement('script');s.id='{script_id}';"
         f"s.textContent={json.dumps(code).replace('</', '<' + chr(92) + '/')};"
         "d.head.appendChild(s);}catch(e){}})();</script>"
     )
@@ -331,11 +334,15 @@ def _page_lock_html(code: str) -> str:
 def _draw_page_lock() -> None:
     import streamlit.components.v1 as components
 
-    try:
-        code = _LOCK_JS_PATH.read_text(encoding="utf-8")
-    except OSError:
-        return  # the CSS click block still applies
-    components.html(_page_lock_html(code), height=0)
+    parts = []
+    for path, script_id in ((_LOCK_JS_PATH, "p8-page-lock"), (_P9_JS_PATH, "p9-ui")):
+        try:
+            parts.append(_page_lock_html(path.read_text(encoding="utf-8"), script_id))
+        except OSError:
+            continue  # the CSS click block still applies
+    if parts:
+        # One zero-height frame for both scripts (Part 9: theme fill, hover texts).
+        components.html("".join(parts), height=0)
 
 
 def fx_container() -> Any:

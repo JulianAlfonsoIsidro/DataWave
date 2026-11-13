@@ -9,7 +9,7 @@ html, body {
   padding: 0;
   background: transparent;
   color: var(--pan-text);
-  overflow: hidden;
+  overflow: clip;            /* Part 9: same clipping, no scroll container */
   -webkit-font-smoothing: antialiased;
 }
 * { box-sizing: border-box; }
@@ -35,7 +35,15 @@ html, body {
 button { font: inherit; color: inherit; }
 
 /* ------------------------------------------------------------------ ring */
-.stage { position: absolute; inset: 0; outline: none; }
+/* Part 9: a real 3D carousel. Each item sits on a circle at its own angle
+   (--a) and radius (--R) and turns back to face the viewer, so labels never
+   read mirrored. A turn changes only --a; the registered property makes it
+   one smooth CSS transition along the circle (no per-frame script). The
+   stage is pushed back by the radius so the front item stays at full size;
+   the perspective origin sits high, so farther items rise a little. */
+@property --a { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+.view.ring { perspective: var(--persp); perspective-origin: 50% 18%; }
+.stage { position: absolute; inset: 0; outline: none; transform-style: preserve-3d; transform: translateZ(calc(-1 * var(--R))); }
 .stage:focus-visible { outline: 2px solid var(--pan-focus); outline-offset: -2px; border-radius: var(--pan-radius-lg); }
 .item {
   position: absolute;
@@ -45,8 +53,11 @@ button { font: inherit; color: inherit; }
   block-size: 180px;
   margin: -90px 0 0 -75px;
   cursor: pointer;
+  transform: rotateY(var(--a)) translateZ(var(--R)) rotateY(calc(-1 * var(--a)));
+  transition: --a var(--pan-dur-carousel) var(--pan-ease-carousel);
   will-change: transform;
 }
+.no-anim .item { transition: none; }
 .card {
   position: absolute;
   inset: 0;
@@ -281,7 +292,7 @@ g[data-area].is-filling .area-shape { fill: url(#pk-lattice); }
 
 @media (prefers-reduced-motion: reduce) {
   .view { animation: none; }
-  .glass, .opt, .rot, g[data-area], .shadow, .card { transition: none; }
+  .glass, .opt, .rot, g[data-area], .shadow, .card, .item { transition: none; }
   .opt:hover, .opt:active, .rot:hover, .rot:active { transform: none; }
   /* Reveal: a short opacity fade, no movement, no stagger. */
   .is-revealing-still .view { animation: pk-fade var(--pan-dur-xfade-short) var(--pan-ease) backwards; }

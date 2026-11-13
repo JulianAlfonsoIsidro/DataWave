@@ -18,7 +18,7 @@ still get the movement.
 # app/persona_page.py:2170-2175 — current
     if reveal:
         # One-shot rise of the visual as item 1 of the reveal (F8, Req 17.2).
-        p8_effects.emit(
+        ui_effects.emit(
             '<style>.st-key-p8_group_visual{animation:p8-rise var(--pan-dur-slow) '
             "var(--pan-ease) backwards;animation-delay:calc(var(--pan-dur-toast-delay) "
             "+ var(--pan-reveal-base))}</style>"
@@ -45,7 +45,7 @@ Reduced motion keeps the opacity feedback and drops the movement.
     if reveal:
         # One-shot rise of the visual as item 1 of the reveal (F8, Req 17.2).
         # Reduced motion: opacity only, no delay (same as .p8-reveal).
-        p8_effects.emit(
+        ui_effects.emit(
             '<style>.st-key-p8_group_visual{animation:p8-rise var(--pan-dur-slow) '
             "var(--pan-ease) backwards;animation-delay:calc(var(--pan-dur-toast-delay) "
             "+ var(--pan-reveal-base))}"
@@ -63,7 +63,7 @@ Reduced motion keeps the opacity feedback and drops the movement.
 
 ## Steps
 
-1. In `app/persona_page.py` around line 2170, replace the string passed to `p8_effects.emit(...)` with the target string above, exactly. Add the one-line comment.
+1. In `app/persona_page.py` around line 2170, replace the string passed to `ui_effects.emit(...)` with the target string above, exactly. Add the one-line comment.
 
 ## Boundaries
 

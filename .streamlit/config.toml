@@ -32,8 +32,8 @@ secondaryBackgroundColor = "#F1F2F5"
 textColor = "#1F2328"
 font = "Avenir Next, Segoe UI, Arial, sans-serif"
 headingFont = "Dax, Bahnschrift, Segoe UI, sans-serif"
-baseRadius = "10px"
-buttonRadius = "10px"
+baseRadius = "6px"
+buttonRadius = "6px"
 showWidgetBorder = true
 
 [theme.light]

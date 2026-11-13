@@ -1,6 +1,6 @@
 """Pure timing helpers for the F2 Job_Button redesign (Part 8).
 
-No Streamlit imports. ``app/p8_effects.py`` calls these and ``app/theme.py``
+No Streamlit imports. ``app/ui_effects.py`` calls these and ``app/theme.py``
 turns the results into markup.
 
 - ``ring_phase`` gives the server-timed position of the running ring as a

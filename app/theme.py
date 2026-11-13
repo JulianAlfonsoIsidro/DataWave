@@ -30,6 +30,7 @@ Streamlit server.
 from __future__ import annotations
 
 import contextvars
+import dataclasses
 import html
 import re
 from contextlib import contextmanager
@@ -572,10 +573,10 @@ def swoop_attrs(heading: str, body_html: str) -> tuple[str, str]:
     """``(class, style)`` for a card that is new or changed: it fades in while
     rising, one by one in reading order (Part 8 polish). Empty otherwise."""
     try:
-        import p8_effects
+        import ui_effects
 
         sig = _card_sig(heading, body_html)
-        motion = p8_effects.card_motion(heading, sig, _CARD_GROUP.get())
+        motion = ui_effects.card_motion(heading, sig, _CARD_GROUP.get())
     except Exception:  # noqa: BLE001 - presentation only, never block a render
         motion = None
     if motion is None:
@@ -657,6 +658,16 @@ def hero_kpi_html(number: str, label: str, foot: str = "", *, prev: str | None =
     foot_html = (
         f'<div class="kpi-foot">{html.escape(foot)}</div>' if foot else ""
     )
+    return (
+        '<div class="pan-hero-kpi">'
+        f'<div class="kpi-label">{html.escape(label)}</div>'
+        f'<div class="kpi-number">{_kpi_number_html(number, prev)}</div>'
+        f"{foot_html}</div>"
+    )
+
+
+def _kpi_number_html(number: str, prev: str | None) -> str:
+    """The headline number: count-up after a Job, roll on change, else static."""
     number_html = html.escape(str(number))
     if counting_el() is not None:
         # After a Job: count up from 0 (fix 9); the roll is for later changes.
@@ -669,12 +680,167 @@ def hero_kpi_html(number: str, label: str, foot: str = "", *, prev: str | None =
         # render keeps the plain static markup (one-shot, Requirement 11.5).
         if any(c.kind != "static" for c in cells):
             number_html = roll_number_html(cells, plain=str(number))
-    return (
-        '<div class="pan-hero-kpi">'
-        f'<div class="kpi-label">{html.escape(label)}</div>'
-        f'<div class="kpi-number">{number_html}</div>'
-        f"{foot_html}</div>"
+    return number_html
+
+
+def run_header_html(
+    number: str,
+    label: str,
+    *,
+    has_run: bool,
+    prev: str | None = None,
+    title: str = APP_TITLE,
+) -> str:
+    """The page header: the wordmark and, once a run exists, its one number.
+
+    Replaces the hero (Part 9). The run's details (promo, product, threshold
+    and so on) are not repeated here; before any run only the wordmark shows.
+    """
+    wordmark = f'<h1 class="pan-wordmark">{html.escape(title)}</h1>'
+    # Round 3: before a run the slot is kept (hidden), so the header does not
+    # grow when the number first appears.
+    kpi = (
+        '<div class="pan-run-kpi is-empty" aria-hidden="true">'
+        f'<div class="pan-run-kpi-label">{html.escape(label)}</div>'
+        '<div class="pan-run-kpi-number kpi-number">0</div></div>'
     )
+    if has_run:
+        kpi = (
+            '<div class="pan-run-kpi">'
+            f'<div class="pan-run-kpi-label">{html.escape(label)}</div>'
+            f'<div class="pan-run-kpi-number kpi-number">{_kpi_number_html(number, prev)}</div>'
+            "</div>"
+        )
+    return f'<header class="pan-shell">{wordmark}{kpi}</header>'
+
+
+def _delta_text(delta: float, digits: int = 0) -> str:
+    """A signed change with a direction arrow (round 3): never colour alone."""
+    if abs(delta) < 0.5 * 10 ** -digits:
+        return '<span class="pan-delta is-flat">No change</span>'
+    up = delta > 0
+    return (
+        f'<span class="pan-delta {"is-up" if up else "is-down"}">'
+        f'<span aria-hidden="true">{"▲" if up else "▼"}</span> '
+        f'{"+" if up else "−"}{abs(delta):,.{digits}f}</span>'
+    )
+
+
+def whatif_segments_html(rows) -> str:
+    """What-If per-segment table (round 3): each segment as run and now.
+
+    ``rows`` are ``(segment, [(now, base_or_None, digits), ...])`` for the
+    Clients, Expected Joiners and Sendable columns. With no baseline a cell
+    shows only the current figure.
+    """
+    head = (
+        '<tr><th class="pan-th">Segment</th>'
+        '<th class="pan-th pan-num">Clients</th>'
+        '<th class="pan-th pan-num">Expected Joiners</th>'
+        '<th class="pan-th pan-num">Sendable</th></tr>'
+    )
+    body = []
+    for segment, cells in rows:
+        marker, seg_class = segment_marker_html(segment)
+        tds = []
+        for now, base, digits in cells:
+            v = f'<span class="pan-wis-now">{now:,.{digits}f}</span>'
+            if base is not None:
+                v += f'<span class="pan-wis-d">{_delta_text(now - base, digits)}</span>'
+            tds.append(f'<td class="pan-td pan-num">{v}</td>')
+        body.append(
+            f'<tr><td class="pan-td pan-strong"><span class="pan-wis-seg {seg_class}">'
+            f'{marker}<span>{html.escape(segment)}</span></span></td>{"".join(tds)}</tr>'
+        )
+    return (
+        '<div class="pan-wis"><table class="pan-table" aria-label="Segments at this threshold">'
+        f'{head}{"".join(body)}</table></div>'
+    )
+
+
+def whatif_change_html(
+    label: str,
+    number: str,
+    now_label: str,
+    *,
+    base_number: str | None = None,
+    base_label: str | None = None,
+    prev: str | None = None,
+) -> str:
+    """What-If headline (Part 9): the number as run, at this threshold, and
+    the change, as plain figures. With no baseline, or at the run's own
+    threshold, only the current figure shows.
+    """
+    def fig(k: str, v_html: str, cls: str = "") -> str:
+        return (
+            f'<div class="pan-wi-fig{cls}"><span class="pan-wi-k">{html.escape(k)}</span>'
+            f'<span class="pan-wi-v">{v_html}</span></div>'
+        )
+
+    now_html = _kpi_number_html(number, prev)
+    if base_number is None or base_label is None or base_label == now_label:
+        suffix = " (as run)" if base_label == now_label and base_label is not None else ""
+        figs = fig(f"At {now_label}{suffix}", now_html, " is-now")
+    else:
+        try:
+            delta = float(str(number).replace(",", "")) - float(str(base_number).replace(",", ""))
+            delta_text = _delta_text(delta)
+        except ValueError:
+            delta_text = ""
+        figs = fig(f"As Run, At {base_label}", html.escape(str(base_number)))
+        figs += fig(f"At {now_label}", now_html, " is-now")
+        if delta_text:
+            figs += fig("Change", delta_text, " is-delta")
+    return (
+        '<section class="pan-wi" aria-label="Expected joiners at this threshold">'
+        f'<div class="pan-wi-title">{html.escape(label)}</div>'
+        f'<div class="pan-wi-figs">{figs}</div></section>'
+    )
+
+
+_CUBE_FACES = ("front", "back", "right", "left", "top", "bottom")
+# Finish sparks: (dx, dy) in px, outward from the cube.
+_CUBE_SPARKS = ((-14, -10), (14, -10), (-17, 3), (17, 3), (-7, -17), (7, -17))
+
+
+def bedrock_html(state: str = "rest") -> str:
+    """The Ask Assistant avatar (Part 9): a small 8-bit stone block in 3D.
+
+    ``state`` is "spin" (thinking: turns steadily), "finish" (the answer is
+    ready: spins up, hops with a few pixel sparks, lands and wobbles to rest)
+    or "rest" (still, on every answer). The block sits exactly over the
+    assistant avatar (styles.css section 24); the texture is an original
+    pixel pattern, drawn in greys.
+    """
+    state = state if state in ("spin", "finish", "rest") else "rest"
+    faces = "".join(f'<i class="pan-cube-{face}"></i>' for face in _CUBE_FACES)
+    sparks = ""
+    if state == "finish":
+        sparks = "".join(
+            f'<b class="pan-cube-spark" style="--dx:{dx}px;--dy:{dy}px"></b>'
+            for dx, dy in _CUBE_SPARKS
+        )
+    return (
+        f'<span class="pan-cube-slot is-{state}" aria-hidden="true">'
+        f'<span class="pan-cube">{faces}</span>{sparks}</span>'
+    )
+
+
+def thinking_html(text: str = "Thinking") -> str:
+    """The Ask Assistant waiting line: text and three pulsing dots (Part 9)."""
+    return (
+        f'<div class="pan-thinking" role="status">{html.escape(text)}'
+        '<span class="pan-thinking-dots" aria-hidden="true"><i></i><i></i><i></i></span>'
+        "</div>"
+    )
+
+
+def nav_state_html(*, has_run: bool, has_personas: bool) -> str:
+    """A hidden marker the stepper CSS reads to show each step's state."""
+    classes = ["pan-nav-state", "has-run" if has_run else "no-run"]
+    if has_personas:
+        classes.append("has-personas")
+    return f'<div class="{" ".join(classes)}" aria-hidden="true"></div>'
 
 
 def hero_text_html(title: str, subtitle: str) -> str:
@@ -723,6 +889,7 @@ def card(
     *,
     reveal_index: int | None = None,
     xfade: bool | str = False,
+    recommended: bool = False,
 ) -> None:
     """Render a surface card: marker (for segments), heading, divider, body.
 
@@ -745,9 +912,20 @@ def card(
     else:
         extra, sw_style = swoop_attrs(heading, body_html)
         style = f' style="{sw_style}"' if sw_style else ""
+    tag = act_first_tag_html() if recommended else ""
+    # Round 3: "NEW-001 · Ready Toppers" keeps its text, but the promo id is
+    # set small and muted so the segment name leads.
+    pre, sep, rest = heading.partition(" · ")
+    if sep and rest:
+        title_html = (
+            f'<span><span class="pan-card-pre">{html.escape(pre)} ·</span> '
+            f"{html.escape(rest)}</span>"
+        )
+    else:
+        title_html = f"<span>{html.escape(heading)}</span>"
     st_markdown(
         f'<div class="pan-card {seg_class}{extra}"{style}>'
-        f'<div class="pan-card-heading">{marker}{html.escape(heading)}</div>'
+        f'<div class="pan-card-heading">{marker}{title_html}{tag}</div>'
         '<hr class="pan-divider" />'
         f"{body_html}"
         "</div>"
@@ -769,6 +947,67 @@ def tile(title: str, body_html: str, *, emphasis: bool = False) -> None:
         f'<div class="pan-tile {kind} {seg_class}{text_cls}"{style}>'
         f'<div class="pan-tile-title">{marker}{html.escape(title)}</div>'
         f"{body_html}</div>"
+    )
+
+
+# --- Part 9: the Results grid as one labelled 2x2 (score by capacity) ---
+GRID_AXIS_LABELS = {
+    "score high": "High Score",
+    "score low": "Low Score",
+    "capacity low": "Low Capacity",
+    "capacity high": "High Capacity",
+}
+ACT_FIRST = "Act first"
+
+
+def act_first_tag_html() -> str:
+    """The small tag that marks the recommended segment (Part 9)."""
+    return f'<span class="pan-act">{ACT_FIRST}</span>'
+
+
+def tile_html(title: str, body_html: str, *, recommended: bool = False) -> str:
+    """One grid tile: a flat surface, its segment marker, and the numbers.
+
+    Every tile looks the same except the recommended one, which gets a
+    primary edge and the "Act first" tag (Part 9). Colour lives only in the
+    marker, which also differs by shape.
+    """
+    marker, seg_class = segment_marker_html(title)
+    text_cls, text_style = swoop_attrs(title, body_html)
+    style = f' style="{text_style}"' if text_style else ""
+    rec_cls = " is-recommended" if recommended else ""
+    tag = act_first_tag_html() if recommended else ""
+    return (
+        f'<div class="pan-tile {seg_class}{rec_cls}{text_cls}"{style}>'
+        f'<div class="pan-tile-title">{marker}<span>{html.escape(title)}</span>{tag}</div>'
+        f"{body_html}</div>"
+    )
+
+
+def results_grid_html(rows, recommended: set[str] | frozenset[str] = frozenset()) -> str:
+    """The 2x2 Results grid with its axes labelled (Part 9).
+
+    ``rows`` is ``[(row_label, [(col_label, segment, body_html), ...]), ...]``
+    in display order (top row first); labels are keys of
+    :data:`GRID_AXIS_LABELS`. Column labels come from the first row.
+    """
+    if not rows:
+        return ""
+    head = '<div class="pan-grid-corner" aria-hidden="true"></div>' + "".join(
+        f'<div class="pan-grid-col">{html.escape(GRID_AXIS_LABELS.get(c, c))}</div>'
+        for c, _seg, _body in rows[0][1]
+    )
+    body = ""
+    for row_label, cols in rows:
+        body += (
+            '<div class="pan-grid-row">'
+            f"<span>{html.escape(GRID_AXIS_LABELS.get(row_label, row_label))}</span></div>"
+        )
+        for _col, segment, tile_body in cols:
+            body += tile_html(segment, tile_body, recommended=segment in recommended)
+    return (
+        '<div class="pan-grid" role="group" aria-label="Results grid: score by capacity">'
+        f"{head}{body}</div>"
     )
 
 
@@ -821,7 +1060,40 @@ def banner_html(text: str, kind: str = "info") -> str:
     )
 
 
-def tooltip_html(label: str, tip: str) -> str:
+_ABOUT_RE = re.compile(r"^(About) (\d[\d,]*(?:\.\d+)?) (.+)$")
+
+
+def _stat_parts(label: str) -> tuple[str, str] | None:
+    """Split a stat label into (key, value) for the label-over-number layout.
+
+    "Likely Range: 75 To 99" -> ("Likely Range", "75 To 99"); "About 87 Likely
+    To Join" -> ("Likely To Join", "About 87"). The words are unchanged.
+    """
+    m = _ABOUT_RE.match(label)
+    if m:
+        return m.group(3), f"{m.group(1)} {m.group(2)}"
+    key, sep, value = label.partition(": ")
+    if sep and key and value:
+        return key, value
+    return None
+
+
+def _stat_inner_html(label: str) -> str:
+    parts = _stat_parts(label)
+    if parts is None:
+        return count_text_html(label)
+    key, value = parts
+    if value.startswith("About "):
+        value_html = '<span class="pan-stat-pre">About</span> ' + count_text_html(value[6:])
+    else:
+        value_html = count_text_html(value)
+    return (
+        f'<span class="pan-stat-k">{html.escape(key)}</span>'
+        f'<span class="pan-stat-v">{value_html}</span>'
+    )
+
+
+def tooltip_html(label: str, tip: str, display_html: str | None = None) -> str:
     """Return ``label`` with one hover/focus tooltip (the styled one only).
 
     No native ``title``: it drew a second box. The tip text is the focusable
@@ -830,20 +1102,35 @@ def tooltip_html(label: str, tip: str) -> str:
     """
     return (
         f'<span class="pan-tip" tabindex="0" aria-label="{html.escape(label + ". " + tip, quote=True)}">'
-        f"{count_text_html(label)}"
+        f"{count_text_html(label) if display_html is None else display_html}"
         f'<span class="pan-tip-text" aria-hidden="true">{html.escape(tip)}</span></span>'
     )
 
 
 def stat_tile_html(label: str, tip: str = "") -> str:
     """Return one stat tile; the tooltip is attached when ``tip`` is given."""
-    inner = tooltip_html(label, tip) if tip else count_text_html(label)
-    return f'<div class="pan-stat">{inner}</div>'
+    display = _stat_inner_html(label)
+    inner = tooltip_html(label, tip, display) if tip else display
+    kv = " pan-stat--kv" if _stat_parts(label) else ""
+    return f'<div class="pan-stat{kv}">{inner}</div>'
 
 
 def stat_tiles_html(tiles: list[str]) -> str:
     """Wrap already-built stat tiles in a wrapping row."""
     return f'<div class="pan-stats">{"".join(tiles)}</div>'
+
+
+def unavailable_line_html(label: str) -> str:
+    """A bar row with no bar (round 3): Unavailable must not read as 0."""
+    return (
+        '<div class="pan-bar is-unavailable">'
+        f'<span class="pan-bar-label">{html.escape(label)}</span></div>'
+    )
+
+
+def fields_row_html(rows: list[tuple[str, str]]) -> str:
+    """Label/value pairs in one wrapping row (round 3, Past Promos facts)."""
+    return f'<div class="pan-fields-row">{fields_html(rows)}</div>'
 
 
 def bar_html(label: str, fraction: float) -> str:
@@ -901,11 +1188,33 @@ def decision_card_body_html(view, extra_html: str = "") -> str:
         ("Action", html.escape(view.action)),
         ("Dominant Channel", html.escape(view.channel)),
         ("Message Angle", html.escape(view.angle)),
-        (view.why_heading, drivers),
-        (view.not_contacted_heading, exclusions),
     ]
+    # Part 9: the reasons and the exclusions sit behind one disclosure, so
+    # the card leads with what to do (action, channel, angle).
+    details = (
+        '<details class="pan-details"><summary>Targeting Details</summary>'
+        + fields_html([(view.why_heading, drivers), (view.not_contacted_heading, exclusions)])
+        + "</details>"
+    )
     persona = persona_section_html(view.persona_lines)
-    return stats + fields_html(rows) + persona + extra_html
+    return stats + fields_html(rows) + details + persona + extra_html
+
+
+def decision_card_split_body_html(view, extra_html: str = "") -> str:
+    """A full-width card body in two columns (Part 9): what to do on the left
+    (stats, action, channel, angle, details), who joins on the right (the
+    persona breakdown). Used when one card has the whole section to itself.
+    """
+    persona = persona_section_html(view.persona_lines)
+    if not persona:
+        return decision_card_body_html(view, extra_html)
+    plain = dataclasses.replace(view, persona_lines=None)
+    return (
+        '<div class="pan-card-split">'
+        f'<div class="pan-card-split-main">{decision_card_body_html(plain, extra_html)}</div>'
+        f'<div class="pan-card-split-side">{persona}</div>'
+        "</div>"
+    )
 
 
 # --- loading: shown only on a real wait ---
@@ -1052,7 +1361,7 @@ class LoaderHandle:
 
 
 @contextmanager
-def loading(kind: str, message: str, *, slow: bool = False, status: str = ""):
+def loading(kind: str, message: str, *, slow: bool = False, status: str = "", slot=None):
     """Show the loader while the ``with`` body runs, then remove it.
 
     Drop-in replacement for ``st.spinner``: it only wraps the existing call and
@@ -1060,10 +1369,15 @@ def loading(kind: str, message: str, *, slow: bool = False, status: str = ""):
     that calls ``handle.keep()`` and ends without an exception leaves the
     overlay in place (cleared by the next run). Any exception clears it.
     ``status`` is the first live stage line.
+
+    Part 9: ``slot`` is an ``st.empty()`` the page draws on every render (the
+    loader only fills it), so starting a job adds no element to the page and
+    nothing after it shifts. Without one a new slot is made here, as before.
     """
     import streamlit as st
 
-    slot = st.empty()
+    if slot is None:
+        slot = st.empty()
     slot.markdown(loader_html(kind, message, slow=slow, status=status), unsafe_allow_html=True)
     handle = LoaderHandle(slot, kind, message, slow)
     try:
@@ -1089,7 +1403,7 @@ LOADER_MESSAGES = {
 # Finishing stories (Part 8 polish). Both run on --pan-dur-finish, exactly as
 # long as the trace takes to fill the border, so the fireworks, the end of the
 # story and the headline land together. The overlay is drawn over the still
-# running loader; app/static/p8_page_lock.js copies the live positions (trace,
+# running loader; app/static/page_lock.js copies the live positions (trace,
 # document strip, magnifier, tiles) into the start frame, so nothing jumps.
 # The values computed here are only the fallback when that script is absent.
 FINISH_HEADLINES = {"analysis": "Promo Analyzed", "personas": "Personas Built",
@@ -1224,7 +1538,7 @@ def finishing_overlay_html(
     # then always builds a new element. Reusing the previous ending's element
     # (only its class changes) kept its finished animations, so a second ending
     # in a session never played. "is-held" starts the story frozen until the
-    # page script sees the browser free (p8_page_lock.js), so a busy rerun
+    # page script sees the browser free (page_lock.js), so a busy rerun
     # cannot use the ending up unseen.
     tag = "section" if int(uid) % 2 else "div"
     return (
@@ -1380,7 +1694,7 @@ def job_ring_html(state: str, phase: float = 0.0) -> str:
     ``ValueError``). ``phase`` is the ring position as a fraction of one lap
     (from ``webapp_core.job_motion.ring_phase``), clamped into ``[0, 1)``;
     a non-finite value becomes 0. Styling lives in ``styles.css`` and the slot
-    wiring in ``app/p8_effects.py``.
+    wiring in ``app/ui_effects.py``.
 
     Markup contract (CSS and wiring depend on it exactly)::
 

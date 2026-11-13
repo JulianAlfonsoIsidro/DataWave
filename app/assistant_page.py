@@ -24,6 +24,7 @@ they cannot signal intent on their own and are ignored by the rule.
 
 from __future__ import annotations
 
+import time
 from typing import Any
 
 import streamlit as st
@@ -42,6 +43,14 @@ from webapp_core.threshold import ThresholdType
 RUN_RESULT_KEY = "run_result"  # same key as app/main.py
 HISTORY_KEY = "assistant_history"
 _SEEDED_REWARD = "Bonus interest"
+# Round 3: the assistant is given the mechanic's plain name, so a code such
+# as TOP_UP never shows in an answer (same names as the New Promo select).
+_MECHANIC_NAMES = {
+    "TOP_UP": "Top Up",
+    "NEW_ACCOUNT": "New Account",
+    "ADB_INCREASE": "ADB Increase",
+    "OTHER": "Other",
+}
 
 EMPTY_CAMPAIGN_MESSAGE = (
     "Fill in the campaign details or upload a campaign file first, "
@@ -56,13 +65,30 @@ def build_grounding(state: Any = None) -> CampaignGrounding:
     ttype = state.get(upload_panel.THRESHOLD_TYPE_KEY)
     form: dict[str, Any] = {
         "product_type": state.get(upload_panel.PRODUCT_TYPE_KEY),
-        "mechanic": state.get(upload_panel.MECHANIC_KEY),
+        "mechanic": _MECHANIC_NAMES.get(
+            str(state.get(upload_panel.MECHANIC_KEY)), state.get(upload_panel.MECHANIC_KEY)
+        ),
         "reward": state.get(upload_panel.REWARD_KEY),
         "min_adb": state.get(upload_panel.MIN_ADB_KEY),
         "eligible_segments": list(state.get(upload_panel.SEGMENTS_KEY) or []),
         "channels": list(state.get(upload_panel.CHANNELS_KEY) or []),
     }
-    if isinstance(ttype, ThresholdType):
+    result = state.get(RUN_RESULT_KEY)
+    spec = getattr(result, "promo_spec", None)
+    if spec is not None and getattr(spec, "threshold_php", None) is not None:
+        # Once a run exists its threshold wins: What-If rescoring moves the
+        # run's threshold while the New Promo slider keeps its old value.
+        try:
+            run_type = ThresholdType(spec.threshold_type)
+        except ValueError:
+            run_type = ThresholdType.TOP_UP
+        form["threshold_type"] = run_type.value
+        form["threshold_value"] = (
+            spec.threshold_pct
+            if run_type is ThresholdType.BALANCE_INCREASE and spec.threshold_pct is not None
+            else spec.threshold_php
+        )
+    elif isinstance(ttype, ThresholdType):
         form["threshold_type"] = ttype.value
         form["threshold_value"] = state.get(upload_panel.threshold_value_key(ttype))
     return CampaignGrounding(
@@ -90,24 +116,52 @@ def campaign_is_empty(grounding: CampaignGrounding, state: Any = None) -> bool:
 
 def _render_message(message: dict) -> None:
     with st.chat_message(message["role"]):
-        if message["role"] == "assistant" and message.get("mode") == "Demo":
-            theme.st_markdown(theme.badge_html("Demo Mode", "warning"))
+        if message["role"] == "assistant":
+            # Part 9: the assistant's avatar is the stone block, at rest; it
+            # shares one element with the Demo badge so it adds no row.
+            badge = theme.badge_html("Demo Mode", "warning") if message.get("mode") == "Demo" else ""
+            theme.st_markdown(theme.bedrock_html("rest") + badge)
         st.write(message["text"])
 
 
-def _handle_question(question: str, history: list[dict]) -> None:
-    """Validate, answer, and append to the history (no call when invalid)."""
-    error = validate_question(question)
-    if error is not None:
-        st.warning(error)
-        return
-    grounding = build_grounding()
-    if campaign_is_empty(grounding):
-        st.info(EMPTY_CAMPAIGN_MESSAGE)
-        return
-    history.append({"role": "user", "text": question})
-    with st.spinner("Thinking..."):
-        reply: AssistantAnswer = answer(question, grounding)
+def _finish_seconds() -> float:
+    """How long the block's finish plays before the answer shows (a token)."""
+    import ui_effects
+
+    try:
+        parsed = ui_effects._parse_duration_s(theme.token_pair("--pan-dur-cube-finish")[0])
+    except Exception:  # noqa: BLE001 - the token is optional; fall back
+        parsed = None
+    return parsed if parsed else 0.9
+
+
+def _handle_question(question: str, history: list[dict], thread) -> None:
+    """Validate, answer, and append to the history (no call when invalid).
+
+    Part 9: everything is drawn into ``thread``, the message area that sits
+    above the input, so the question and the reply never land under the box.
+    """
+    with thread:
+        error = validate_question(question)
+        if error is not None:
+            st.warning(error)
+            return
+        grounding = build_grounding()
+        if campaign_is_empty(grounding):
+            st.info(EMPTY_CAMPAIGN_MESSAGE)
+            return
+        history.append({"role": "user", "text": question})
+        # Show the question at once, then the assistant's bubble with the
+        # stone block turning while the answer is fetched. When it arrives
+        # the block spins up, hops and settles (a short finish), then the
+        # rerun replaces this bubble with the answer.
+        _render_message(history[-1])
+        with st.chat_message("assistant"):
+            slot = st.empty()
+            slot.markdown(theme.bedrock_html("spin") + theme.thinking_html(), unsafe_allow_html=True)
+            reply: AssistantAnswer = answer(question, grounding)
+            slot.markdown(theme.bedrock_html("finish") + theme.thinking_html(), unsafe_allow_html=True)
+            time.sleep(_finish_seconds())
     history.append({"role": "assistant", "text": reply.text, "mode": reply.mode})
     if not reply.log_saved:
         history[-1]["log_notice"] = True
@@ -130,12 +184,16 @@ def render_assistant_page() -> None:
             if st.button(label, key=f"assistant_suggested_{index}", width="stretch"):
                 pending = label
 
-    for message in history:
-        _render_message(message)
-    if history and history[-1].get("log_notice"):
-        st.caption(LOG_NOTICE)
+    # Part 9: the conversation is one container drawn before the input, and a
+    # new question and its reply are added into it, so they stay above the box.
+    thread = st.container()
+    with thread:
+        for message in history:
+            _render_message(message)
+        if history and history[-1].get("log_notice"):
+            st.caption(LOG_NOTICE)
 
     typed = st.chat_input("Ask About This Campaign")
     question = pending if pending is not None else typed
     if question is not None:
-        _handle_question(question, history)
+        _handle_question(question, history, thread)

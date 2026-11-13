@@ -173,7 +173,7 @@
 
   // -------------------------------------------------------------------- ring
   function buildRing(args) {
-    var view = el("div", "view");
+    var view = el("div", "view ring");
     var stage = el("div", "stage", { tabindex: "0", role: "group", "aria-label": args.column_label || "Groups" });
     var items = args.items;
     items.forEach(function (it, i) {
@@ -219,25 +219,34 @@
     };
   }
 
+  // Part 9: real 3D. Each item gets its angle on the circle (--a, in
+  // degrees, from the unbounded position S.pos so a turn never goes the long
+  // way round) and the radius (--R); the view gets the perspective. The CSS
+  // transition on --a does the motion; this only writes the end values.
   function layoutRing() {
     if (!S.geo) measureRing();
-    var items = S.geo.items, s1 = S.geo.s1, s2 = S.geo.s2;
-    var R = S.geo.R * S.revealK;                       // the reveal grows the ring
+    var items = S.geo.items;
     var n = items.length;
     if (!n) return;
-    var step = (2 * Math.PI) / n;
+    var R = (S.geo.R * S.revealK).toFixed(1) + "px";  // the reveal grows the ring
+    var stage = root.querySelector(".stage");
+    var view = root.querySelector(".view.ring");
+    if (stage) stage.style.setProperty("--R", R);
+    if (view) view.style.setProperty("--persp", Math.max(900, S.geo.R * 3.2).toFixed(0) + "px");
+    var step = 360 / n;
     for (var i = 0; i < n; i++) {
-      var d = i - S.pos;
-      d = ((d % n) + n + n / 2) % n - n / 2;           // wrapped distance in items
-      var theta = d * step;
-      var depth = Math.cos(theta);
-      var ad = Math.abs(d);
-      var scale = ad <= 1 ? 1 - ad * (1 - s1) : s1 - Math.min(ad - 1, 1) * (s1 - s2);
-      scale *= 0.6 + 0.4 * (depth + 1) / 2;            // depth: farther items read smaller
-      var x = Math.sin(theta) * R;
-      var y = (1 - depth) * -16;                       // and sit a little higher
-      items[i].style.transform = "translate(" + x.toFixed(1) + "px," + y.toFixed(1) + "px) scale(" + scale.toFixed(3) + ")";
-      items[i].style.zIndex = String(200 + Math.round(depth * 100));
+      items[i].style.setProperty("--a", ((i - S.pos) * step).toFixed(2) + "deg");
+      items[i].style.setProperty("--R", R);
+    }
+  }
+
+  // Place without motion (first draw, resize, reduced motion), then allow it.
+  function settleRing() {
+    root.classList.add("no-anim");
+    layoutRing();
+    void root.offsetWidth;
+    if (!reduce.matches) {
+      requestAnimationFrame(function () { root.classList.remove("no-anim"); });
     }
   }
 
@@ -257,42 +266,21 @@
     live.textContent = ariaFor(S.args.items[S.front]);
   }
 
+  // Part 9: S.pos moves by the shortest step and is never wrapped, like the
+  // running angle of a CSS carousel; the transition on --a carries the turn,
+  // and a click mid-turn simply retargets it from where it is.
   function rotateTo(target, animate) {
     var n = S.args.items.length;
     var steps = shortestStep(S.front, target, n);
     S.front = ((target % n) + n) % n;
+    S.pos += steps;
     setLevels();                                        // glass crossfades in step
-    if (!animate || reduce.matches || steps === 0) {
-      S.pos = S.front;
-      if (S.anim) cancelAnimationFrame(S.anim);
-      S.anim = null;
-      layoutRing();
-      return;
-    }
-    measureRing();
-    var from = S.pos, to = S.pos + steps;
-    // keep pos close to the integer front to avoid drift
-    var dur = ms("--pan-dur-slow", 250);
-    var ease = bezier(cssVar("--pan-ease"));
-    var t0 = null;
-    if (S.anim) cancelAnimationFrame(S.anim);
-    function frame(ts) {
-      if (t0 === null) t0 = ts;
-      var k = Math.min((ts - t0) / dur, 1);
-      S.pos = from + (to - from) * ease(k);
-      layoutRing();
-      if (k < 1) { S.anim = requestAnimationFrame(frame); }
-      else {
-        S.pos = S.front; S.anim = null; layoutRing();
-        if (S.queued) { var q = S.queued; S.queued = 0; stepBy(q); }
-      }
-    }
-    S.anim = requestAnimationFrame(frame);
+    if (!animate || reduce.matches) { settleRing(); return; }
+    layoutRing();
   }
 
   function stepBy(dir) {
     if (!S.args) return;
-    if (S.anim) { S.queued = dir > 0 ? 1 : -1; return; }   // at most one more step
     var n = S.args.items.length;
     var target = ((S.front + dir) % n + n) % n;
     rotateTo(target, true);
@@ -639,8 +627,9 @@
     var countDur = 2 * ms("--pan-dur-roll", 600);
     // Start as the finishing loader fades (--pan-reveal-start on the page:
     // story + fireworks + hold); items stay hidden until then.
-    var lead = reduced ? 0 : ms("--pan-dur-finish", 1600) + ms("--pan-dur-spark", 600) + ms("--pan-dur-hold", 250)
-      + ms("--pan-dur-finish-linger", 500);
+    // Part 9: no fireworks, so the spark time is not part of the wait.
+    var lead = reduced ? 0 : ms("--pan-dur-finish", 800) + ms("--pan-dur-hold", 150)
+      + ms("--pan-dur-finish-linger", 200);
     var lastStart = 0;
     root.style.setProperty("--pk-start", lead + "ms");
     root.classList.remove("is-revealing", "is-revealing-still");
@@ -662,7 +651,7 @@
         if (S.revealAnim) cancelAnimationFrame(S.revealAnim);
         measureRing();
         S.revealK = 0.6;
-        layoutRing();
+        settleRing();
         var frame = function (ts) {
           if (t0 === null) t0 = ts + lead;
           if (ts < t0) { S.revealAnim = requestAnimationFrame(frame); return; }
@@ -708,7 +697,7 @@
         if (idx < 0) idx = Math.max(0, args.items.findIndex(function (i) { return i.value === args.front_value; }));
         S.front = idx; S.pos = idx;
         setLevels();
-        layoutRing();
+        settleRing();
       } else if (args.kind === "toggle") {
         root.appendChild(buildToggle(args));
         syncToggle();
@@ -739,7 +728,7 @@
     loadSprite().then(function () { render(d.args, d.theme); });
   });
   window.addEventListener("resize", function () {
-    if (S.kind === "carousel") { measureRing(); layoutRing(); }
+    if (S.kind === "carousel") { measureRing(); settleRing(); }
     if (S.kind === "map") { if (S.flight) S.flight.cancel(); S.flight = null; layoutMap(); }
   });
   send("streamlit:componentReady", { apiVersion: 1 });

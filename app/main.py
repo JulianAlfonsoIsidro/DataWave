@@ -27,6 +27,7 @@ import dataclasses
 import html
 import json
 import math
+import re
 import warnings
 from pathlib import Path
 
@@ -40,7 +41,7 @@ st.set_page_config(
 )
 
 import theme  # noqa: E402  (imported after set_page_config by design)
-import p8_effects  # noqa: E402  (Part 8 effects: job ring state)
+import ui_effects  # noqa: E402  (Part 8 effects: job ring state)
 import persona_page  # noqa: E402  (Persona_Page tab body; imported like theme)
 import upload_panel  # noqa: E402  (Upload Campaign File tab body)
 import assistant_page  # noqa: E402  (Ask Assistant tab body)
@@ -86,6 +87,12 @@ SEEN_PROMO_IDS_KEY = "seen_promo_ids"
 
 # Sensible defaults for the New Promo form selectors.
 MECHANIC_OPTIONS = ["TOP_UP", "NEW_ACCOUNT", "ADB_INCREASE", "OTHER"]
+MECHANIC_DISPLAY = {
+    "TOP_UP": "Top Up",
+    "NEW_ACCOUNT": "New Account",
+    "ADB_INCREASE": "ADB Increase",
+    "OTHER": "Other",
+}
 PRODUCT_TYPE_OPTIONS = ["Savings", "Time Deposit", "Investment", "Credit Card"]
 # These must match Part 4's channel labels exactly (part4_cards.config
 # CHANNEL_PRIORITY). Any other spelling, e.g. lowercase "email", makes every
@@ -139,7 +146,7 @@ def _threshold_readout(threshold_type: ThresholdType, value: float, key: str) ->
     reruns are static. The plain value stays readable for screen readers.
     """
     text = format_value(threshold_type, value)
-    prev = p8_effects.number_prev(f"{key}:{threshold_type.name}", text)
+    prev = ui_effects.number_prev(f"{key}:{threshold_type.name}", text)
     st.markdown(theme.selected_readout_html(text, prev), unsafe_allow_html=True)
 
 
@@ -173,6 +180,23 @@ def _load_data_bundle() -> dict[str, pd.DataFrame]:
     }
 
 
+def _segment_figures(result) -> dict[str, tuple[int, float, int]]:
+    """{segment: (clients, expected joiners, sendable)} for a run."""
+    if result is None or not result.cards:
+        return {}
+    sendable = result.sendable_by_segment or {}
+    out = {}
+    for card in result.cards:
+        seg = str(card.get("segment"))
+        leads = sendable.get(seg)
+        out[seg] = (
+            int(card.get("n_clients", 0) or 0),
+            float(card.get("expected_joiners", 0.0) or 0.0),
+            0 if leads is None else len(leads),
+        )
+    return out
+
+
 def _metric_from_run() -> tuple[str, str]:
     """The headline number + caption for the hero KPI panel."""
     result = st.session_state.get(RUN_RESULT_KEY)
@@ -198,7 +222,29 @@ def _run_context_items() -> list[str] | None:
     ]
 
 
+# --- navigation (Part 9): the six sections stay st.tabs; a key lets code
+# switch them (View Results, landing on Results after a run). ---
+NAV_KEY = "main_nav"
+NAV_PENDING_KEY = "main_nav_pending"
+
+
+def go_to(label: str) -> None:
+    """Open a section on the next render (safe to call after the tabs exist)."""
+    st.session_state[NAV_PENDING_KEY] = label
+
+
+def _go_to_now(label: str) -> None:
+    """Button callback: switch section before the next render draws the tabs."""
+    st.session_state[NAV_KEY] = label
+
+
 FLASH_KEY = "flash_messages"
+# (expected joiners, threshold label, threshold type name, threshold value) as run
+WHATIF_BASELINE_KEY = "whatif_baseline"
+# {segment: (clients, expected joiners, sendable)} as run (round 3 table)
+WHATIF_SEGMENTS_KEY = "whatif_baseline_segments"
+WHATIF_RESET_KEY = "whatif_reset_pending"   # a Reset button asked for the as-run threshold
+WHATIF_RESET_COUNT_KEY = "whatif_reset_count"  # resets so far (gives the slider a fresh key)
 WHATIF_FLASH_KEY = "whatif_flash_messages"   # rescore messages survive its rerun
 
 
@@ -210,7 +256,7 @@ def _show_messages(messages: list[tuple[str, str]]) -> None:
         )
         if level in ("success", "warning"):
             # Quiet style so the flash reads below the Completion_Toast (Req 8.14).
-            with p8_effects.quiet_container(level):
+            with ui_effects.quiet_container(level):
                 show(text)
         else:
             show(text)
@@ -273,13 +319,31 @@ def _render_new_promo_tab() -> None:
     # Messages from the last Run survive the page refresh below.
     _show_messages(st.session_state.pop(FLASH_KEY, []))
 
-    upload_tab, form_tab = st.tabs([
-        upload_panel.UPLOAD_TAB_LABEL,
-        upload_panel.FORM_TAB_LABEL,
-    ])
+    # Round 3: after a What-If change the form below still holds the threshold
+    # you ran, so say which one the current results use.
+    result = st.session_state.get(RUN_RESULT_KEY)
+    if result is not None and result.cards:
+        label, base_label, changed = _threshold_context(result)
+        if changed:
+            st.markdown(
+                theme.banner_html(
+                    f"Active results use a threshold of {label}, set in What-If. "
+                    f"The form below still shows {base_label}; Run Analysis "
+                    "uses the form.",
+                    "info",
+                ),
+                unsafe_allow_html=True,
+            )
 
-    # The upload tab runs first, so its prefill reaches session state before
-    # the Fill In Details widgets below are created (Requirement 2.9).
+    # Fill In Details is shown first (most planners type a promo in); Upload
+    # is the second option (Part 9).
+    form_tab, upload_tab = st.tabs(
+        [upload_panel.FORM_TAB_LABEL, upload_panel.UPLOAD_TAB_LABEL],
+        key="new_promo_mode",
+    )
+
+    # The upload tab still runs first, so its prefill reaches session state
+    # before the Fill In Details widgets below are created (Requirement 2.9).
     with upload_tab:
         upload_panel.render_upload_panel(
             segment_options=segment_options,
@@ -338,11 +402,13 @@ def _render_fill_in_details(*, segment_options: list[str], auto_promo_id: str) -
         st.error(threshold_error)
 
     with st.form("new_promo_form"):
+        # Part 9: with no box round the form, the Promo ID belongs under the
+        # Promo Basics heading (it read as part of Threshold above it).
+        theme.section_label("Promo Basics", "What you are offering.")
         id_col, _id_spacer = st.columns([1, 2])
         with id_col:
             st.text_input("Promo ID (Auto-Generated)", value=auto_promo_id, disabled=True)
 
-        theme.section_label("Promo Basics", "What you are offering.")
         basics_a, basics_b, basics_c = st.columns(3)
         with basics_a:
             product_type = st.selectbox(
@@ -351,7 +417,11 @@ def _render_fill_in_details(*, segment_options: list[str], auto_promo_id: str) -
             upload_panel.field_tag("product_type")
         with basics_b:
             mechanic = st.selectbox(
-                "Mechanic", MECHANIC_OPTIONS, key=upload_panel.MECHANIC_KEY
+                "Mechanic",
+                MECHANIC_OPTIONS,
+                # Part 9: shown as words; the value stays the code (TOP_UP).
+                format_func=lambda m: MECHANIC_DISPLAY.get(m, m),
+                key=upload_panel.MECHANIC_KEY,
             )
             upload_panel.field_tag("mechanic")
         with basics_c:
@@ -388,9 +458,9 @@ def _render_fill_in_details(*, segment_options: list[str], auto_promo_id: str) -
             )
             upload_panel.field_tag("channels")
 
-        with st.container(key=p8_effects.P8_BTN_RUN_ANALYSIS):
+        with st.container(key=ui_effects.P8_BTN_RUN_ANALYSIS):
             # Ring slot sits before the button, inside the form (Requirement 7).
-            ring_slot = p8_effects.ring_slot("analysis")
+            ring_slot = ui_effects.ring_slot("analysis")
             submitted = st.form_submit_button("Run Analysis")
 
     # With no usable ADB the error is shown above and the run is blocked
@@ -412,10 +482,10 @@ def _render_fill_in_details(*, segment_options: list[str], auto_promo_id: str) -
         signature = repr(sorted(
             (k, v) for k, v in dataclasses.asdict(spec).items() if k != "promo_id"
         ))
-        if not p8_effects.is_duplicate("analysis", signature):
+        if not ui_effects.is_duplicate("analysis", signature):
             # One loading screen only: the former toast wording is its live
             # status line, streamed before the blocking call.
-            p8_effects.start_job("analysis", ring_slot)
+            ui_effects.start_job("analysis", ring_slot)
             with theme.loading(
                 "analysis",
                 "Scoring and segmenting your audience...",
@@ -430,14 +500,32 @@ def _render_fill_in_details(*, segment_options: list[str], auto_promo_id: str) -
                 st.session_state[FLASH_KEY] = messages
                 # Empty audience and missing model end with the error ring (D3).
                 ok = any(level == "success" for level, _ in messages)
-                p8_effects.end_job("analysis", ok, signature)
+                ui_effects.end_job("analysis", ok, signature)
                 if ok:
                     loader.status(toast_queue.DONE_TEXT["analysis"])
                     # The overlay stays through the rerun; the completion render
                     # fades it out (design section l). Errors clear it as before.
                     loader.keep()
+                    # Land on the answer, not back on the form (Part 9).
+                    go_to("Results")
+                    # What-If compares later thresholds with this run.
+                    base_number, _caption = _metric_from_run()
+                    st.session_state[WHATIF_BASELINE_KEY] = (
+                        base_number,
+                        format_value(threshold_type, threshold_value),
+                        threshold_type.name,
+                        float(threshold_value),
+                    )
+                    st.session_state[WHATIF_SEGMENTS_KEY] = _segment_figures(
+                        st.session_state.get(RUN_RESULT_KEY)
+                    )
+                    st.session_state.pop(WHATIF_RESET_KEY, None)
             # Refresh once so the hero KPI at the top shows the new run's number.
             st.rerun()
+
+    # Back on the form after a run: one step to the answer (Part 9).
+    if st.session_state.get(RUN_RESULT_KEY) is not None:
+        _nav_button("View Results", "Results", key="nav_newpromo_results")
 
 
 # The four Part 3 Segment_Labels laid out as the 2x2 Results grid:
@@ -451,8 +539,17 @@ RESULTS_GRID = [
                    ("capacity high", "Untapped Wealth")]),
 ]
 
-# Ready Toppers is the emphasized (red-gradient) tile; the rest are white.
-EMPHASIS_SEGMENT = "Ready Toppers"
+# Part 9: no tile is drawn as a red slab any more. The segment whose card
+# action is "Prioritize" is the recommended one ("Act first" tag), and the
+# decision cards run in action order, best action first.
+RECOMMENDED_ACTION = "Prioritize"
+ACTION_ORDER = ["Prioritize", "Offer lower tier", "Include", "Skip"]
+
+
+def _action_rank(card: dict) -> tuple[int, float]:
+    action = str(card.get("action", ""))
+    rank = ACTION_ORDER.index(action) if action in ACTION_ORDER else len(ACTION_ORDER)
+    return rank, -float(card.get("expected_joiners", 0.0) or 0.0)
 
 
 def _cards_by_segment() -> dict[str, dict]:
@@ -495,7 +592,9 @@ def _results_persona_section(result, card: dict, segment_label: str):
     """
     persona_result = st.session_state.get(persona_page.PERSONA_RESULT_KEY)
     if persona_result is None:
-        return build_persona_section(None, 0.0, segment_label)
+        # Part 9: said once above the cards (with a Build Personas action),
+        # not repeated on every card.
+        return None
     if persona_page.group_options(persona_result):
         return None
     items = expected_joiners_by_persona(
@@ -580,41 +679,68 @@ def _render_results_tab() -> None:
             "press Run Analysis. The results grid, decision cards, and lead "
             "downloads appear here once a run exists."
         )
+        _nav_button("Go To New Promo", "New Promo", key="nav_results_empty")
         return
 
     cards_by_segment = _cards_by_segment()
 
     # After a run, the headline numbers fade in and count up once (keyed to
     # the analysis generation; plain and static on every later rerun).
-    run_el = p8_effects.reveal("analysis")
+    run_el = ui_effects.reveal("analysis")
 
-    # --- 2x2 Results grid (four rounded tiles) ---
+    recommended = {
+        seg for seg, card in cards_by_segment.items()
+        if str(card.get("action", "")) == RECOMMENDED_ACTION
+    }
+
+    # --- which threshold these results use, then the action bar (Part 9) ---
+    _render_threshold_context(result)
+    _render_results_actions(result, recommended)
+
+    # --- 2x2 Results grid: score (rows) by capacity (columns), axes labelled ---
     st.subheader("Results Grid")
     with theme.counting(*run_el):
-        for _row_label, cols in RESULTS_GRID:
-            grid_cols = st.columns(2)
-            for grid_col, (_col_label, segment_label) in zip(grid_cols, cols):
-                with grid_col:
-                    card = cards_by_segment.get(segment_label)
-                    emphasis = segment_label == EMPHASIS_SEGMENT
-                    theme.tile(
+        grid_rows = [
+            (
+                row_label,
+                [
+                    (
+                        col_label,
                         segment_label,
-                        _tile_body_html(card, emphasis=emphasis),
-                        emphasis=emphasis,
+                        _tile_body_html(cards_by_segment.get(segment_label), emphasis=False),
                     )
+                    for col_label, segment_label in cols
+                ],
+            )
+            for row_label, cols in RESULTS_GRID
+        ]
+        st.markdown(theme.results_grid_html(grid_rows, recommended), unsafe_allow_html=True)
 
     # --- Impact Summary banner and tiles (Req 8.3, 8.5-8.8) ---
-    with theme.counting(*run_el):
-        _render_impact_summary(result)
+    # Part 9: only the headline figures count up (header and grid tiles). The
+    # impact boxes and decision cards arrive with their final numbers: 70-odd
+    # rolling digit columns at once made the reveal skip on slower machines.
+    _render_impact_summary(result)
 
     # --- decision cards, two per row on wide screens ---
     st.subheader("Decision Cards")
-    ordered_segments = [
-        segment_label
-        for _row, cols in RESULTS_GRID
-        for _col, segment_label in cols
-        if segment_label in cards_by_segment
-    ]
+    has_personas = st.session_state.get(persona_page.PERSONA_RESULT_KEY) is not None
+    if not has_personas:
+        st.caption(
+            "Personas were not generated for this run. Build them to see "
+            "expected joiners by persona on each card."
+        )
+    # Best action first (Prioritize, Offer lower tier, Include, Skip), then
+    # more expected joiners first within an action.
+    ordered_segments = sorted(
+        (
+            segment_label
+            for _row, cols in RESULTS_GRID
+            for _col, segment_label in cols
+            if segment_label in cards_by_segment
+        ),
+        key=lambda s: _action_rank(cards_by_segment[s]),
+    )
     for i in range(0, len(ordered_segments), 2):
         pair = ordered_segments[i : i + 2]
         card_cols = st.columns(2)
@@ -624,35 +750,48 @@ def _render_results_tab() -> None:
                 view = build_card_view(
                     card, persona=_results_persona_section(result, card, segment_label)
                 )
-                with theme.counting(*run_el):
-                    theme.card(view.title, theme.decision_card_body_html(view))
+                theme.card(
+                    view.title,
+                    theme.decision_card_body_html(view),
+                    recommended=segment_label in recommended,
+                )
 
-    # --- Download Leads: one per-segment Sendable_Leads CSV ---
+    # --- Download Leads: one row per segment, in action order (Part 9) ---
+    # Each row reconciles the grid: clients = not contacted + control group +
+    # sendable, so the CSV count never looks unexplained.
     st.subheader("Download Leads")
     sendable = result.sendable_by_segment or {}
     if not sendable:
         st.caption("No sendable leads were produced for this run.")
     else:
-        dl_cols = st.columns(2)
-        for i, (segment_label, leads_df) in enumerate(sendable.items()):
-            csv_bytes = leads_df.to_csv(index=False).encode("utf-8")
-            with dl_cols[i % 2]:
-                st.download_button(
-                    label=f"Download {segment_label} Leads ({len(leads_df):,})",
-                    data=csv_bytes,
-                    file_name=(
-                        f"{result.promo_spec.promo_id}_"
-                        f"{segment_label.replace(' ', '_').lower()}_leads.csv"
-                    ),
-                    mime="text/csv",
-                    key=f"download_leads_{segment_label}",
-                )
+        rows = [s for s in ordered_segments if s in sendable] + [
+            s for s in sendable if s not in ordered_segments
+        ]
+        for i, segment_label in enumerate(rows):
+            _render_download_row(
+                i, result, segment_label, sendable[segment_label],
+                cards_by_segment.get(segment_label, {}),
+                recommended=segment_label in recommended,
+            )
+        st.caption(DOWNLOAD_NOTE)
 
-    _render_export_summary(result)
+    # --- where to go next: real actions instead of a "Next:" sentence ---
+    with st.container(key="pan_next_actions", horizontal=True):
+        _nav_button(
+            "View Personas" if has_personas else "Build Personas",
+            "Personas", key="nav_results_personas", primary=not has_personas,
+        )
+        _nav_button("Try Another Threshold", "What-If", key="nav_results_whatif")
 
-    theme.next_step(
-        "Test a different threshold in What-If, or group these clients into "
-        "personas in Personas."
+
+def _nav_button(label: str, section: str, *, key: str, primary: bool = False) -> None:
+    """A button that opens another section (Part 9 signposts)."""
+    st.button(
+        label,
+        key=key,
+        type="primary" if primary else "secondary",
+        on_click=_go_to_now,
+        args=(section,),
     )
 
 
@@ -687,11 +826,172 @@ def _export_workbook_bytes(result) -> bytes:
     return data
 
 
+DOWNLOAD_NOTE = (
+    "Lead files leave out clients on the do not bother list, clients contacted "
+    "too often, clients with no reachable channel, and the control group held "
+    "back to measure the promo."
+)
+
+
+def _current_threshold(result) -> tuple[ThresholdType, float]:
+    """The threshold the current run (or What-If rescore) was scored at."""
+    t_type = _spec_threshold_type(result.promo_spec)
+    if t_type is ThresholdType.BALANCE_INCREASE and result.promo_spec.threshold_pct is not None:
+        return t_type, float(result.promo_spec.threshold_pct)
+    return t_type, float(result.promo_spec.threshold_php)
+
+
+def _as_run_threshold(t_type: ThresholdType) -> tuple[str, float] | None:
+    """(label, value) of the threshold New Promo ran, if it has this type."""
+    base = st.session_state.get(WHATIF_BASELINE_KEY)
+    if not base or len(base) < 4 or base[2] != t_type.name:
+        return None
+    return str(base[1]), float(base[3])
+
+
+def _threshold_context(result) -> tuple[str, str | None, bool]:
+    """(current threshold label, as-run label or None, changed in What-If)."""
+    t_type, value = _current_threshold(result)
+    label = format_value(t_type, value)
+    as_run = _as_run_threshold(t_type)
+    if as_run is None:
+        return label, None, False
+    changed = abs(as_run[1] - value) >= THRESHOLD_SPECS[t_type].step / 2.0
+    return label, as_run[0], changed
+
+
+def _request_threshold_reset() -> None:
+    """Button callback: What-If rescores back to the as-run threshold."""
+    st.session_state[WHATIF_RESET_KEY] = True
+
+
+def _threshold_slug(result) -> str:
+    """The current threshold for file names: 600000, or 15pct."""
+    label, _base, _changed = _threshold_context(result)
+    digits = re.sub(r"[^0-9]", "", label)
+    return f"{digits}pct" if "%" in label else digits
+
+
+def _leads_file_name(result, segment_label: str) -> str:
+    # Part 9: the threshold is in the name, so a saved file says what it was cut at.
+    return (
+        f"{result.promo_spec.promo_id}_{_threshold_slug(result)}_"
+        f"{segment_label.replace(' ', '_').lower()}_leads.csv"
+    )
+
+
+def _render_threshold_context(result) -> None:
+    """Top of Results: the threshold these results use (Part 9).
+
+    After a What-If change it says so plainly and offers the way back, since
+    Results and every lead file follow the threshold last scored.
+    """
+    label, base_label, changed = _threshold_context(result)
+    if changed:
+        st.markdown(
+            theme.banner_html(
+                f"These results and lead files use a threshold of {label}, set "
+                f"in What-If. You ran {base_label}.",
+                "info",
+            ),
+            unsafe_allow_html=True,
+        )
+        st.button(
+            f"Reset To {base_label}", key="whatif_reset_results",
+            on_click=_request_threshold_reset,
+        )
+    else:
+        st.caption(f"Threshold {label}" + (", as run." if base_label else "."))
+
+
+def _render_results_actions(result, recommended: set[str]) -> None:
+    """Top of Results: Download Recommended Leads (primary) and Export Summary."""
+    sendable = result.sendable_by_segment or {}
+    frames = [sendable[s] for s in sorted(recommended) if s in sendable]
+    with st.container(key="pan_results_actions", horizontal=True):
+        if frames:
+            leads = pd.concat(frames, ignore_index=True) if len(frames) > 1 else frames[0]
+            st.download_button(
+                f"Download Recommended Leads ({len(leads):,})",
+                data=leads.to_csv(index=False).encode("utf-8"),
+                file_name=(
+                    f"{result.promo_spec.promo_id}_{_threshold_slug(result)}"
+                    "_recommended_leads.csv"
+                ),
+                mime="text/csv",
+                type="primary",
+                key="download_leads_recommended",
+                help=(
+                    "The sendable leads of the segment marked Act first, at a "
+                    f"threshold of {_threshold_context(result)[0]}."
+                ),
+            )
+        _render_export_summary(result)
+
+
+def _download_cell(label: str, value: str, notes: tuple[str, ...] = ()) -> str:
+    note_html = "".join(f'<span class="pan-dl-note">{html.escape(n)}</span>' for n in notes)
+    return (
+        f'<div class="pan-dl-cell"><span class="pan-dl-k">{html.escape(label)}</span>'
+        f'<span class="pan-dl-v">{html.escape(value)}</span>{note_html}</div>'
+    )
+
+
+def _render_download_row(i: int, result, segment_label: str, leads_df, card: dict,
+                         *, recommended: bool) -> None:
+    """One Download Leads row: who is in the file, who is left out, the file."""
+    excluded = {str(k): int(v) for k, v in (card.get("excluded_by_reason") or {}).items()}
+    n_excluded = sum(excluded.values())
+    # Same plain reason labels as the decision card ("Contacted Too Often: 26"),
+    # one per line.
+    reasons = tuple(build_card_view(card).exclusions) if card else ()
+    control = int(card.get("control_count", 0) or 0)
+    marker, seg_class = theme.segment_marker_html(segment_label)
+    tag = theme.act_first_tag_html() if recommended else ""
+    action = str(card.get("action", "")) or "Not set"
+    with st.container(key=f"pan_dl_row_{i}"):
+        name_col, clients_col, out_col, control_col, send_col, file_col = st.columns(
+            [2.6, 1, 2.6, 1.2, 1, 2], vertical_alignment="center"
+        )
+        with name_col:
+            st.markdown(
+                f'<div class="pan-dl-name {seg_class}">{marker}'
+                f"<span>{html.escape(segment_label)}</span>{tag}</div>"
+                f'<div class="pan-dl-action">{html.escape(action)}</div>',
+                unsafe_allow_html=True,
+            )
+        with clients_col:
+            st.markdown(_download_cell("Clients", f"{int(card.get('n_clients', 0) or 0):,}"),
+                        unsafe_allow_html=True)
+        with out_col:
+            st.markdown(_download_cell("Not Contacted", f"{n_excluded:,}", reasons),
+                        unsafe_allow_html=True)
+        with control_col:
+            st.markdown(_download_cell("Control Group", f"{control:,}"),
+                        unsafe_allow_html=True)
+        with send_col:
+            st.markdown(_download_cell("Sendable", f"{len(leads_df):,}"),
+                        unsafe_allow_html=True)
+        with file_col:
+            # The row already names the segment, so the label stays short
+            # enough not to truncate; the file name still carries it.
+            st.download_button(
+                label=f"Download {len(leads_df):,} Leads",
+                data=leads_df.to_csv(index=False).encode("utf-8"),
+                file_name=_leads_file_name(result, segment_label),
+                mime="text/csv",
+                key=f"download_leads_{segment_label}",
+                width="stretch",
+            )
+
+
 def _render_export_summary(result) -> None:
-    """Export Summary download for the current run (Requirements 9.1, 9.2, 9.12)."""
+    """Export Summary download for the current run (Requirements 9.1, 9.2, 9.12).
+
+    Part 9: drawn in the Results action bar, so it has no heading of its own.
+    """
     from webapp_core.export_workbook import workbook_filename
 
-    st.subheader("Export Summary")
     if result is None:
         st.caption("Run an analysis first to export a summary.")
         st.download_button(
@@ -735,6 +1035,7 @@ def _render_whatif_tab() -> None:
             "press Run Analysis. The What-If threshold slider appears here "
             "once a run exists."
         )
+        _nav_button("Go To New Promo", "New Promo", key="nav_whatif_empty")
         return
 
     t_type = _spec_threshold_type(result.promo_spec)
@@ -744,6 +1045,22 @@ def _render_whatif_tab() -> None:
         current = float(result.promo_spec.threshold_pct)
     else:
         current = float(result.promo_spec.threshold_php)
+
+    # The browser keeps a slider's last value, so after a reset the slider
+    # gets a fresh key (a new widget that starts at the result's threshold).
+    # Until the first reset the key is the original one.
+    reset_n = int(st.session_state.get(WHATIF_RESET_COUNT_KEY, 0))
+    slider_key = f"whatif_threshold_{t_type.name}" + (f"_r{reset_n}" if reset_n else "")
+    as_run = _as_run_threshold(t_type)
+    # A Reset button (here or on Results) asked for the as-run threshold:
+    # rescore there, then let the slider start again from the result.
+    if st.session_state.pop(WHATIF_RESET_KEY, False) and as_run is not None:
+        r_fields, _r_error, _r_note = _threshold_kwargs(t_type, as_run[1])
+        if r_fields is not None and abs(as_run[1] - current) >= (step / 2.0):
+            if _run_rescore(result, t_type, as_run[1], r_fields):
+                st.session_state.pop(slider_key, None)
+                st.session_state[WHATIF_RESET_COUNT_KEY] = reset_n + 1
+                st.rerun()
 
     st.subheader("What-If: Vary The Threshold")
     st.caption(
@@ -759,9 +1076,16 @@ def _render_whatif_tab() -> None:
         value=int(min(max(current, min_value), max_value)),
         step=step,
         format=_slider_format(t_spec),
-        key=f"whatif_threshold_{t_type.name}",
+        key=slider_key,
     )
-    _threshold_readout(t_type, new_threshold, "whatif_threshold")
+    # Part 9: a plain readout (no digit roll, which showed wrong amounts
+    # mid-roll) in a slot the rescore reuses for "Rescoring at ...", so
+    # nothing below moves while it works.
+    readout = st.empty()
+    readout.markdown(
+        theme.selected_readout_html(format_value(t_type, new_threshold)),
+        unsafe_allow_html=True,
+    )
 
     fields, error, note = _threshold_kwargs(t_type, new_threshold)
     if note:
@@ -771,35 +1095,32 @@ def _render_whatif_tab() -> None:
     if error:
         st.error(error)
     elif fields is not None and abs(float(new_threshold) - current) >= (step / 2.0):
-        # Same loading screen as Run Analysis (magnifier, status line, trace),
-        # and the same finish: the rerun draws the ending animation.
-        new_spec = dataclasses.replace(result.promo_spec, **fields)
-        p8_effects.start_job("rescore", None)
-        with theme.loading(
-            "rescore",
-            "Rescoring at the new threshold...",
-            status=f"Rescoring at {format_value(t_type, new_threshold)}...",
-        ) as loader:
-            messages = _execute_run(new_spec)
-            st.session_state[WHATIF_FLASH_KEY] = messages
-            ok = any(level == "success" for level, _ in messages) or bool(
-                (st.session_state.get(RUN_RESULT_KEY) or result).cards
-            )
-            p8_effects.end_job("rescore", ok, repr(fields))
-            if ok:
-                loader.status("Promo rescored")
-                loader.keep()
-        if ok:
+        if _run_rescore(result, t_type, float(new_threshold), fields, status_slot=readout):
             st.rerun()
         # A failed rescore leaves the result unchanged; rerunning would retry
         # forever, so its messages show here and the page carries on.
         _show_messages(st.session_state.pop(WHATIF_FLASH_KEY, []))
 
     number, caption = _metric_from_run()
-    # Counts up once after a run; later slider changes roll from the last
-    # shown value (Part 8, F5). The insight box below fades in once too.
-    with theme.counting(*p8_effects.reveal("analysis")):
-        theme.metric_panel(number, caption, prev=p8_effects.number_prev("whatif", number))
+    # Part 9: the number as it changed from the run you made, not a second
+    # red panel repeating the header. Counts up once after a run; later
+    # slider changes roll from the last shown value (Part 8, F5).
+    now_label = format_value(t_type, current)
+    base = st.session_state.get(WHATIF_BASELINE_KEY)
+    with theme.counting(*ui_effects.reveal("analysis")):
+        st.markdown(
+            theme.whatif_change_html(
+                caption,
+                number,
+                now_label,
+                base_number=base[0] if base else None,
+                base_label=base[1] if base else None,
+                prev=ui_effects.number_prev("whatif", number),
+            ),
+            unsafe_allow_html=True,
+        )
+    _render_whatif_segments(result)
+    with theme.counting(*ui_effects.reveal("analysis")):
         if result is not None:
             _render_impact_summary(result)
     if result is not None and result.cards:
@@ -808,7 +1129,68 @@ def _render_whatif_tab() -> None:
             f"{len(result.scored):,} eligible clients across "
             f"{len(result.cards)} segments."
         )
-    theme.next_step("Open Results to see the decision cards at this threshold.")
+    with st.container(key="pan_whatif_actions", horizontal=True):
+        _nav_button("View Results", "Results", key="nav_whatif_results")
+        _label, base_label, changed = _threshold_context(result)
+        if changed:
+            st.button(
+                f"Reset To {base_label}", key="whatif_reset_whatif",
+                on_click=_request_threshold_reset,
+            )
+
+
+def _render_whatif_segments(result) -> None:
+    """Round 3: each segment at this threshold, with its change from the run."""
+    now = _segment_figures(result)
+    if not now:
+        return
+    # The changes show only once the threshold differs from the run;
+    # at the as-run threshold every one would read "No change".
+    _label, _base_label, changed = _threshold_context(result)
+    base = (st.session_state.get(WHATIF_SEGMENTS_KEY) or {}) if changed else {}
+    order = [s for _r, cols in RESULTS_GRID for _c, s in cols]
+    segments = sorted(
+        set(now) | set(base),
+        key=lambda s: order.index(s) if s in order else len(order),
+    )
+    rows = []
+    for seg in segments:
+        n = now.get(seg, (0, 0.0, 0))
+        b = base.get(seg) if base else None
+        rows.append((seg, [
+            (n[0], None if b is None else b[0], 0),
+            (n[1], None if b is None else b[1], 1),
+            (n[2], None if b is None else b[2], 0),
+        ]))
+    st.markdown(theme.whatif_segments_html(rows), unsafe_allow_html=True)
+
+
+def _run_rescore(result, t_type: ThresholdType, value: float, fields: dict,
+                 *, status_slot=None) -> bool:
+    """Rescore the current run at ``value``; the caller reruns on success.
+
+    Part 9: no page lock, loader overlay or finish animation for a slider
+    move. The page stays as it is (Streamlit dims it slightly while the run
+    works), ``status_slot`` says "Rescoring at ...", and on the rerun the
+    numbers roll to their new values. Moving the slider again while it works
+    simply starts the next rescore. Returns whether it succeeded; a failed
+    rescore leaves the result unchanged.
+    """
+    if status_slot is not None:
+        status_slot.markdown(
+            '<div class="pan-selected">'
+            + theme.thinking_html(f"Rescoring at {format_value(t_type, value)}")
+            + "</div>",
+            unsafe_allow_html=True,
+        )
+    new_spec = dataclasses.replace(result.promo_spec, **fields)
+    messages = _execute_run(new_spec)
+    # The run's success line belongs to New Promo ("See the Results tab");
+    # What-If keeps only real warnings and errors.
+    st.session_state[WHATIF_FLASH_KEY] = [m for m in messages if m[0] != "success"]
+    return any(level == "success" for level, _ in messages) or bool(
+        (st.session_state.get(RUN_RESULT_KEY) or result).cards
+    )
 
 
 def _render_ask_assistant_tab() -> None:
@@ -870,45 +1252,37 @@ def main() -> None:
     theme.inject_css()
 
     # Effects slot lives outside the tabs (inactive panels are display:none).
-    p8_effects.fx_container()
+    ui_effects.fx_container()
     # Locks the page while a job loader is shown (decision A7).
-    p8_effects.install_page_lock()
+    ui_effects.install_page_lock()
 
-    # --- page chrome: current-run context banner only (Part 8, Req 6) ---
-    # The slim utility bar and brand bar were removed; the hero carries the
-    # app name. theme.utility_bar()/nav_bar()/header() remain available.
-    theme.context_banner(_run_context_items())
-
-    # --- hero: title + subtitle on the left, red-gradient KPI panel right ---
+    # --- header (Part 9): wordmark, the current run and its one number. The
+    # hero is gone; theme.hero_kpi_html/hero_text_html remain available. ---
     number, caption = _metric_from_run()
-    hero_left, hero_right = st.columns([1.4, 1])
-    with hero_left:
+    with theme.counting(*ui_effects.reveal("analysis")):
         st.markdown(
-            theme.hero_text_html(
-                "Promo Audience Navigator",
-                "Design, score and segment a promo audience, then act on the "
-                "recommendation.",
-            ),
-            unsafe_allow_html=True,
-        )
-    with hero_right, theme.counting(*p8_effects.reveal("analysis")):
-        st.markdown(
-            theme.hero_kpi_html(
+            theme.run_header_html(
                 number,
                 caption,
+                has_run=st.session_state.get(RUN_RESULT_KEY) is not None,
                 # Counts up once after a run; rolls from the last shown value
                 # on later changes (Part 8, F5).
-                prev=p8_effects.number_prev("hero", number),
-                foot=(
-                    "Across all segments"
-                    if st.session_state.get(RUN_RESULT_KEY) is not None
-                    else "Run a promo to see expected joiners"
-                ),
+                prev=ui_effects.number_prev("hero", number),
             ),
             unsafe_allow_html=True,
         )
+    st.markdown(
+        theme.nav_state_html(
+            has_run=st.session_state.get(RUN_RESULT_KEY) is not None,
+            has_personas=st.session_state.get(persona_page.PERSONA_RESULT_KEY) is not None,
+        ),
+        unsafe_allow_html=True,
+    )
 
-    st.write("")
+    # A section asked for during the last render (after its tabs existed).
+    pending = st.session_state.pop(NAV_PENDING_KEY, None)
+    if pending in theme.TAB_LABELS:
+        st.session_state[NAV_KEY] = pending
 
     (
         new_promo_tab,
@@ -917,7 +1291,7 @@ def main() -> None:
         personas_tab,
         past_promos_tab,
         ask_assistant_tab,
-    ) = st.tabs(theme.TAB_LABELS)
+    ) = st.tabs(theme.TAB_LABELS, key=NAV_KEY, on_change="rerun")
 
     # Each tab staggers its own card entrances (theme.card_group).
     with new_promo_tab, theme.card_group("new_promo"):

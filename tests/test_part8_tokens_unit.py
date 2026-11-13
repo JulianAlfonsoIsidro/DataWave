@@ -84,7 +84,7 @@ def _part8_css() -> str:
 
 
 def _static_files() -> list[Path]:
-    files = [STATIC / "p8_page_lock.js"]
+    files = [STATIC / "page_lock.js"]
     files += [p for p in (STATIC / "group_picker").glob("*") if p.suffix in {".css", ".js", ".html", ".svg"}]
     return files
 

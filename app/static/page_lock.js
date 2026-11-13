@@ -6,7 +6,7 @@
  * (the overlay catches clicks) but not the keyboard, so this script marks the
  * page `inert` while a loader exists and removes it when the loader goes.
  *
- * Runs in the main page (injected once by app/p8_effects.install_page_lock).
+ * Runs in the main page (injected once by app/ui_effects.install_page_lock).
  * It reads the DOM only; it never talks to Streamlit and changes no widget.
  * The F3 finishing overlay (.is-finishing) does not lock: it only fades out.
  */
@@ -99,6 +99,17 @@
     });
   }
 
+  function running() {
+    var app = document.querySelector('[data-testid="stApp"]');
+    return !!app && app.getAttribute("data-test-script-state") === "running";
+  }
+  function tokenMs(name, fallback) {
+    var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    var m = /^([0-9.]+)(ms|s)$/.exec(v);
+    if (!m) return fallback;
+    return parseFloat(m[1]) * (m[2] === "s" ? 1000 : 1);
+  }
+
   // The ending is drawn at the start of the rerun that follows a job, but the
   // rest of that rerun can keep the browser too busy to paint for seconds, and
   // the ending would play unseen. So it is held on its first frame until the
@@ -119,6 +130,29 @@
       fin.style.animation = "";
       fin.classList.remove("is-held");
       fin.setAttribute("data-p8-released-after", String(Math.round(performance.now() - t0)));
+      awaitRun();
+    }
+    // Part 9: the ending plays now, but Streamlit may still be drawing the
+    // rest of the page (every tab renders on each run). Just before the card
+    // would fade, if the run is still going, the card and the page's reveal
+    // animations wait on the finished frame until it ends (cap 4 s), so the
+    // reveal plays on an idle page instead of stuttering through it.
+    function awaitRun() {
+      var root = document.documentElement;
+      var lead = Math.max(0, tokenMs("--pan-dur-finish", 800) + tokenMs("--pan-dur-hold", 150)
+        + tokenMs("--pan-dur-finish-linger", 200) - 60);
+      setTimeout(function () {
+        if (!running()) return;
+        root.classList.add("p9-await-run");
+        var t1 = performance.now();
+        (function poll() {
+          if (!running() || performance.now() - t1 > 4000) {
+            requestAnimationFrame(function () { root.classList.remove("p9-await-run"); });
+          } else {
+            setTimeout(poll, 50);
+          }
+        })();
+      }, lead);
     }
     function frame(now) {
       var oldGone = !document.querySelector(LOADER);

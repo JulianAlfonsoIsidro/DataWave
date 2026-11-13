@@ -76,9 +76,9 @@ Hard constraints for every task:
     - _Requirements: 21.1, 21.2, 21.6_
 
 - [x] 4. F2 - Job button running state
-  - [x] 4.1 Create `consume_flag` and `app/p8_effects.py`
+  - [x] 4.1 Create `consume_flag` and `app/ui_effects.py`
     - `src/webapp_core/toast_queue.py`: add `consume_flag(state, key)` (pop with default False)
-    - `app/p8_effects.py`: the keyed `p8_fx` container, one-shot and settle flag helpers, session-state key constants
+    - `app/ui_effects.py`: the keyed `p8_fx` container, one-shot and settle flag helpers, session-state key constants
     - _Requirements: 5.1, 5.2, 5.8, 7.1_
   - [x] 4.2 Write property test for `consume_flag`
     - Create `tests/test_part8_toast_queue_unit.py`
@@ -111,7 +111,7 @@ Hard constraints for every task:
     - `prefers-reduced-motion` branch: no breath or press scale, static ring, highlight fade at most 150 ms, instant error removal
     - _Requirements: 4.2, 4.3, 4.4, 4.10, 4.11, 4.12, 4.13, 4.14, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.9, 7.10_
   - [x] 4.9 Wire the redesigned running state into the app
-    - In `app/main.py`, `app/persona_page.py` and `app/p8_effects.py`: ring slot (`st.empty()` before the button inside the keyed container; inside the form for Run Analysis), `started_at` and phase, `p8_job_end` record set before `st.rerun()` and consumed once, done ring drawn in place on success, error ring on error / empty audience / missing model, in-place error ring for persona exceptions
+    - In `app/main.py`, `app/persona_page.py` and `app/ui_effects.py`: ring slot (`st.empty()` before the button inside the keyed container; inside the form for Run Analysis), `started_at` and phase, `p8_job_end` record set before `st.rerun()` and consumed once, done ring drawn in place on success, error ring on error / empty audience / missing model, in-place error ring for persona exceptions
     - Duplicate-submit guard before starting a Job (signature: PromoSpec fields except `promo_id`; persona spec fingerprint)
     - Remove the old running/settle wiring; widget keys, labels, `type` and form membership unchanged
     - _Requirements: 7.1, 7.4, 7.5, 7.7, 7.8, 7.9, 7.11, 7.12, 7.13, 2.4_
@@ -135,7 +135,7 @@ Hard constraints for every task:
 
   - [x] 4.13 Page lock while a job loader is shown (decision A7)
     - Overlay catches clicks from the moment it is drawn; `--pan-z-loader` above Streamlit's header, `--pan-z-ring` above the loader; tab fade fill mode `backwards`
-    - `app/static/p8_page_lock.js` plus `p8_effects.install_page_lock()` (called from `main()` and `render_persona_tab`): `inert` on the page while `.pan-loading:not(.is-finishing)` exists
+    - `app/static/page_lock.js` plus `ui_effects.install_page_lock()` (called from `main()` and `render_persona_tab`): `inert` on the page while `.pan-loading:not(.is-finishing)` exists
     - `p8_fx` layout wrapper taken out of flow (no gap above the banner); `stMain` focus frame suppressed
     - Verified in headless Chrome: Run Analysis and Build Personas lock mouse, Tab and the menu, and unlock when the loader goes
     - _Requirements: 7.6, 7.11, 22.2_
@@ -155,7 +155,7 @@ Hard constraints for every task:
     - Quiet `st.success`/`st.warning` styling at 4.5:1 contrast; verify `<filter>` survives `st.markdown`
     - _Requirements: 8.1, 8.2, 8.5, 8.6, 8.7, 8.12, 8.13, 8.14, 9.1, 9.2, 9.3, 9.5, 9.6, 9.7, 9.9, 4.5, 20.2, 20.3_
   - [x] 5.5 Wire toasts into both jobs
-    - `p8_effects.push_toast` and stack rendering in `p8_fx`; Start_Toast before the blocking call (Promo ID / display labels); Completion_Toast only on success; set `p8_oneshot_analysis` / `p8_oneshot_personas` before `st.rerun()`; consume once; no completion toast for the empty-audience warning, missing-model error or any error
+    - `ui_effects.push_toast` and stack rendering in `p8_fx`; Start_Toast before the blocking call (Promo ID / display labels); Completion_Toast only on success; set `p8_oneshot_analysis` / `p8_oneshot_personas` before `st.rerun()`; consume once; no completion toast for the empty-audience warning, missing-model error or any error
     - Existing flash messages, text and AppTest assertions unchanged
     - _Requirements: 5.1, 5.2, 5.3, 5.5, 5.6, 5.7, 8.8, 8.9, 8.10, 8.11, 9.4, 9.8_
   - [x] 5.6 Add the finishing loader overlay exit

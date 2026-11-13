@@ -43,7 +43,7 @@ I did not open the four image files. The descriptions come from the brief. Every
 
 Three delivery paths, chosen to keep iframes and vendored files at the minimum (Requirement 1.8):
 
-1. Injected CSS and HTML in the main page: toasts, running state, completion stories, number roll, input pills, quiet alerts, reveal, stale override, tab fade. No iframe and no vendored file. The one exception is the page lock script (`app/static/p8_page_lock.js`, decision A7), copied into the main page with `st.components.v1.html`. Streamlit logs that this will be replaced by `st.iframe`; if removed, the CSS click block remains.
+1. Injected CSS and HTML in the main page: toasts, running state, completion stories, number roll, input pills, quiet alerts, reveal, stale override, tab fade. No iframe and no vendored file. The one exception is the page lock script (`app/static/page_lock.js`, decision A7), copied into the main page with `st.components.v1.html`. Streamlit logs that this will be replaced by `st.iframe`; if removed, the CSS click block remains.
 2. One iframe component (`group_picker`): map, ring with glass depth, Toggle_Card. It needs JS for the ring layout and animation, keyboard handling and returning a value.
 3. Pure Python in `src/webapp_core/`: everything that can be unit tested without Streamlit.
 
@@ -57,7 +57,7 @@ flowchart TD
     JM[job_motion.py]
   end
   subgraph App["app/ (composition)"]
-    FX[p8_effects.py - session wiring]
+    FX[ui_effects.py - session wiring]
     TH[theme.py - token reader + HTML builders]
     PP[persona_page.py]
     MN[main.py]
@@ -111,7 +111,7 @@ A rerun re-executes the whole script, so a CSS animation would replay if its mar
 | `src/webapp_core/toast_queue.py` | new, pure | Toast queue: add, expire, trim to 3, negative delays. Also `consume_flag`. |
 | `src/webapp_core/group_picker_items.py` | new, pure | Which visual to show, the items, glass level, and the component-value sync rule. |
 | `src/webapp_core/job_motion.py` | new, pure | `ring_phase` and `is_duplicate_submit` for the F2 redesign. |
-| `app/p8_effects.py` | new | Session wiring: queue, one-shot flags, `p8_fx` container, Job_Button ring slot, job-end record, duplicate-submit guard, stale styles. |
+| `app/ui_effects.py` | new | Session wiring: queue, one-shot flags, `p8_fx` container, Job_Button ring slot, job-end record, duplicate-submit guard, stale styles. |
 | `app/group_picker.py` | new | `declare_component` wrapper and `pending_selection()`. |
 | `app/static/group_picker/` | new | `index.html`, `picker.js`, `picker.css`, `ph_regions.svg`, `illustrations.svg`, licence notice. |
 | `scripts/build_ph_regions.py` | new, one-off | Offline geometry preprocessing (stdlib only): dissolve and simplify. |
@@ -274,7 +274,7 @@ Event schema from JS: `{"value": "<group key>", "nonce": <int>}`. The nonce incr
 
 | Key | Holds | Set by |
 |---|---|---|
-| `p8_toasts` | `list[Toast]` | `p8_effects.push_toast` |
+| `p8_toasts` | `list[Toast]` | `ui_effects.push_toast` |
 | `p8_toast_seq` | int for toast ids | same |
 | `p8_oneshot_analysis`, `p8_oneshot_personas` | `True` until consumed | job success |
 | `p8_job_end` | `{job: {"ok", "started_at", "ended_at", "signature"}}`; the ring part is consumed once, the record is kept for the duplicate guard | job end (success or error), before `st.rerun()`; replaces `p8_settle_*` |
@@ -756,7 +756,7 @@ New flow, JS-free:
 
 1. `theme.loading(..., keep_on_success=True)`: the `finally` clear becomes an `except` clear. On success the overlay markup stays in the slot through `st.rerun()`. On an exception the slot is cleared as before and the exception propagates.
 2. On success the caller sets `p8_oneshot_<job>` and calls `st.rerun()`. The old overlay element stays in the DOM as a stale element until the new run finishes and Streamlit drops the elements it did not re-render.
-3. On the completion render, `p8_effects` emits first inside `p8_fx`, before anything else on the page so it paints early, `finishing_overlay_html()`: a `.pan-loading.is-finishing` block with the same scrim and card as the running overlay, visible at once (no 350 ms reveal delay), z-index one higher than the running overlay. Its loader visual is frozen on its last frame (animations paused or omitted, not replayed). It then runs `animation: p8-fade-out var(--pan-dur) var(--pan-ease) var(--pan-dur-hold) forwards`, i.e. holds 250 ms, fades 180 ms. The final keyframe sets `opacity: 0; pointer-events: none; visibility: hidden`, so it blocks nothing afterwards.
+3. On the completion render, `ui_effects` emits first inside `p8_fx`, before anything else on the page so it paints early, `finishing_overlay_html()`: a `.pan-loading.is-finishing` block with the same scrim and card as the running overlay, visible at once (no 350 ms reveal delay), z-index one higher than the running overlay. Its loader visual is frozen on its last frame (animations paused or omitted, not replayed). It then runs `animation: p8-fade-out var(--pan-dur) var(--pan-ease) var(--pan-dur-hold) forwards`, i.e. holds 250 ms, fades 180 ms. The final keyframe sets `opacity: 0; pointer-events: none; visibility: hidden`, so it blocks nothing afterwards.
 4. The Completion_Toast is delayed by `--pan-dur-hold` through the same `animation-delay` offset (the toast block uses `calc(var(--pan-dur-hold) - var(--p8-el))` for the first 250 ms of life), so its enter starts as the fade begins.
 5. Reading of "plays the Completion_Story's hand-off" (Requirement 9.10, 22.16): the story itself lives in the toast (Requirement 9). The overlay does not play it. The hand-off is: hold the loader's last frame, then fade out as the toast's story starts.
 
@@ -829,7 +829,7 @@ Added for the page lock (decision A7), checked in headless Chrome against 1.66.1
 | Internal | Used by | What breaks if it changes |
 |---|---|---|
 | `header[data-testid="stHeader"]` z-index 999990 | `--pan-z-loader` (999991) and `--pan-z-ring` (999992) sit above it | The menu would show above the scrim (it stays inert, so still locked). |
-| `stMain` (the scroll container; its children get `inert`, it stays live so scrolling works), `stHeader`, `stSkipToContent`, `stSidebar`, `stBottom` | `p8_page_lock.js` sets `inert` on them | Keyboard lock stops for a renamed area; the overlay still blocks clicks. |
+| `stMain` (the scroll container; its children get `inert`, it stays live so scrolling works), `stHeader`, `stSkipToContent`, `stSidebar`, `stBottom` | `page_lock.js` sets `inert` on them | Keyboard lock stops for a renamed area; the overlay still blocks clicks. |
 | `components.html` iframe has `allow-same-origin` | the lock script is copied into the main page | No keyboard lock; the click block still applies. |
 | `st.container(key=...)` puts `st-key-*` on the inner `stVerticalBlock`; the `stLayoutWrapper` parent is the flex item | `p8_fx` takes both out of flow | A 16 px gap above the banner. |
 | `stMain:focus-visible::before` inset box-shadow (sticky, 3.75rem from the top) | suppressed for `stMain` only | A faint frame round the page when focus lands on stMain. |

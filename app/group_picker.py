@@ -28,6 +28,7 @@ CREDIT = "NAMRIA, PSA via OCHA"
 # Non-colour tokens the iframe needs on top of theme.PICKER_TOKENS.
 _EXTRA_TOKENS = (
     "--pan-dur-fast", "--pan-dur", "--pan-dur-slow", "--pan-dur-xfade", "--pan-ease",
+    "--pan-dur-carousel", "--pan-ease-carousel",   # Part 9: 3D carousel turn
     "--pan-radius-md", "--pan-radius-lg", "--pan-radius-pill",
     "--pan-space-1", "--pan-space-2", "--pan-space-3", "--pan-space-4",
     "--pan-shadow", "--pan-glass-blur-1", "--pan-glass-blur-2",

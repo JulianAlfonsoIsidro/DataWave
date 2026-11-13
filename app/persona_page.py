@@ -1249,7 +1249,7 @@ def _available_promo_meta() -> dict[str, str]:
 def _show_messages(messages: list[tuple[str, str]]) -> None:
     """Display ``(level, text)`` messages as Streamlit alerts (mirrors main.py)."""
     import streamlit as st
-    import p8_effects
+    import ui_effects
 
     for level, text in messages:
         show = {"error": st.error, "warning": st.warning, "success": st.success}.get(
@@ -1257,7 +1257,7 @@ def _show_messages(messages: list[tuple[str, str]]) -> None:
         )
         if level in ("success", "warning"):
             # Quiet style so the flash reads below the Completion_Toast (Req 8.14).
-            with p8_effects.quiet_container(level):
+            with ui_effects.quiet_container(level):
                 show(text)
         else:
             show(text)
@@ -1325,7 +1325,7 @@ def _render_summary_cards(
     the seconds since the build's generation: the cards drop in top to bottom
     and their numbers count up, continuing (not replaying) across a rerun.
     """
-    import p8_effects
+    import ui_effects
     import streamlit as st
     import theme
 
@@ -1353,7 +1353,7 @@ def _render_summary_cards(
             cols = st.columns(2)
             for col, persona in zip(cols, pair):
                 with col, theme.counting(
-                    reveal_el if reveal else None, p8_effects.generation("personas") or ""
+                    reveal_el if reveal else None, ui_effects.generation("personas") or ""
                 ):
                     sentence = distinguishing_sentences(persona.profile, profiles)
                     theme.card(
@@ -1584,6 +1584,11 @@ def _render_card_extras(st, breakdown) -> None:
             st.markdown("No per-persona rates to show.")
 
 
+EJ_SEGMENT_KEY = "persona_ej_segment"
+# Best to worst, the same order as the Past Promos tables.
+EJ_SEGMENT_ORDER = ["Ready Toppers", "Untapped Wealth", "Willing but Stretched", "Not Now"]
+
+
 def _render_expected_joiners_by_persona(result: PersonaRunResult, run_result_key: str) -> None:
     """Render "Expected Joiners By Persona" over the current New Promo run (Req 7).
 
@@ -1629,9 +1634,26 @@ def _render_expected_joiners_by_persona(result: PersonaRunResult, run_result_key
         st.info(NO_GROUP_CARDS_MESSAGE)
         return
 
+    # One segment at a time (Part 9): a dropdown picks the card, best segment
+    # first, so the page opens on Ready Toppers.
+    segments = sorted(
+        {str(item.segment) for item in items},
+        key=lambda s: (EJ_SEGMENT_ORDER.index(s) if s in EJ_SEGMENT_ORDER else len(EJ_SEGMENT_ORDER), s),
+    )
+    if len(segments) > 1:
+        if st.session_state.get(EJ_SEGMENT_KEY) not in segments:
+            st.session_state[EJ_SEGMENT_KEY] = segments[0]
+        # Half width, so the dropdown lines up with the card it picks.
+        with st.columns(2)[0]:
+            chosen = st.selectbox("Segment", segments, key=EJ_SEGMENT_KEY)
+        items = [item for item in items if str(item.segment) == chosen]
+
     by_key = {(str(c.get("promo_id", "")), str(c["segment"])): c for c in cards}
+    # Part 9: one card has the whole section, split into what to do (left)
+    # and who joins (right); several cards keep the two-up grid.
+    single = len(items) == 1
     for i in range(0, len(items), 2):
-        cols = st.columns(2)
+        cols = [st.container()] if single else st.columns(2)
         for col, item in zip(cols, items[i : i + 2]):
             card = by_key.get((str(item.promo_id), str(item.segment)), {})
             # One shared renderer over CardView (Requirements 4.12, 7.1-7.12).
@@ -1659,8 +1681,13 @@ def _render_expected_joiners_by_persona(result: PersonaRunResult, run_result_key
                 },
                 persona=persona,
             )
+            body_html = (
+                theme.decision_card_split_body_html(view, body)
+                if single and mode != "all"
+                else theme.decision_card_body_html(view, body)
+            )
             with col:
-                theme.card(view.title, theme.decision_card_body_html(view, body))
+                theme.card(view.title, body_html)
                 if mode != "all" and not getattr(item, "too_few", False):
                     _render_card_extras(st, item)
 
@@ -1771,7 +1798,7 @@ def _render_suggest_helper(*, level, attributes, business_segment_field, campaig
     note disappears when the attributes or leads change, so it is never stale.
     """
     import streamlit as st
-    import p8_effects
+    import ui_effects
     import theme
 
     live_leads = _live_leads_for(run_result_key) if campaign_pool == "live" else None
@@ -1786,11 +1813,13 @@ def _render_suggest_helper(*, level, attributes, business_segment_field, campaig
             help="Compares 2 to 6 personas for these leads and attributes and "
                  "suggests where more personas stop adding much.",
         )
+        suggest_slot = st.empty()   # Part 9: always drawn; the loader fills it
         if clicked:
             spec = _build_spec(level, attributes, 3, business_segment_field, campaign_pool, [])
-            p8_effects.start_job("suggest", None)
+            ui_effects.start_job("suggest", None)
             with theme.loading("suggest", "Finding a good number of personas...",
-                               status="Comparing 2 to 6 personas...") as loader:
+                               status="Comparing 2 to 6 personas...",
+                               slot=suggest_slot) as loader:
                 try:
                     found = _get_suggester()(key, spec, live_leads)
                 except Exception as exc:  # noqa: BLE001 - surface as a message
@@ -1798,7 +1827,7 @@ def _render_suggest_helper(*, level, attributes, business_segment_field, campaig
                     return
                 st.session_state[SUGGEST_STATE_KEY] = {"key": key, **found}
                 headline = f"{found['k']} Personas Suggested"
-                p8_effects.end_job("suggest", True, repr(key), headline=headline)
+                ui_effects.end_job("suggest", True, repr(key), headline=headline)
                 loader.status(headline)
                 loader.keep()
             st.rerun()
@@ -1877,12 +1906,12 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
     """
     import streamlit as st
     import group_picker
-    import p8_effects
+    import ui_effects
 
     # Effects slot (idempotent per run; main.py creates it first, outside the tabs).
-    p8_effects.fx_container()
+    ui_effects.fx_container()
     # Page lock while a loader is shown (idempotent per run; decision A7).
-    p8_effects.install_page_lock()
+    ui_effects.install_page_lock()
 
     st.subheader("Build Personas")
     st.caption(
@@ -2019,10 +2048,14 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
     )
 
     # --- Run control + validation (Requirements 6.1, 6.2) ---
-    with st.container(key=p8_effects.P8_BTN_BUILD_PERSONAS):
+    with st.container(key=ui_effects.P8_BTN_BUILD_PERSONAS):
         # Ring slot sits before the button inside the keyed container (Req 7).
-        ring_slot = p8_effects.ring_slot("personas")
+        ring_slot = ui_effects.ring_slot("personas")
         run_clicked = st.button("Build Personas", type="primary", key="persona_run")
+    # Part 9: the loader's slot is drawn on every render (empty when idle), so
+    # pressing Build adds nothing to the page; a slot added only on the click
+    # left a second, stale "Build Personas" showing under the live one.
+    loader_slot = st.empty()
     if run_clicked:
         error = validation_error(len(selected_attributes), k, level)
         if error is not None:
@@ -2040,6 +2073,7 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
                 grouping_attributes=grouping_attributes,
                 run_result_key=run_result_key,
                 ring_slot=ring_slot,
+                loader_slot=loader_slot,
             )
 
     # --- results: summary cards + charts + cards-with-mix + downloads ---
@@ -2073,16 +2107,16 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
         # Part 8: the build reveal (keyed to the personas generation, so it
         # plays once and continues across a rerun) wins over the group-change
         # crossfade; the previous group is stored every render (Req 22.14).
-        p8_effects.consume_oneshot("personas")
-        reveal_el = p8_effects.reveal_el("personas")
+        ui_effects.consume_oneshot("personas")
+        reveal_el = ui_effects.reveal_el("personas")
         reveal = reveal_el is not None
-        prev_group = st.session_state.get(p8_effects.P8_GROUP_PREV)
+        prev_group = st.session_state.get(ui_effects.P8_GROUP_PREV)
         xfade: bool | str = False
         if group_changed(prev_group, selected_group, reveal=reveal):
             flip = "b" if st.session_state.get("p8_xfade_flip") == "a" else "a"
             st.session_state["p8_xfade_flip"] = flip
             xfade = flip
-        st.session_state[p8_effects.P8_GROUP_PREV] = selected_group
+        st.session_state[ui_effects.P8_GROUP_PREV] = selected_group
 
         st.subheader("Personas")
         _caption = clustering_kind_caption(st.session_state.get(PERSONA_KIND_KEY))
@@ -2096,8 +2130,9 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
             xfade=xfade,
             reveal_el=reveal_el,
         )
-        # How the Personas Differ comparison table (Requirement 6.4).
-        _render_persona_comparison(scoped)
+        # The "How the Personas Differ" table was removed in Part 9 (the
+        # persona cards already say what sets each one apart);
+        # _render_persona_comparison stays available.
         # Expected joiners by persona over the current New Promo run; uses the
         # full (not group-scoped) persona run (Requirements 7.1-7.5).
         _render_expected_joiners_by_persona(result, run_result_key)
@@ -2160,10 +2195,11 @@ def _handle_run(
     grouping_attributes: list[str],
     run_result_key: str,
     ring_slot=None,
+    loader_slot=None,
 ) -> None:
     """Execute a validated persona run and stash the result + exports in session.
 
-    ``ring_slot`` is the Build Personas ring slot from ``p8_effects.ring_slot``
+    ``ring_slot`` is the Build Personas ring slot from ``ui_effects.ring_slot``
     (F2 redesign, Requirement 7); ``None`` draws no ring.
 
     Builds the :class:`PersonaRunSpec`, resolves the live leads for a ``campaign``
@@ -2187,19 +2223,19 @@ def _handle_run(
 
     live_leads = _live_leads_for(run_result_key) if campaign_pool == "live" else None
 
-    import p8_effects
+    import ui_effects
     import theme
 
     # Keyboard guard (Requirements 7.11, 7.12): the same persona spec (the cache
     # fingerprint plus the live pool) re-run within the window starts no Job.
     signature = _job_signature(spec, live_leads)
-    if p8_effects.is_duplicate("personas", signature):
+    if ui_effects.is_duplicate("personas", signature):
         return
 
     # One loading screen only: the former toast wording (naming the split by
     # display label) is its live status line, streamed before the blocking call.
     if ring_slot is not None:
-        p8_effects.start_job("personas", ring_slot)
+        ui_effects.start_job("personas", ring_slot)
     from webapp_core.toast_queue import DONE_TEXT, start_text
 
     with theme.loading(
@@ -2208,6 +2244,7 @@ def _handle_run(
         status=start_text(
             "personas", [attribute_display_label(c) for c in (grouping_attributes or [])]
         ),
+        slot=loader_slot,
     ) as loader:
         try:
             result = _run_personas_cached(spec, live_leads)
@@ -2215,12 +2252,12 @@ def _handle_run(
         except InvalidSegmentFieldError as exc:
             # No rerun on error: the error ring is drawn in place this run.
             if ring_slot is not None:
-                p8_effects.fail_job_in_place("personas", ring_slot, signature)
+                ui_effects.fail_job_in_place("personas", ring_slot, signature)
             st.error(str(exc))
             return
         except Exception as exc:  # noqa: BLE001 - surface any backend halt as a message
             if ring_slot is not None:
-                p8_effects.fail_job_in_place("personas", ring_slot, signature)
+                ui_effects.fail_job_in_place("personas", ring_slot, signature)
             st.error(f"Could not build personas: {exc}")
             return
 
@@ -2252,13 +2289,14 @@ def _handle_run(
 
         n_personas = sum(len(ps.personas) for ps in result.persona_sets)
         st.session_state[PERSONA_FLASH_KEY] = [
-            ("success", f"Built {n_personas} personas across {len(result.persona_sets)} group(s).")
+            ("success", f"Built {n_personas} personas across {len(result.persona_sets)} "
+                        f"{'group' if len(result.persona_sets) == 1 else 'groups'}.")
         ]
         # Remembered for the group picker (which visual fits the split).
-        st.session_state[p8_effects.P8_LAST_SPLIT] = _split_for_level(
+        st.session_state[ui_effects.P8_LAST_SPLIT] = _split_for_level(
             level, business_segment_field, grouping_attributes
         )
-        p8_effects.end_job("personas", True, signature)
+        ui_effects.end_job("personas", True, signature)
         loader.status(DONE_TEXT["personas"])
         # The overlay stays through the rerun; the completion render fades it
         # out (design section l). The error paths above return and clear it.
@@ -2281,9 +2319,9 @@ def _render_group_visual(
     """
     import streamlit as st
     import group_picker
-    import p8_effects
+    import ui_effects
 
-    split = list(st.session_state.get(p8_effects.P8_LAST_SPLIT) or [])
+    split = list(st.session_state.get(ui_effects.P8_LAST_SPLIT) or [])
     group_keys = [o for o in options if o != ALL_GROUPS_LABEL]
     counts = dict(st.session_state.get(PERSONA_GROUP_COUNTS_KEY) or {})
     plan = plan_picker(split, group_keys, counts, attribute_display_label)
@@ -2292,13 +2330,13 @@ def _render_group_visual(
     column_label = attribute_display_label(split[0]) if len(split) == 1 else "Groups"
     # The visual reveals itself inside the iframe (carousel inside out, map
     # and toggles bottom to top), once per persona generation.
-    with st.container(key=p8_effects.P8_GROUP_VISUAL):
+    with st.container(key=ui_effects.P8_GROUP_VISUAL):
         drawn = group_picker.render_group_picker(
             plan,
             selected_group if selected_group != ALL_GROUPS_LABEL else None,
             column_label=column_label,
             front_value=group_keys[0] if group_keys else None,
-            reveal_gen=p8_effects.generation("personas") if reveal else None,
+            reveal_gen=ui_effects.generation("personas") if reveal else None,
         )
     return drawn
 

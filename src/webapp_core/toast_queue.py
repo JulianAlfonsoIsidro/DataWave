@@ -4,7 +4,7 @@ Governs Requirement 5 (one-shot effects never replay on a rerun) and
 Requirement 8 (the bottom-right Toast_Stack: at most three visible, 4 s life,
 oldest evicted, no replay across ``st.rerun()``).
 
-No Streamlit import: the session wiring lives in ``app/p8_effects.py`` and the
+No Streamlit import: the session wiring lives in ``app/ui_effects.py`` and the
 markup in ``app/theme.py``. Times are server ``time.time()`` seconds.
 """
 

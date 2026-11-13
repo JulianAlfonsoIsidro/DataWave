@@ -8,11 +8,11 @@ DataWave/
 │   ├── main.py           # Streamlit entry point; builds the tabs and wires widgets to webapp_core
 │   ├── persona_page.py   # Personas tab: controls, persona cards, comparison table, downloads
 │   ├── theme.py          # palette, CSS injection, and page chrome helpers
-│   ├── p8_effects.py     # Part 8 motion: toasts, finishing overlay, page lock, number_prev, quiet_container
+│   ├── ui_effects.py     # Part 8 motion: toasts, finishing overlay, page lock, number_prev, quiet_container
 │   ├── group_picker.py   # declare_component wrapper for the Group_Visual (ring / Toggle_Card / map)
 │   ├── styles.css
 │   └── static/
-│       ├── p8_page_lock.js        # page lock while a job loader is shown
+│       ├── page_lock.js        # page lock while a job loader is shown
 │       └── group_picker/          # iframe component: index.html, picker.js, picker.css, SVG assets, licence
 ├── scripts/              # one-off build scripts (e.g. build_ph_regions.py)
 ├── data/                 # input CSVs (customer_dna, transactions, promo_history, ...)

@@ -116,10 +116,38 @@
   --pan-skel:            light-dark(#E6E8EC, #2A2E36);
 
   /* radius */
-  --pan-radius-sm: 6px;
-  --pan-radius-md: 10px;
-  --pan-radius-lg: 14px;
+  /* Part 9: one tight scale. sm for small parts (tags, tabs, tooltips), md
+     for every control and note, lg for cards. Pill only for chips and dots. */
+  --pan-radius-sm: 4px;
+  --pan-radius-md: 6px;
+  --pan-radius-lg: 8px;
   --pan-radius-pill: 999px;
+
+
+  /* Part 9: the Ask Assistant stone block (section 24) */
+  --pan-cube-base: #5E5E5E;                  /* the block's grey, the same in both modes */
+  --pan-cube-size: 19px;
+  --pan-dur-cube-spin: 1600ms;               /* one turn while thinking */
+  --pan-dur-cube-finish: 900ms;              /* spin up, hop, land, wobble */
+
+  /* Part 9: one control height for tabs, inputs and buttons */
+  --pan-control-h: 40px;
+  /* Part 9: every hover text fades in and out on this one clock */
+  --pan-dur-tip: 160ms;
+  /* Part 9: light/dark switch, the new theme rises like liquid filling a
+     tray. Long on purpose (asked for, and a rare action). */
+  --pan-dur-theme-fill: 1100ms;
+  --pan-ease-bubble: cubic-bezier(0.42, 0, 1, 1);
+  /* Part 9 buttons: a quick press, a springy release, red fading back */
+  --pan-dur-bounce: 420ms;
+  --pan-ease-bounce: cubic-bezier(0.34, 1.8, 0.64, 1);   /* overshoots, then settles */
+  --pan-dur-press-out: 600ms;     /* the red fading out once the work is done */   /* Part 9: a bubble speeds up as it rises */
+  /* Part 9: Ask Assistant waiting indicator (loops only while waiting) */
+  --pan-on-gold: #1F2328;            /* ink on the gold user avatar, both modes */
+  --pan-dur-think: 1200ms;          /* one pulse of the three dots */
+  --pan-think-step: 160ms;          /* stagger between the dots */
+  --pan-dur-think-calm: 1600ms;     /* reduced motion: slower opacity pulse */
+  --pan-ease-constant: linear;      /* constant motion: the orbit's even speed */
 
   /* spacing scale */
   --pan-space-1: 4px;
@@ -143,14 +171,16 @@
   --pan-dur-roll: 600ms;
   --pan-dur-xfade: 180ms;
   --pan-dur-xfade-short: 150ms;
-  --pan-dur-hold: 250ms;
+  --pan-dur-hold: 150ms;           /* Part 9: was 250ms */
   --pan-reveal-base: 80ms;
-  --pan-reveal-step: 250ms;        /* cards: each starts this long after the last */
+  --pan-reveal-step: 60ms;         /* cards: each starts this long after the last (Part 9: was 250ms) */
   --pan-stale-delay: 300ms;
   /* Results/Personas polish: generation reveals and the count-up */
   --pan-dur-reveal: 400ms;         /* carousel, map and toggle reveal */
+  --pan-dur-carousel: 900ms;       /* Part 9: one 3D carousel turn (a CSS transition) */
+  --pan-ease-carousel: cubic-bezier(0.22, 1, 0.36, 1);   /* glides in, settles softly */
   --pan-dur-text-in: 320ms;        /* important text boxes */
-  --pan-dur-swoop: 1000ms;         /* cards: fade in while rising */
+  --pan-dur-swoop: 240ms;          /* cards: fade in while rising (Part 9: was 1000ms) */
   /* Whoosh: each orbit lap bursts out of a slow start to top speed and back,
      a cartoon zip (also used to stretch the speed lines). */
   --pan-ease-whoosh: cubic-bezier(0.65, 0, 0.35, 1);
@@ -163,15 +193,20 @@
   --pan-reveal-window: 7000ms;     /* a generation's reveal may still play */
   /* Loader finish: the story and the trace fill share one clock, so both
      end, and the fireworks burst, at the same moment for both Jobs. */
-  --pan-dur-finish: 1600ms;
-  --pan-dur-finish-linger: 500ms;  /* the finished frame stays this much longer */
+  /* Part 9: a run is done tens of times a day, so its finish is short (was
+     1600ms + 500ms linger + 600ms fireworks + 250ms hold, about 3s before
+     the results showed; now about 1.15s). The stories keep their shape; they
+     run on this one clock. */
+  --pan-dur-finish: 800ms;
+  --pan-dur-finish-linger: 200ms;  /* the finished frame stays this much longer */
   /* Trace fill: starts at the running lap speed (100 units per 1400 ms over
      78 units in 1600 ms gives an initial slope of 1.465), then eases to a stop. */
   --pan-ease-trace: cubic-bezier(0.3, 0.44, 0.45, 1);
   --pan-trace-glow: color-mix(in srgb, var(--pan-primary) 65%, transparent);
   /* Reveals start as the finishing loader begins to fade: story and trace,
      fireworks, a short hold, then the scrim goes. */
-  --pan-reveal-start: calc(var(--pan-dur-finish) + var(--pan-dur-spark) + var(--pan-dur-hold)
+  /* Part 9: no fireworks, so their time is no longer waited for. */
+  --pan-reveal-start: calc(var(--pan-dur-finish) + var(--pan-dur-hold)
                           + var(--pan-dur-finish-linger));
   --pan-map-pitch: 45deg;          /* map camera: bird's-eye diagonal */
   --pan-map-bearing: -15deg;
@@ -199,7 +234,7 @@
   --pan-input-pill-min:  120px;
   --pan-input-outline:       light-dark(#868C97, #6E7683);
   --pan-input-outline-hover: light-dark(#6B717C, #8A929F);
-  --pan-radius-textarea: 20px;
+  --pan-radius-textarea: var(--pan-radius-md);   /* Part 9: no soft 20px corners */
 
   /* toast and loader */
   --pan-toast-edge:      var(--pan-border-control);
@@ -253,7 +288,7 @@
 /* ===================================================================== */
 .stApp {
   background: var(--pan-bg) !important;
-  background-image: linear-gradient(180deg, var(--pan-bg-glow) 0, var(--pan-bg) 340px) !important;
+  background-image: none !important;   /* Part 9: one flat colour */
   color: var(--pan-text);
 }
 .pan-hero-text {
@@ -277,7 +312,7 @@
 html, body, [class*="css"], .stApp, .stMarkdown, p, span, div, label, input, select, textarea, button {
   font-family: var(--pan-font-body);
 }
-.stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6 { font-family: var(--pan-font-heading); }
+.stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6 { font-family: var(--pan-font-heading); text-wrap: balance; }
 .stApp [data-testid="stMetricValue"] { font-family: var(--pan-font-number); font-variant-numeric: tabular-nums; }
 .stApp {
   font-size: var(--pan-type-body-size);
@@ -314,6 +349,7 @@ html, body, [class*="css"], .stApp, .stMarkdown, p, span, div, label, input, sel
 p { font-weight: var(--pan-type-body-weight); line-height: var(--pan-type-body-leading); }
 h2, h3 { letter-spacing: -0.2px; }
 [data-testid="stCaptionContainer"] {
+  opacity: 1;                  /* Part 9: Streamlit fades captions to 60% (2.5:1) */
   color: var(--pan-text-muted);
   font-size: var(--pan-type-caption-size);
   line-height: var(--pan-type-caption-leading);
@@ -335,6 +371,23 @@ header[data-testid="stHeader"] { background: transparent !important; height: 2.5
   box-shadow: 0 2px 8px var(--pan-shadow);
 }
 [data-testid="stMainMenuButton"]:hover { background: var(--pan-surface-2) !important; }
+/* Part 9: on narrow screens the fixed ⋮ button sat on top of the cards. It
+   slides away while the page scrolls down and returns on any scroll up
+   (app/static/ui_interactions.js sets html.p9-menu-away). */
+@media (max-width: 900px) {
+  [data-testid="stMainMenu"] {
+    transition: opacity var(--pan-dur) var(--pan-ease), transform var(--pan-dur) var(--pan-ease);
+  }
+  html.p9-menu-away [data-testid="stMainMenu"] {
+    opacity: 0 !important;
+    transform: translateY(-8px);
+    pointer-events: none;
+  }
+}
+@media (max-width: 900px) and (prefers-reduced-motion: reduce) {
+  [data-testid="stMainMenu"] { transition: opacity var(--pan-dur) var(--pan-ease); }
+  html.p9-menu-away [data-testid="stMainMenu"] { transform: none; }
+}
 [data-testid="stAppDeployButton"],
 [data-testid="stToolbarActions"],
 [data-testid="stStatusWidget"],
@@ -439,7 +492,8 @@ div[data-testid="collapsedControl"],
   line-height: var(--pan-type-button-leading);
   border: 1px solid transparent;
   border-radius: var(--pan-radius-md);
-  padding: 0.55rem 1.4rem;
+  min-height: var(--pan-control-h);   /* Part 9: same height as the fields */
+  padding: 0 var(--pan-space-5);
   box-shadow: none;
 }
 .stButton > button:hover, .stFormSubmitButton > button:hover {
@@ -454,6 +508,103 @@ div[data-testid="collapsedControl"],
   border: 1.5px solid var(--pan-primary-text);
 }
 .stDownloadButton > button:hover { background: var(--pan-primary-tint); color: var(--pan-primary-text); border-color: var(--pan-primary-text); }
+/* Part 9: the one primary download (Download Recommended Leads) is filled. */
+.stDownloadButton > button:is([kind="primary"], [data-testid="stBaseButton-primary"]) {
+  background: linear-gradient(135deg, var(--pan-primary-from), var(--pan-primary-to));
+  color: var(--pan-on-primary);
+  border: 1px solid transparent;
+}
+.stDownloadButton > button:is([kind="primary"], [data-testid="stBaseButton-primary"]):hover {
+  background: linear-gradient(135deg, var(--pan-primary-hover-from), var(--pan-primary-hover-to));
+  color: var(--pan-on-primary);
+  border-color: transparent;
+}
+
+/* Part 9: one filled button per area. Secondary st.button (navigation,
+   suggested questions) is outlined like the downloads; form submits and the
+   job buttons keep their own styles. */
+.stButton > button[data-testid="stBaseButton-secondary"] {
+  background: var(--pan-surface);
+  color: var(--pan-primary-text);
+  border: 1px solid var(--pan-primary-text);
+}
+.stButton > button[data-testid="stBaseButton-secondary"]:hover {
+  background: var(--pan-primary-tint);
+  color: var(--pan-primary-text);
+  border-color: var(--pan-primary-text);
+}
+.st-key-pan_next_actions { margin-top: var(--pan-space-5); }
+
+/* ---- What-If headline (Part 9): as run, at this threshold, change ---- */
+.pan-wi { margin: var(--pan-space-3) 0 var(--pan-space-2) 0; }
+.pan-wi-title {
+  font-family: var(--pan-font-heading);
+  font-size: var(--pan-type-card-title-size);
+  font-weight: var(--pan-weight-medium);
+  color: var(--pan-text);
+  margin-bottom: var(--pan-space-2);
+}
+.pan-wi-figs { display: flex; flex-wrap: wrap; gap: var(--pan-space-3) var(--pan-space-6); align-items: flex-end; }
+.pan-wi-k {
+  display: block;
+  font-size: var(--pan-type-caption-size);
+  line-height: var(--pan-type-caption-leading);
+  color: var(--pan-text-muted);
+}
+.pan-wi-v {
+  display: block;
+  font-family: var(--pan-type-kpi-tile-font);
+  font-size: var(--pan-type-kpi-tile-size);
+  font-weight: var(--pan-type-kpi-tile-weight);
+  line-height: var(--pan-type-kpi-tile-leading);
+  font-variant-numeric: tabular-nums;
+  color: var(--pan-text-muted);
+}
+.pan-wi-fig.is-now .pan-wi-v {
+  font-family: var(--pan-type-kpi-hero-font);
+  font-size: var(--pan-type-kpi-hero-size);
+  font-weight: var(--pan-type-kpi-hero-weight);
+  line-height: var(--pan-type-kpi-hero-leading);
+  color: var(--pan-text);
+}
+.pan-wi-fig.is-delta .pan-wi-v { color: var(--pan-text); }
+[data-testid="stMarkdownContainer"]:has(> .pan-wi) { margin-bottom: 0; }
+
+/* ---- Results action bar and Download Leads rows (Part 9) ---- */
+.st-key-pan_results_actions { margin-bottom: var(--pan-space-2); }
+/* One hairline under each row (each row sits in its own wrapper, so a
+   top-and-last-child pair would draw two lines between rows). */
+[class*="st-key-pan_dl_row_"] {
+  border-bottom: 1px solid var(--pan-divider);
+  padding: var(--pan-space-3) 0;
+}
+.st-key-pan_dl_row_0 { border-top: 1px solid var(--pan-divider); }
+/* Streamlit pulls each markdown block up by 1rem; inside a row that let a
+   tall cell run past the row's divider. */
+[class*="st-key-pan_dl_row_"] [data-testid="stMarkdownContainer"] { margin-bottom: 0 !important; }
+.pan-dl-name {
+  display: flex;
+  align-items: center;
+  gap: var(--pan-space-2);
+  font-family: var(--pan-font-heading);
+  font-weight: var(--pan-weight-medium);
+  color: var(--pan-text);
+}
+.pan-dl-name > span:not(.pan-marker):not(.pan-act) { font-family: inherit; min-width: 0; }
+.pan-dl-action,
+.pan-dl-k,
+.pan-dl-note {
+  display: block;
+  font-size: var(--pan-type-caption-size);
+  line-height: var(--pan-type-caption-leading);
+  color: var(--pan-text-muted);
+}
+.pan-dl-v {
+  display: block;
+  font-weight: var(--pan-weight-demi);
+  color: var(--pan-text);
+  font-variant-numeric: tabular-nums;
+}
 .stButton > button:disabled, .stDownloadButton > button:disabled, .stFormSubmitButton > button:disabled {
   background: var(--pan-disabled-bg);
   color: var(--pan-disabled-text);
@@ -462,40 +613,106 @@ div[data-testid="collapsedControl"],
   transform: none;
 }
 
-/* ---- Tabs: underline nav ---- */
-.stTabs [data-baseweb="tab-list"] {
-  gap: var(--pan-space-5);
-  background: transparent;
+/* ---- Tabs (Part 9) ----
+   Streamlit 1.66.1 draws tabs with react-aria: .stTabs > div > [role=tablist]
+   > [role=tab][aria-selected], plus a sliding .react-aria-SelectionIndicator.
+   The main sections (key main_nav) are a numbered stepper: the first four
+   tabs are the workflow, counted by CSS (the labels stay exactly as written),
+   and Past Promos / Ask Assistant sit apart on the right. Other tab sets
+   (New Promo's Fill In Details / Upload) are a small two-option switch. */
+.stTabs > div > [role="tablist"] { gap: var(--pan-space-1); }
+.stTabs [role="tab"] { color: var(--pan-text-muted); }
+.stTabs [role="tab"] p { font-size: var(--pan-type-button-size); font-weight: var(--pan-weight-medium); }
+.stTabs [role="tab"]:hover { color: var(--pan-text); }
+.stTabs [role="tab"][aria-selected="true"] { color: var(--pan-text); }
+
+/* Main stepper */
+.st-key-main_nav > div > [role="tablist"] {
+  counter-reset: pan-step;
+  gap: var(--pan-space-1);
   border-bottom: 1px solid var(--pan-divider);
-  padding: 0;
+  margin-bottom: var(--pan-space-2);
 }
-.stTabs [data-baseweb="tab"] {
+.st-key-main_nav > div > [role="tablist"] > .react-aria-SelectionIndicator,
+.st-key-main_nav > div > [role="tablist"] > [role="tab"] > .react-aria-SelectionIndicator { display: none; }
+.st-key-main_nav > div > [role="tablist"] > [role="tab"] {
   position: relative;
-  background: transparent;
+  height: var(--pan-control-h);
+  padding: 0 var(--pan-space-3);
+  gap: var(--pan-space-2);
+  border-radius: var(--pan-radius-sm) var(--pan-radius-sm) 0 0;
+}
+.st-key-main_nav > div > [role="tablist"] > [role="tab"]:nth-child(-n+4)::before {
+  counter-increment: pan-step;
+  content: counter(pan-step);
+  display: inline-grid;
+  place-items: center;
+  inline-size: 20px;
+  block-size: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--pan-border-control);
+  font-family: var(--pan-font-number);
+  font-size: 0.75rem;
+  font-weight: var(--pan-weight-bold);
+  font-variant-numeric: tabular-nums;
   color: var(--pan-text-muted);
-  font-weight: var(--pan-weight-medium);
-  font-size: var(--pan-type-button-size);
-  line-height: var(--pan-type-button-leading);
-  padding: 10px 2px;
+  flex: none;
 }
-.stTabs [data-baseweb="tab"]:hover { color: var(--pan-text); }
-.stTabs [data-baseweb="tab"][aria-selected="true"] {
-  color: var(--pan-primary-text);
-  font-weight: var(--pan-type-button-weight);
-}
-.stTabs [data-baseweb="tab"]::after {
+/* Current step: filled number, ink label, a 2px rule on the divider. */
+.st-key-main_nav > div > [role="tablist"] > [role="tab"][aria-selected="true"] p { font-weight: var(--pan-weight-demi); }
+.st-key-main_nav > div > [role="tablist"] > [role="tab"][aria-selected="true"]::after {
   content: "";
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
-  height: 2px;
-  background: var(--pan-primary-text);
-  transform: scaleX(0);
-  transform-origin: left center;
+  inset: auto 0 -1px 0;
+  block-size: 2px;
+  background: var(--pan-primary);
 }
-.stTabs [data-baseweb="tab"][aria-selected="true"]::after { transform: scaleX(1); }
-.stTabs [data-baseweb="tab-highlight"], .stTabs [data-baseweb="tab-border"] { background-color: transparent; }
+.st-key-main_nav > div > [role="tablist"] > [role="tab"][aria-selected="true"]:nth-child(-n+4)::before {
+  background: var(--pan-primary);
+  border-color: var(--pan-primary);
+  color: var(--pan-on-primary);
+}
+/* Part 9: no done (check mark) or needs-a-run (dashed) states; every
+   step number is the same plain grey circle except the current one. */
+/* Past Promos and Ask Assistant: set apart on the right, no number. */
+.st-key-main_nav > div > [role="tablist"] > [role="tab"]:nth-child(5) { margin-left: auto; }
+/* When the six steps do not fit, they wrap to a second row instead of
+   scrolling behind an arrow (the arrow covered "Ask Assistant"). */
+.st-key-main_nav > div > [role="tablist"] { flex-wrap: wrap; overflow: visible; }
+.st-key-main_nav [data-testid^="stTabsScroll"] { display: none !important; }
+/* Part 9: while a job locks the page, a stale copy of a job button left by
+   Streamlit (seen as a second "Build Personas" under the first) is hidden.
+   The live button is redrawn before the loader, so it is never stale here. */
+html[data-p8-locked] [class*="st-key-p8_btn_"] [data-testid="stElementContainer"][data-stale="true"],
+html[data-p8-locked] [class*="st-key-p8_btn_"][data-stale="true"] {
+  visibility: hidden;
+}
+/* The state marker takes no row (and no row gap) in the page. */
+[data-testid="stElementContainer"]:has(.pan-nav-state) { display: none; }
+
+/* Sub-tabs (Fill In Details / Upload Campaign File): a two-option switch. */
+.stTabs:not(.st-key-main_nav) > div > [role="tablist"] {
+  display: inline-flex;
+  inline-size: fit-content;
+  gap: 2px;
+  padding: 2px;
+  background: var(--pan-surface-2);
+  border: 1px solid var(--pan-border);
+  border-radius: var(--pan-radius-md);
+  margin-bottom: var(--pan-space-4);
+}
+.stTabs:not(.st-key-main_nav) > div > [role="tablist"] > .react-aria-SelectionIndicator,
+.stTabs:not(.st-key-main_nav) > div > [role="tablist"] > [role="tab"] > .react-aria-SelectionIndicator { display: none; }
+.stTabs:not(.st-key-main_nav) > div > [role="tablist"] > [role="tab"] {
+  height: calc(var(--pan-control-h) - 8px);
+  padding: 0 var(--pan-space-3);
+  border-radius: var(--pan-radius-sm);
+}
+.stTabs:not(.st-key-main_nav) > div > [role="tablist"] > [role="tab"][aria-selected="true"] {
+  background: var(--pan-surface);
+  box-shadow: 0 1px 2px var(--pan-shadow);
+}
+.stTabs:not(.st-key-main_nav) > div > [role="tablist"] > [role="tab"][aria-selected="true"] p { font-weight: var(--pan-weight-demi); }
 
 /* ---- Cards (decision, persona, Expected Joiners, Past Promos) ---- */
 .pan-card {
@@ -531,20 +748,115 @@ div[data-testid="collapsedControl"],
 }
 .pan-field-value { display: block; font-weight: var(--pan-weight-demi); color: var(--pan-text); }
 .pan-desc { margin-bottom: var(--pan-space-3); color: var(--pan-text); }
-.pan-list { margin: var(--pan-space-2) 0 0 18px; padding: 0; }
+.pan-list { margin: var(--pan-space-2) 0 0 var(--pan-space-4); padding: 0; }
 .pan-list li { margin-bottom: var(--pan-space-1); }
 .pan-line { margin-top: var(--pan-space-2); color: var(--pan-text); }
 .pan-line.strong { font-weight: var(--pan-weight-demi); }
 
-/* ---- 2x2 tiles ---- */
-.pan-tile {
-  border-radius: var(--pan-radius-lg);
-  padding: var(--pan-space-5);
+/* ---- 2x2 tiles (Part 9) ----
+   One labelled grid: column heads are capacity, row labels (read bottom to
+   top) are score. Every tile is the same flat surface with a hairline edge;
+   colour lives only in the segment marker. The recommended tile (card action
+   "Prioritize") gets a 2px primary edge, drawn as border + inset shadow so
+   nothing shifts, and the "Act first" tag. */
+.pan-grid {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--pan-space-2) var(--pan-space-3);
   margin-bottom: var(--pan-space-5);
-  min-height: 150px;
-  box-shadow: 0 4px 14px var(--pan-shadow);
 }
-.pan-tile.white { background: var(--pan-surface); border: 1.5px solid var(--pan-border); color: var(--pan-text); border-left: 5px solid var(--pan-seg-color, var(--pan-primary-text)); }
+.pan-grid-col,
+.pan-grid-row span {
+  font-size: var(--pan-type-caption-size);
+  line-height: var(--pan-type-caption-leading);
+  color: var(--pan-text-muted);
+  white-space: nowrap;
+}
+.pan-grid-col { padding-left: var(--pan-space-1); }
+.pan-grid-row { display: flex; align-items: center; justify-content: center; }
+.pan-grid-row span { writing-mode: vertical-rl; transform: rotate(180deg); }
+.pan-tile {
+  border-radius: var(--pan-radius-md);
+  padding: var(--pan-space-4) var(--pan-space-5);
+  min-height: 132px;
+  min-width: 0;
+  background: var(--pan-surface);
+  border: 1px solid var(--pan-border);
+  color: var(--pan-text);
+}
+.pan-tile.is-recommended {
+  border-color: var(--pan-primary);
+  box-shadow: inset 0 0 0 1px var(--pan-primary);
+}
+/* The title text is a span (beside the tag); the global span rule would
+   reset it to the body face, so it inherits the heading face instead. */
+.pan-tile .pan-tile-title > span:not(.pan-marker):not(.pan-act),
+.pan-card .pan-card-heading > span:not(.pan-marker):not(.pan-act) { min-width: 0; font-family: inherit; }
+/* "Act first": body face, a step smaller, sentence case, untracked. */
+.pan-act {
+  margin-left: auto;
+  flex: none;
+  padding: 0 var(--pan-space-2);
+  border: 1px solid var(--pan-primary-text);
+  border-radius: var(--pan-radius-sm);
+  color: var(--pan-primary-text);
+  font-family: var(--pan-font-body);
+  font-size: var(--pan-type-caption-size);
+  font-weight: var(--pan-weight-demi);
+  line-height: 1.6;
+}
+/* Part 9: a card alone in its section uses the width: guidance on the
+   left, the persona breakdown on the right, split by a hairline. */
+.pan-card-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--pan-space-6);
+}
+.pan-card-split-side {
+  border-left: 1px solid var(--pan-divider);
+  padding-left: var(--pan-space-6);
+}
+.pan-card-split-side > .pan-line.strong:first-child { margin-top: 0; }
+@media (max-width: 760px) {
+  .pan-card-split { grid-template-columns: minmax(0, 1fr); gap: var(--pan-space-4); }
+  .pan-card-split-side { border-left: 0; padding-left: 0; border-top: 1px solid var(--pan-divider); padding-top: var(--pan-space-3); }
+}
+/* Decision card disclosure: the reasons and exclusions, closed by default. */
+.pan-details { margin: 0 0 var(--pan-space-2) 0; }
+.pan-details > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pan-space-2);
+  cursor: pointer;
+  list-style: none;
+  color: var(--pan-text-muted);
+  font-size: var(--pan-type-caption-size);
+  font-weight: var(--pan-weight-demi);
+  padding: var(--pan-space-1) 0;
+}
+.pan-details > summary::-webkit-details-marker { display: none; }
+.pan-details > summary::before {
+  content: "";
+  inline-size: 6px;
+  block-size: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform var(--pan-dur) var(--pan-ease);
+}
+.pan-details[open] > summary::before { transform: rotate(45deg); }
+.pan-details > summary:hover { color: var(--pan-text); }
+.pan-details > summary:focus-visible { outline: 2px solid var(--pan-focus); outline-offset: 2px; border-radius: var(--pan-radius-sm); }
+.pan-details[open] > .pan-field:first-of-type { margin-top: var(--pan-space-2); }
+@media (prefers-reduced-motion: reduce) {
+  .pan-details > summary::before { transition: none; }
+}
+@media (max-width: 640px) {
+  .pan-grid { gap: var(--pan-space-2); }
+  .pan-tile { padding: var(--pan-space-3); min-height: 0; }
+  .pan-tile .pan-tile-title { font-size: var(--pan-type-body-size); flex-wrap: wrap; }
+  .pan-act { margin-left: 0; }
+}
 .pan-tile.red { color: var(--pan-on-primary); box-shadow: 0 10px 26px var(--pan-shadow-strong); }
 .pan-tile .pan-tile-title {
   display: flex;
@@ -556,7 +868,7 @@ div[data-testid="collapsedControl"],
   line-height: var(--pan-type-card-title-leading);
   margin: 0 0 var(--pan-space-3) 0;
 }
-.pan-tile.white .pan-tile-title, .pan-tile.white .pan-tile-accent { color: var(--pan-text); }
+.pan-tile .pan-tile-title, .pan-tile .pan-tile-accent { color: var(--pan-text); }
 .pan-tile.red .pan-tile-title, .pan-tile.red .pan-tile-accent { color: var(--pan-on-primary); }
 .pan-tile .pan-tile-k { font-size: var(--pan-type-caption-size); opacity: 0.85; }
 .pan-tile .pan-tile-k--spaced { margin-top: var(--pan-space-3); }
@@ -588,7 +900,7 @@ div[data-testid="collapsedControl"],
   color: var(--pan-primary-text);
   border: 1px solid color-mix(in srgb, var(--pan-primary-text) 28%, transparent);
   border-radius: var(--pan-radius-pill);
-  padding: 3px 12px;
+  padding: var(--pan-space-1) var(--pan-space-3);
   font-size: var(--pan-type-caption-size);
   font-weight: var(--pan-weight-demi);
 }
@@ -597,7 +909,7 @@ div[data-testid="collapsedControl"],
 .pan-badge {
   display: inline-block;
   border-radius: var(--pan-radius-pill);
-  padding: 2px 10px;
+  padding: var(--pan-space-1) var(--pan-space-2);
   font-size: var(--pan-type-caption-size);
   font-weight: var(--pan-weight-demi);
   background: var(--pan-surface-2);
@@ -617,12 +929,12 @@ div[data-testid="collapsedControl"],
   color: var(--pan-text);
   border: 1px solid var(--pan-border);
 }
-/* Insight boxes: calm gold note (faint gold tint, gold accent bar, body text) */
+/* Insight boxes: calm gold note (faint gold tint, gold hairline all round,
+   body text). Part 9: the 3px side bar is gone; the tint carries the note. */
 .pan-banner--info {
   background: var(--pan-note-bg);
   color: var(--pan-note-text);
   border-color: var(--pan-note-edge);
-  box-shadow: inset 3px 0 0 var(--pan-note-accent);
   line-height: 1.5;
 }
 .pan-banner--success { background: var(--pan-success-bg); color: var(--pan-success); border-color: var(--pan-success); }
@@ -642,6 +954,25 @@ div[data-testid="collapsedControl"],
   font-variant-numeric: tabular-nums;
   color: var(--pan-text);
 }
+
+/* Part 9: inside a card the stats are a plain row split by hairlines, not
+   boxes inside the card's box. The Impact Summary tiles (outside cards) keep
+   their surface. */
+.pan-card .pan-stats {
+  gap: 0;
+  padding: var(--pan-space-1) 0 var(--pan-space-3) 0;
+  border-bottom: 1px solid var(--pan-divider);
+}
+.pan-card .pan-stat {
+  flex: 1 1 0;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0 var(--pan-space-3);
+  border-left: 1px solid var(--pan-divider);
+}
+.pan-card .pan-stat:first-child { padding-left: 0; border-left: 0; }
 
 .pan-bar { margin-bottom: var(--pan-space-2); }
 .pan-bar-label { display: block; color: var(--pan-text-muted); font-size: var(--pan-type-caption-size); }
@@ -671,11 +1002,17 @@ div[data-testid="collapsedControl"],
   opacity: 0;
   visibility: hidden;
   transform: translateY(2px);
-  transition: opacity var(--pan-dur-fast) var(--pan-ease), transform var(--pan-dur-fast) var(--pan-ease), visibility 0s linear var(--pan-dur-fast);
+  transition: opacity var(--pan-dur-tip) var(--pan-ease), transform var(--pan-dur-tip) var(--pan-ease), visibility 0s linear var(--pan-dur-tip);
   pointer-events: none;
 }
 /* Pointer: shown only while hovered (a click no longer pins it open).
    Keyboard: shown while tabbed to (:focus-visible, not set by a mouse click). */
+/* Part 9: a hidden tip still takes layout space, so at 390px one 260px wide
+   tip made the page pan sideways. Tips never run past the screen, the last
+   tile's tip opens to the left, and the main area never scrolls sideways. */
+.pan-tip-text { max-inline-size: min(260px, calc(100vw - 32px)); }
+.pan-stats .pan-stat:last-child .pan-tip-text { left: auto; right: 0; }
+.stApp [data-testid="stMain"] { overflow-x: hidden; }
 .pan-tip:hover .pan-tip-text, .pan-tip:focus-visible .pan-tip-text {
   opacity: 1;
   visibility: visible;
@@ -730,7 +1067,7 @@ div[data-baseweb="input"]:has(input:disabled), div[data-baseweb="select"]:has(in
 [data-testid="stAlertContainer"]:has([data-testid="stAlertContentInfo"]) {
   background-color: var(--pan-note-bg) !important;
   color: var(--pan-note-text) !important;
-  box-shadow: inset 0 0 0 1px var(--pan-note-edge), inset 3px 0 0 var(--pan-note-accent);
+  box-shadow: inset 0 0 0 1px var(--pan-note-edge);   /* Part 9: no side bar */
 }
 [data-testid="stAlertContainer"]:has([data-testid="stAlertContentInfo"]) :is(p, div, span, svg) {
   color: var(--pan-note-text) !important;
@@ -740,7 +1077,7 @@ div[data-baseweb="input"]:has(input:disabled), div[data-baseweb="select"]:has(in
 /* ---- Tables (persona, Expected Joiners, Past Promos) ---- */
 .pan-table { width: 100%; border-collapse: collapse; margin-top: var(--pan-space-2); font-size: var(--pan-type-table-size); line-height: var(--pan-type-table-leading); border: none; }
 .pan-th {
-  padding: 6px var(--pan-space-3);
+  padding: var(--pan-space-2) var(--pan-space-3);
   text-align: left;
   background: var(--pan-surface-2);
   color: var(--pan-text-muted);
@@ -749,10 +1086,15 @@ div[data-baseweb="input"]:has(input:disabled), div[data-baseweb="select"]:has(in
   line-height: var(--pan-type-table-head-leading);
   border-bottom: 1px solid var(--pan-border);
 }
-.pan-td { padding: 6px var(--pan-space-3); border-bottom: 1px solid var(--pan-divider); color: var(--pan-text); }
+.pan-td { padding: var(--pan-space-2) var(--pan-space-3); border-bottom: 1px solid var(--pan-divider); color: var(--pan-text); }
 .pan-th.pan-num, .pan-td.pan-num { text-align: right; font-variant-numeric: tabular-nums; }
 .pan-td.pan-strong { font-weight: var(--pan-weight-demi); }
-.pan-td.pan-accent { color: var(--pan-primary-text); font-weight: var(--pan-weight-bold); }
+/* Part 9: the actual figure is stressed by weight, not red (red reads as
+   a risk or an error in a bank's tables). */
+.pan-td.pan-accent { color: var(--pan-text); font-weight: var(--pan-weight-bold); }
+/* The value over a slider thumb: the text-safe red (Streamlit's primary red
+   was 3.7:1 on the dark page). */
+[data-testid="stSliderThumbValue"] { color: var(--pan-primary-text) !important; }
 .pan-table .pan-row-total .pan-td { border-top: 1px solid var(--pan-text-muted); font-weight: var(--pan-weight-bold); }
 .pan-card table, .pan-card table th, .pan-card table td { border-left: none !important; border-right: none !important; }
 .stMarkdown table { font-size: var(--pan-type-table-size); line-height: var(--pan-type-table-leading); font-variant-numeric: tabular-nums; }
@@ -776,7 +1118,7 @@ div[data-baseweb="input"]:has(input:disabled), div[data-baseweb="select"]:has(in
   place-items: center;
   /* Page lock (decision A7): the overlay catches every click from the moment
      it is drawn, including its invisible first --pan-loader-delay. The
-     keyboard is locked by app/static/p8_page_lock.js. */
+     keyboard is locked by app/static/page_lock.js. */
   pointer-events: auto;
   cursor: progress;
   background: var(--pan-scrim);
@@ -1127,15 +1469,50 @@ div[data-baseweb="input"]:has(input:disabled), div[data-baseweb="select"]:has(in
 .stButton > button:active:not(:disabled), .stDownloadButton > button:active:not(:disabled), .stFormSubmitButton > button:active:not(:disabled) {
   transform: translateY(0);
 }
-.stTabs [data-baseweb="tab"]::after { transition: transform var(--pan-dur) var(--pan-ease); }
 [data-testid="stAlert"], .pan-next, .pan-context { animation: pan-fade-in var(--pan-dur) var(--pan-ease) both; }
 @keyframes pan-fade-in { from { opacity: 0; } to { opacity: 1; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .stButton > button, .stDownloadButton > button, .stFormSubmitButton > button,
-  .stTabs [data-baseweb="tab"]::after { transition: none; }
+  .stButton > button, .stDownloadButton > button, .stFormSubmitButton > button { transition: none; }
   .stButton > button:hover:not(:disabled), .stDownloadButton > button:hover:not(:disabled), .stFormSubmitButton > button:hover:not(:disabled) { transform: none; }
   [data-testid="stAlert"], .pan-next, .pan-context { animation: none; }
+}
+
+/* ===================================================================== */
+/* 7a. PART 9 HEADER: wordmark, current run, its one number              */
+/* ===================================================================== */
+/* Replaces the hero: the wordmark on the left and, once a run exists,
+   Expected Joiners as the one large number on the right, in ink. */
+.pan-shell {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--pan-space-4);
+  min-block-size: var(--pan-control-h);
+  padding-right: 56px;                 /* clear of the fixed Settings menu */
+  margin: 0 0 var(--pan-space-3) 0;
+}
+.pan-wordmark {
+  font-family: var(--pan-font-heading);
+  font-size: var(--pan-type-card-title-size);
+  font-weight: var(--pan-weight-bold);
+  line-height: var(--pan-control-h);
+  color: var(--pan-text);
+}
+.pan-run-kpi-label {
+  font-size: var(--pan-type-caption-size);
+  line-height: var(--pan-type-caption-leading);
+  color: var(--pan-text-muted);
+  font-weight: var(--pan-weight-regular);
+}
+.pan-run-kpi { text-align: right; }
+.pan-run-kpi-number {
+  font-family: var(--pan-type-kpi-hero-font);
+  font-size: var(--pan-type-kpi-hero-size);
+  font-weight: var(--pan-type-kpi-hero-weight);
+  line-height: var(--pan-type-kpi-hero-leading);
+  color: var(--pan-text);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ===================================================================== */
@@ -1165,23 +1542,31 @@ div[data-baseweb="input"]:has(input:disabled), div[data-baseweb="select"]:has(in
   font-size: var(--pan-type-caption-size);
   font-variant-numeric: tabular-nums;
 }
-.pan-section-label::before {
-  content: "";
-  display: block;
-  width: 32px;
-  height: 3px;
-  margin-bottom: 6px;
-  border-radius: 2px;
-  background: var(--pan-primary);
+/* Part 9: no red dash above each group. Inside the form a group opens with a
+   hairline and more space above than below, so the groups read as steps. */
+[data-testid="stForm"] .pan-section-label {
+  margin-top: var(--pan-space-5);
+  padding-top: var(--pan-space-5);
+  border-top: 1px solid var(--pan-divider);
 }
+/* The form is not a box inside the page: no border, no inner padding. */
+[data-testid="stForm"] {
+  border: 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+/* New Promo reads at a form's width, not stretched across the page. */
+.st-key-new_promo_mode { max-width: 840px; }
 .pan-section-label .pan-section-title { font-family: var(--pan-font-heading); font-weight: var(--pan-weight-medium); font-size: var(--pan-type-card-title-size); color: var(--pan-text); }
 .pan-section-label .pan-section-help { display: block; color: var(--pan-text-muted); font-size: var(--pan-type-caption-size); line-height: var(--pan-type-caption-leading); }
+/* Part 9: the remaining "Next:" lines are a quiet note (no side stripe);
+   Results and What-If use real buttons instead. */
 .pan-next {
   margin: var(--pan-space-4) 0;
   padding: var(--pan-space-2) var(--pan-space-3);
-  border-left: 3px solid var(--pan-primary);
+  border: 1px solid var(--pan-divider);
   background: var(--pan-surface-2);
-  border-radius: 0 var(--pan-radius-md) var(--pan-radius-md) 0;
+  border-radius: var(--pan-radius-md);
   color: var(--pan-text);
   font-size: var(--pan-type-caption-size);
 }
@@ -1303,9 +1688,9 @@ div[data-testid="stElementContainer"][data-stale="true"] {
   background: var(--pan-input-pill-bg) !important;
   color: var(--pan-text) !important;
   border: 1px solid var(--pan-input-outline) !important;
-  border-radius: var(--pan-radius-pill) !important;
+  border-radius: var(--pan-radius-md) !important;   /* Part 9: a field, not a pill */
   padding-block: 0 !important;
-  padding-inline: var(--pan-space-4) !important;
+  padding-inline: var(--pan-space-3) !important;
   transition: none !important;   /* width changes are instant */
 }
 [data-testid="stTextInput"] [data-testid="stTextInputField"]:hover {
@@ -1321,6 +1706,28 @@ div[data-testid="stElementContainer"][data-stale="true"] {
   -webkit-text-fill-color: var(--pan-disabled-text) !important;
   border: 1px solid var(--pan-input-outline) !important;
   opacity: 1;
+  cursor: not-allowed;
+}
+
+/* Part 9: text fields fill their column like the selects beside them, so a
+   row of fields shares one edge and one height. */
+[data-testid="stTextInput"] [data-testid="stTextInputRootElement"],
+[data-testid="stTextInput"] [data-testid="stTextInputRootElement"]:hover,
+[data-testid="stTextInput"] [data-testid="stTextInputRootElement"]:focus-within,
+[data-testid="stTextInput"] [data-testid="stTextInputRootElement"]:has(input:disabled) {
+  inline-size: 100%;
+}
+[data-testid="stTextInput"] [data-testid="stTextInputField"] {
+  field-sizing: fixed;
+  inline-size: 100%;
+}
+/* Focus must not shrink the field (the old pill made room for "Press Enter
+   to apply"); the hint sits inside the field's right end, as in Streamlit. */
+[data-testid="stTextInput"]:has([data-testid="InputInstructions"]) [data-testid="stTextInputRootElement"] {
+  max-inline-size: 100%;
+}
+[data-testid="stTextInput"] [data-testid="stTextInputField"]:focus {
+  padding-inline-end: 9rem !important;
 }
 
 /* No field-sizing: full-width pill with the same look. */
@@ -1370,7 +1777,7 @@ div[data-testid="stElementContainer"][data-stale="true"] {
   background-color: var(--pan-input-pill-bg) !important;
   color: var(--pan-text) !important;
   border: 1px solid var(--pan-input-outline) !important;
-  border-radius: var(--pan-radius-pill) !important;
+  border-radius: var(--pan-radius-md) !important;   /* Part 9: a field, not a pill */
   box-shadow: none !important;
   outline: none;
   overflow: hidden;
@@ -1433,6 +1840,7 @@ div[data-testid="stElementContainer"][data-stale="true"] {
 [data-testid="stNumberInput"] [data-testid="stNumberInputStepUp"]:disabled {
   color: var(--pan-disabled-text) !important;
   opacity: 1;
+  cursor: not-allowed;
 }
 
 /* Text area: full width, grows with its text, soft 20 px corners. */
@@ -1948,13 +2356,15 @@ div[data-testid="stElementContainer"][data-stale="true"]:has(.pan-loading) {
                         + var(--n) * var(--pan-count-step) - var(--p8-el, var(--pan-dur-none)));
 }
 .p8-cs > span { block-size: 1lh; }
-@keyframes p8-count { from { transform: translateY(0); } }
+/* Part 9: hidden while it waits its turn (that wait used to show "000"
+   behind the fading finish card), then it fades in as it starts to roll. */
+@keyframes p8-count { from { transform: translateY(0); opacity: 0; } 20% { opacity: 1; } }
 /* Counted numbers are tabular everywhere, so the static text that replaces
    the columns after the window has exactly the same width. */
 .kpi-number, .pan-tile-v, .pan-tile-accent, .pan-stat, .pan-chip { font-variant-numeric: tabular-nums; }
 
 /* Once an animation keyed to a generation has played, a tab switch (which
-   restarts CSS animations) must not replay it: p8_page_lock.js marks it. */
+   restarts CSS animations) must not replay it: page_lock.js marks it. */
 .p8-anim-done { animation: none !important; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1973,12 +2383,14 @@ div[data-testid="stElementContainer"][data-stale="true"]:has(.pan-loading) {
 [data-testid="stTextInput"] [data-testid="stTextInputRootElement"],
 [data-testid="stNumberInput"] [data-testid="stNumberInputContainer"],
 [data-testid="stTextArea"] [data-testid="stTextAreaRootElement"],
+[data-testid="stChatInput"] > div,
 :is([data-testid="stSelectbox"], [data-testid="stMultiSelect"]) [role="group"] {
   position: relative;
 }
 [data-testid="stTextInput"] [data-testid="stTextInputRootElement"]::after,
 [data-testid="stNumberInput"] [data-testid="stNumberInputContainer"]::after,
 [data-testid="stTextArea"] [data-testid="stTextAreaRootElement"]::after,
+[data-testid="stChatInput"] > div::after,
 :is([data-testid="stSelectbox"], [data-testid="stMultiSelect"]) [role="group"]::after {
   content: "";
   position: absolute;
@@ -1990,14 +2402,15 @@ div[data-testid="stElementContainer"][data-stale="true"]:has(.pan-loading) {
   transition: opacity var(--pan-dur) var(--pan-ease);
   z-index: 1;
 }
-/* The text pill's root is square; its ring follows the pill. */
+/* The text field's root is square; its ring follows the field (Part 9: md). */
 [data-testid="stTextInput"] [data-testid="stTextInputRootElement"]::after {
-  border-radius: var(--pan-radius-pill);
+  border-radius: var(--pan-radius-md);
 }
 /* Number, text area and select boxes clip their overflow, so their ring is
    drawn inside the border (same colours, same fade). */
 [data-testid="stNumberInput"] [data-testid="stNumberInputContainer"]::after,
 [data-testid="stTextArea"] [data-testid="stTextAreaRootElement"]::after,
+[data-testid="stChatInput"] > div::after,
 :is([data-testid="stSelectbox"], [data-testid="stMultiSelect"]) [role="group"]::after {
   inset: 0;
   box-shadow: inset 0 0 0 1px var(--pan-field-focus), inset 0 0 0 3px var(--pan-field-focus-glow);
@@ -2005,12 +2418,63 @@ div[data-testid="stElementContainer"][data-stale="true"]:has(.pan-loading) {
 [data-testid="stTextInput"] [data-testid="stTextInputRootElement"]:focus-within::after,
 [data-testid="stNumberInput"] [data-testid="stNumberInputContainer"]:focus-within::after,
 [data-testid="stTextArea"] [data-testid="stTextAreaRootElement"]:focus-within::after,
+[data-testid="stChatInput"] > div:focus-within::after,
 :is([data-testid="stSelectbox"], [data-testid="stMultiSelect"]) [role="group"]:focus-within::after {
   opacity: 1;
 }
-/* Streamlit 1.66 selects: the group's own focus border was the primary red. */
-:is([data-testid="stSelectbox"], [data-testid="stMultiSelect"]) [role="group"]:focus-within {
+/* Streamlit 1.66 selects and the chat box: their own focus border was the
+   primary red. The gold ring above replaces it. */
+:is([data-testid="stSelectbox"], [data-testid="stMultiSelect"]) [role="group"]:focus-within,
+[data-testid="stChatInput"] > div:focus-within {
   border-color: var(--pan-border-control) !important;
+}
+/* Part 9: multiselect chips wrap onto more lines instead of scrolling
+   sideways under a fade (the fourth segment was cut off). The field grows
+   from the one control height. */
+[data-testid="stMultiSelect"] [role="group"] {
+  height: auto !important;
+  max-height: none !important;
+  min-height: var(--pan-control-h);
+  align-items: center;
+}
+[data-testid="stMultiSelect"] [data-testid="stMultiSelectTagsContainer"] {
+  box-sizing: border-box;
+  height: auto !important;
+  max-height: none !important;
+  min-height: calc(var(--pan-control-h) - 2px);   /* inside the 1px border */
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: center;
+  overflow: visible !important;
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+  row-gap: var(--pan-space-1);
+  padding-block: var(--pan-space-1);
+}
+/* Chips sit on the middle line of the field: the typing input beside them
+   was taller than a chip, so each row was pinned to its top (5px above,
+   10px below). Both now share the chip's height and centre. */
+[data-testid="stMultiSelect"] [data-testid="stMultiSelectTagsContainer"] span:has(> button[aria-label^="Remove"]),
+[data-testid="stMultiSelect"] [data-testid="stMultiSelectTagsContainer"] input {
+  align-self: center;
+  margin-block: 0 !important;
+}
+[data-testid="stMultiSelect"] [data-testid="stMultiSelectTagsContainer"] input {
+  block-size: 28px;
+  min-block-size: 0;
+}
+/* Part 9: placeholders ("Choose options", "Ask About This Campaign") use the
+   muted text colour at full strength (Streamlit's own grey was 4.1:1). */
+.stApp input::placeholder,
+.stApp textarea::placeholder {
+  color: var(--pan-text-muted);
+  opacity: 1;
+}
+/* Ask Assistant: the chat box's textarea took the site-wide blue outline
+   inside the box (Part 9); the box's gold ring is the one focus mark. */
+[data-testid="stChatInput"] textarea:focus,
+[data-testid="stChatInput"] textarea:focus-visible {
+  outline: none !important;
 }
 /* The typed-search input inside a select drew its own outline, whose right
    edge was the red line before the chevron. The ring replaces it. */
@@ -2024,6 +2488,7 @@ div[data-testid="stElementContainer"][data-stale="true"]:has(.pan-loading) {
   [data-testid="stTextInput"] [data-testid="stTextInputRootElement"]::after,
   [data-testid="stNumberInput"] [data-testid="stNumberInputContainer"]::after,
   [data-testid="stTextArea"] [data-testid="stTextAreaRootElement"]::after,
+  [data-testid="stChatInput"] > div::after,
   :is([data-testid="stSelectbox"], [data-testid="stMultiSelect"]) [role="group"]::after { transition: none; }
 }
 
@@ -2044,7 +2509,7 @@ div[data-testid="stElementContainer"][data-stale="true"]:has(.pan-loading) {
 /* 17. PART 8 POLISH: loader finish (stories, headline, fireworks)       */
 /* ===================================================================== */
 /* Drawn over the still-running loader with the same card, so the hand-off is
-   seamless; app/static/p8_page_lock.js copies the live positions into the
+   seamless; app/static/page_lock.js copies the live positions into the
    --x0/--y0/--s0/--m0 start values. Everything below runs on
    --pan-dur-finish; at its end the border is full and the fireworks burst.
    Transform and opacity only (plus the check's stroke draw). */
@@ -2154,8 +2619,10 @@ div[data-testid="stElementContainer"][data-stale="true"]:has(.pan-loading) {
   100% { transform: translate(var(--xb), var(--yb)) scale(1.75); }
 }
 
-/* ---- Fireworks: the moment the border is full ---- */
-.pan-fin-sparks { position: absolute; inset: -6px; pointer-events: none; }
+/* ---- Fireworks: the moment the border is full ----
+   Part 9: not shown. Finishing a run is routine, not a celebration; the
+   full border and the headline already say it is done. */
+.pan-fin-sparks { position: absolute; inset: -6px; pointer-events: none; display: none; }
 .pan-fin-spark,
 .pan-fin-dot {
   position: absolute;
@@ -2211,7 +2678,7 @@ div[data-testid="stElementContainer"][data-stale="true"]:has(.pan-loading) {
    and fades in. Cards that changed together arrive one after another in
    reading order (left, right, next row), --pan-reveal-step apart, so they
    stack. --p8-el continues an entrance across a rerun; a tab switch never
-   replays it (p8_page_lock.js marks it done). Numbers inside start counting
+   replays it (page_lock.js marks it done). Numbers inside start counting
    as their card arrives. */
 .p8-swoop {
   --p8-cu-start: calc(var(--p8-sw-start, var(--pan-dur-none)) + var(--i) * var(--pan-reveal-step));
@@ -2344,18 +2811,28 @@ div[data-testid="stElementContainer"][data-stale="true"]:has(.pan-loading) {
   .pan-loading.is-finishing .pan-sg-fdot { animation: none !important; }
 }
 
-/* Tabs: no focus outline. Returning to the window (alt-tab) restores focus
-   on the selected tab and Chrome treats that as keyboard focus, so the
-   site-wide ring drew two vertical lines beside it (the tab list clips the
-   rest). The red underline already marks the selected tab, and arrow keys
-   move that underline, so keyboard users still see where they are. */
+/* Tabs: no focus ring. Returning to the window (alt-tab) restores focus on
+   the selected tab and both Chrome and react-aria treat that as keyboard
+   focus; Streamlit then draws a red 0.2rem box-shadow ring
+   ([data-focus-visible]) that the tab list clips into vertical lines. Arrow
+   keys move the selection with focus, so the selected step already shows
+   where keyboard focus is. */
 .stTabs [role="tab"]:focus,
-.stTabs [role="tab"]:focus-visible {
+.stTabs [role="tab"]:focus-visible,
+.stTabs [role="tab"][data-focused],
+.stTabs [role="tab"][data-focus-visible] {
   outline: none !important;
   box-shadow: none !important;
 }
+/* Streamlit also turns a focused or hovered tab's label red; keep our colours. */
+.stTabs [role="tab"][data-focus-visible]:not([aria-selected="true"]) { color: var(--pan-text-muted); }
+.stTabs [role="tab"][data-focus-visible][aria-selected="true"] { color: var(--pan-text); }
+/* The sub-tab switch keeps its raised selected option while focused. */
+.stTabs:not(.st-key-main_nav) > div > [role="tablist"] > [role="tab"][aria-selected="true"]:is(:focus, [data-focus-visible]) {
+  box-shadow: 0 1px 2px var(--pan-shadow) !important;
+}
 
-/* Loader endings wait for the page (p8_page_lock.js hold): frozen on their
+/* Loader endings wait for the page (page_lock.js hold): frozen on their
    first frame while the rerun after a job is still drawing, then they play
    in full. The old running loader is hidden as soon as an ending is shown,
    so it never lingers on screen after the ending fades. */
@@ -2363,13 +2840,490 @@ div[data-testid="stElementContainer"][data-stale="true"]:has(.pan-loading) {
    net (if the page script never ran, it still fades out); the script restarts
    that fade when it releases the hold. */
 .pan-loading.is-finishing.is-held * { animation-play-state: paused !important; }
+/* Part 9: while the ending is held, the page's reveal animations wait with
+   it (their delays count from when they mounted, so on a busy page they used
+   to run under the card, out of step). On release everything resumes
+   together: the card fades, the content swoops in, the numbers roll. */
+:root:has(.pan-loading.is-finishing.is-held) :is(.p8-cs, .p8-swoop, .p8-text-in, .p8-reveal, .p8-count-vis, .p8-d.is-roll > .p8-strip),
+/* ...and if the run is still drawing the page when the card would fade, the
+   card waits on its finished frame with them (page_lock.js, p9-await-run). */
+html.p9-await-run :is(.pan-loading.is-finishing, .p8-cs, .p8-swoop, .p8-text-in, .p8-reveal, .p8-count-vis, .p8-d.is-roll > .p8-strip) {
+  animation-play-state: paused !important;
+}
 body:has(.pan-loading.is-finishing) .pan-loading:not(.is-finishing) { visibility: hidden; }
 
 /* Generation reveals wait for a loader ending only while one is actually on
    screen. --p8-gen-start is that wait while an ending overlay is showing and
-   0 once it has faded (p8_page_lock.js marks it .p8-ended), so numbers and
+   0 once it has faded (page_lock.js marks it .p8-ended), so numbers and
    cards on a tab opened later start at once instead of sitting at 0 for the
    length of an ending that finished long ago. Animations already running keep
    the delay they started with. */
 :root { --p8-gen-start: var(--pan-dur-none); }
 :root:has(.pan-loading.is-finishing:not(.p8-ended)) { --p8-gen-start: var(--pan-reveal-start); }
+
+/* ===================================================================== */
+/* 20. PART 9 HOVER TEXTS: one fade in, one fade out, hover only         */
+/* ===================================================================== */
+/* Streamlit's help tooltips (the "?" icons and buttons with help) and our
+   .pan-tip texts share --pan-dur-tip. Streamlit unmounts a tooltip at once;
+   app/static/ui_interactions.js puts the removed node back with .p9-tip-out so it
+   fades out the way it came in, and stops a pointer click from pinning one
+   open (keyboard focus still shows it). */
+[data-testid="stTooltipContent"] {
+  animation: p9-tip-in var(--pan-dur-tip) var(--pan-ease) both;
+}
+.p9-tip-out, .p9-tip-out * { pointer-events: none !important; }
+.p9-tip-out [data-testid="stTooltipContent"] {
+  animation: p9-tip-out var(--pan-dur-tip) var(--pan-ease) both;
+}
+@keyframes p9-tip-in  { from { opacity: 0; transform: translateY(2px); } }
+@keyframes p9-tip-out { to   { opacity: 0; transform: translateY(2px); } }
+@media (prefers-reduced-motion: reduce) {
+  @keyframes p9-tip-in  { from { opacity: 0; } }
+  @keyframes p9-tip-out { to   { opacity: 0; } }
+}
+
+/* ===================================================================== */
+/* 21. PART 9 THEME SWITCH: the new theme rises like bubbling liquid     */
+/* ===================================================================== */
+/* ui_interactions.js adds .p9-liquid (in the new theme's page colour, set as
+   --liquid) and holds the theme click. The liquid rises from the bottom
+   over --pan-dur-theme-fill; its top edge is a strip with round bubbles
+   that grow, float up and shrink, melted together by the #p9-blob filter
+   (blur, then an alpha threshold). Covered, the theme switches underneath
+   and the liquid fades. Above every layer, including the job loader; it
+   never takes clicks. Reduced motion: the script switches instantly. */
+.p9-liquid-defs { position: fixed; inline-size: 0; block-size: 0; overflow: hidden; }
+.p9-liquid {
+  position: fixed;
+  inset: 0;
+  z-index: 1000000;
+  pointer-events: none;
+  overflow: hidden;
+  transition: opacity var(--pan-dur-slow) var(--pan-ease);
+}
+.p9-liquid.is-done { opacity: 0; }
+.p9-liquid-rise {
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  block-size: calc(100vh + 12rem);
+  transform: translateY(0);
+  transition: transform var(--pan-dur-theme-fill) var(--pan-ease-whoosh);
+  will-change: transform;
+}
+.p9-liquid.is-rising .p9-liquid-rise { transform: translateY(calc(-100vh - 12rem)); }
+.p9-liquid-bubbles {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  block-size: 12rem;
+  background: linear-gradient(to top, var(--liquid) 3rem, transparent 3rem);
+  filter: url("#p9-blob");
+}
+.p9-liquid-bubbles > i {
+  position: absolute;
+  left: var(--position, 50%);
+  border-radius: 50%;
+  background: var(--liquid);
+  transform: translate(-50%, 100%);
+  animation:
+    p9-bubble-size var(--time) var(--pan-ease-bubble) infinite var(--delay),
+    p9-bubble-move var(--time) var(--pan-ease-bubble) infinite var(--delay);
+}
+/* The body overlaps the strip's foot, so the filtered edge never shows. */
+.p9-liquid-body {
+  position: absolute;
+  inset-inline: 0;
+  top: 10rem;
+  bottom: 0;
+  background: var(--liquid);
+}
+@keyframes p9-bubble-size {
+  0%, 75% { inline-size: var(--size); block-size: var(--size); }
+  100% { inline-size: 0; block-size: 0; }
+}
+@keyframes p9-bubble-move {
+  0% { bottom: -4rem; }
+  100% { bottom: var(--distance); }
+}
+
+/* ===================================================================== */
+/* 22. PART 9 ASSISTANT THINKING: a dot circles the avatar while waiting */
+/* ===================================================================== */
+/* Shown only while an answer is being fetched (the message is replaced by
+   the answer on the next render), so the loop never outlives the wait. The
+   dots pulse on opacity and a 2px lift; the block turns beside them
+   (section 24). */
+.pan-thinking {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  color: var(--pan-text-muted);
+}
+.pan-thinking-dots { display: inline-flex; gap: var(--pan-space-1); margin-left: var(--pan-space-1); }
+.pan-thinking-dots i {
+  inline-size: 4px;
+  block-size: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: p9-think-dot var(--pan-dur-think) var(--pan-ease-breath) infinite;
+}
+.pan-thinking-dots i:nth-child(2) { animation-delay: var(--pan-think-step); }
+.pan-thinking-dots i:nth-child(3) { animation-delay: calc(var(--pan-think-step) * 2); }
+@keyframes p9-think-dot {
+  0%, 70%, 100% { opacity: 0.3; transform: none; }
+  35%           { opacity: 1;   transform: translateY(-2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pan-thinking-dots i { animation-name: p9-think-fade; animation-duration: var(--pan-dur-think-calm); }
+  @keyframes p9-think-fade { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+}
+
+/* ===================================================================== */
+/* 24. PART 9 ASK ASSISTANT AVATARS: the stone block, and a gold user    */
+/* ===================================================================== */
+/* The assistant's avatar is a small 3D block (theme.bedrock_html), laid
+   exactly over Streamlit's avatar box (16px in, 32px square), which is
+   emptied. States: is-spin turns steadily while thinking; is-finish spins
+   up, hops with six pixel sparks, lands and wobbles to the rest pose; is-rest
+   is still. Transform and opacity only, tiny element, so repeated prompts
+   cost nothing. The texture is an original 8x8 pixel pattern. */
+[data-testid="stChatMessage"] { position: relative; }
+/* The block positions against the whole message: the Streamlit wrappers
+   around it would otherwise anchor it inside the text column. */
+[data-testid="stChatMessage"] *:has(.pan-cube-slot) { position: static !important; }
+/* When the block is alone in its element (no Demo badge), that element takes
+   no row, so the reply text starts at the top as before. */
+[data-testid="stChatMessage"] [data-testid="stElementContainer"]:has(.pan-cube-slot):not(:has(.pan-badge, .pan-thinking)),
+[data-testid="stChatMessage"] [data-testid="stElementContainer"]:has(.pan-cube-slot):not(:has(.pan-badge, .pan-thinking)) *:has(.pan-cube-slot) {
+  display: contents;
+}
+[data-testid="stChatMessage"]:has(.pan-cube-slot) [data-testid="stChatMessageAvatarAssistant"] {
+  background: transparent !important;
+}
+[data-testid="stChatMessage"]:has(.pan-cube-slot) [data-testid="stChatMessageAvatarAssistant"] > * {
+  visibility: hidden;
+}
+/* The user's avatar keeps its icon, in gold. */
+[data-testid="stChatMessageAvatarUser"] {
+  background: var(--pan-gold) !important;
+  color: var(--pan-on-gold) !important;
+}
+.pan-cube-slot {
+  position: absolute;
+  left: var(--pan-space-4);
+  top: var(--pan-space-4);
+  inline-size: var(--pan-space-6);
+  block-size: var(--pan-space-6);
+  display: grid;
+  place-items: center;
+  perspective: 140px;
+  pointer-events: none;
+}
+.pan-cube {
+  position: relative;
+  inline-size: var(--pan-cube-size);
+  block-size: var(--pan-cube-size);
+  transform-style: preserve-3d;
+  transform: rotateX(-26deg) rotateY(45deg);
+}
+.pan-cube > i {
+  position: absolute;
+  inset: 0;
+  background-color: var(--pan-cube-base);
+  background-image: linear-gradient(var(--pan-cube-shade, transparent), var(--pan-cube-shade, transparent)), var(--pan-cube-tex);
+  background-size: 100% 100%, 100% 100%;
+  image-rendering: pixelated;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, black 30%, transparent);
+  backface-visibility: hidden;
+}
+.pan-cube-front  { transform: translateZ(calc(var(--pan-cube-size) / 2)); --pan-cube-shade: color-mix(in srgb, black 12%, transparent); }
+.pan-cube-back   { transform: rotateY(180deg) translateZ(calc(var(--pan-cube-size) / 2)); --pan-cube-shade: color-mix(in srgb, black 12%, transparent); }
+.pan-cube-right  { transform: rotateY(90deg) translateZ(calc(var(--pan-cube-size) / 2)); --pan-cube-shade: color-mix(in srgb, black 30%, transparent); }
+.pan-cube-left   { transform: rotateY(-90deg) translateZ(calc(var(--pan-cube-size) / 2)); --pan-cube-shade: color-mix(in srgb, black 30%, transparent); }
+.pan-cube-top    { transform: rotateX(90deg) translateZ(calc(var(--pan-cube-size) / 2)); --pan-cube-shade: color-mix(in srgb, white 14%, transparent); }
+.pan-cube-bottom { transform: rotateX(-90deg) translateZ(calc(var(--pan-cube-size) / 2)); --pan-cube-shade: color-mix(in srgb, black 45%, transparent); }
+
+/* Thinking: one steady turn after another. */
+.pan-cube-slot.is-spin .pan-cube {
+  animation: pan-cube-spin var(--pan-dur-cube-spin) var(--pan-ease-constant) infinite;
+}
+@keyframes pan-cube-spin {
+  from { transform: rotateX(-26deg) rotateY(45deg); }
+  to   { transform: rotateX(-26deg) rotateY(405deg); }
+}
+/* Ready: spin up fast, hop, land, wobble, rest (1125deg = the rest pose). */
+.pan-cube-slot.is-finish .pan-cube {
+  animation: pan-cube-finish var(--pan-dur-cube-finish) both;
+}
+@keyframes pan-cube-finish {
+  0%   { transform: translateY(0) rotateZ(0deg) rotateX(-26deg) rotateY(45deg); animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  30%  { transform: translateY(0) rotateZ(0deg) rotateX(-26deg) rotateY(1125deg); animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1); }
+  48%  { transform: translateY(-15px) rotateZ(0deg) rotateX(-26deg) rotateY(1125deg); animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  62%  { transform: translateY(0) rotateZ(0deg) rotateX(-26deg) rotateY(1125deg); animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1); }
+  72%  { transform: translateY(0) rotateZ(10deg) rotateX(-26deg) rotateY(1125deg); }
+  82%  { transform: translateY(0) rotateZ(-6deg) rotateX(-26deg) rotateY(1125deg); }
+  91%  { transform: translateY(0) rotateZ(3deg) rotateX(-26deg) rotateY(1125deg); }
+  100% { transform: translateY(0) rotateZ(0deg) rotateX(-26deg) rotateY(1125deg); }
+}
+/* Six pixel sparks at the top of the hop. */
+.pan-cube-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  inline-size: 3px;
+  block-size: 3px;
+  margin: -1.5px 0 0 -1.5px;
+  background: var(--pan-gold);
+  opacity: 0;
+  animation: pan-cube-spark calc(var(--pan-dur-cube-finish) * 0.32) var(--pan-ease) both;
+  animation-delay: calc(var(--pan-dur-cube-finish) * 0.42);
+}
+.pan-cube-spark:nth-child(3n) { background: var(--pan-primary); }
+.pan-cube-spark:nth-child(3n+1) { background: var(--pan-cube-base); }
+@keyframes pan-cube-spark {
+  0%   { opacity: 1; transform: translate(0, -8px) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) - 8px)) scale(0.6); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pan-cube-slot.is-spin .pan-cube { animation: pan-cube-breathe var(--pan-dur-think-calm) var(--pan-ease-breath) infinite alternate; }
+  .pan-cube-slot.is-finish .pan-cube { animation: none; }
+  .pan-cube-spark { display: none; }
+  @keyframes pan-cube-breathe { from { opacity: 0.55; } to { opacity: 1; } }
+}
+
+/* ===================================================================== */
+/* 25. PART 9 ROUND 3: critique fixes (numbers, red, state, small items)  */
+/* ===================================================================== */
+/* Header: the wordmark is the page's one h1 (Streamlit's h1 size and
+   spacing are reset), and the KPI slot is kept but hidden before a run so
+   the header never grows when the number appears. */
+.stApp h1.pan-wordmark {
+  margin: 0;
+  padding: 0;
+  font-family: var(--pan-font-heading);
+  font-size: var(--pan-type-section-size);   /* Part 9: a step larger */
+  font-weight: var(--pan-weight-bold);
+  line-height: var(--pan-control-h);
+  letter-spacing: normal;
+  color: var(--pan-text);
+}
+.pan-run-kpi.is-empty { visibility: hidden; }
+
+/* Stats: one grammar everywhere, a small label over a clean number (the
+   grid tile pattern). The words are unchanged; only the layout differs. */
+.pan-stat--kv { font-family: var(--pan-font-body); font-weight: var(--pan-weight-regular); }
+.pan-stat--kv .pan-tip { display: block; }
+.pan-stat-k {
+  display: block;
+  font-size: var(--pan-type-caption-size);
+  line-height: var(--pan-type-caption-leading);
+  color: var(--pan-text-muted);
+}
+.pan-stat-v {
+  display: block;
+  margin-top: var(--pan-space-1);
+  font-family: var(--pan-type-kpi-tile-font);
+  font-size: var(--pan-type-card-title-size);
+  font-weight: var(--pan-weight-bold);
+  line-height: 1.25;
+  color: var(--pan-text);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.pan-stat-pre {
+  font-family: var(--pan-font-body);
+  font-size: var(--pan-type-caption-size);
+  font-weight: var(--pan-weight-regular);
+  color: var(--pan-text-muted);
+}
+/* The Impact Summary tiles sit on the page surface like the grid tiles,
+   not grey like a disabled field. */
+.pan-stats > .pan-stat--kv { background: var(--pan-surface); }
+.pan-card .pan-stats > .pan-stat--kv { background: transparent; }
+
+/* Red is kept for the main action and "Act first". Card titles are ink,
+   the promo id before a segment name is small and muted, bars are teal,
+   and secondary buttons are neutral outlines. */
+.pan-card .pan-card-heading { color: var(--pan-text); }
+.pan-card-pre {
+  font-family: var(--pan-font-body);
+  font-size: var(--pan-type-caption-size);
+  font-weight: var(--pan-weight-regular);
+  color: var(--pan-text-muted);
+}
+.pan-bar-fill { background: var(--pan-series-2); }
+.pan-bar.is-unavailable .pan-bar-label { color: var(--pan-text-muted); }
+.stButton > button[data-testid="stBaseButton-secondary"],
+.stDownloadButton > button[data-testid="stBaseButton-secondary"] {
+  background: var(--pan-surface);
+  color: var(--pan-text);
+  border: 1px solid var(--pan-border-control);
+}
+.stButton > button[data-testid="stBaseButton-secondary"]:hover,
+.stDownloadButton > button[data-testid="stBaseButton-secondary"]:hover {
+  background: var(--pan-surface-2);
+  color: var(--pan-text);
+  border-color: var(--pan-text);
+}
+/* Focus is blue, never red: no theme-red glow on buttons or the heading
+   anchor links, only the blue ring (tabs keep their own rule above). */
+.stApp button:not([role="tab"]):focus,
+.stApp a:focus { box-shadow: none !important; }
+.stApp button:not([role="tab"]):focus-visible,
+.stApp a:focus-visible {
+  outline: 2px solid var(--pan-focus);
+  outline-offset: 2px;
+}
+
+/* What-If segment table: now, with the change from the run underneath. */
+.pan-wis { margin: var(--pan-space-3) 0 var(--pan-space-4) 0; overflow-x: auto; }
+.pan-wis .pan-table { margin-top: 0; }
+/* Every pan table: horizontal hairlines only (no column rules). */
+.pan-table, .pan-table th, .pan-table td { border-left: none !important; border-right: none !important; }
+.pan-table { border-top: none !important; }
+.pan-wis-seg { display: inline-flex; align-items: center; gap: var(--pan-space-2); }
+.pan-wis-now { display: block; font-weight: var(--pan-weight-demi); }
+.pan-wis-d { display: block; font-size: var(--pan-type-caption-size); line-height: var(--pan-type-caption-leading); }
+.pan-delta { white-space: nowrap; color: var(--pan-text); }
+.pan-delta.is-flat { color: var(--pan-text-muted); }
+
+/* Past Promos: the campaign facts in one row, not a tall stack. */
+.pan-fields-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pan-space-2) var(--pan-space-6);
+  margin-bottom: var(--pan-space-3);
+}
+.pan-fields-row .pan-field { margin: 0; }
+
+/* Ask Assistant: replies keep a readable measure, and a long suggested
+   question wraps instead of being cut off. */
+[data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] { max-inline-size: 72ch; }
+.stButton[class*="st-key-assistant_suggested_"] > button,
+[class*="st-key-assistant_suggested_"] .stButton > button {
+  height: auto;
+  padding-block: var(--pan-space-2);
+}
+[data-testid="stHorizontalBlock"]:has(.st-key-assistant_suggested_0) > [data-testid="stColumn"] > div,
+[data-testid="stHorizontalBlock"]:has(.st-key-assistant_suggested_0) [class*="st-key-assistant_suggested_"],
+[data-testid="stHorizontalBlock"]:has(.st-key-assistant_suggested_0) [class*="st-key-assistant_suggested_"] .stButton,
+[data-testid="stHorizontalBlock"]:has(.st-key-assistant_suggested_0) [class*="st-key-assistant_suggested_"] button { height: 100%; }
+[class*="st-key-assistant_suggested_"] button p,
+[class*="st-key-assistant_suggested_"] button div {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+/* Phone: a stat's hover text opens from the left of its row, so it never
+   runs past the screen edge. */
+@media (max-width: 640px) {
+  .pan-stats { position: relative; }
+  .pan-stats .pan-stat, .pan-stats .pan-tip { position: static; }
+  .pan-stats .pan-tip-text,
+  .pan-stats .pan-stat:last-child .pan-tip-text { left: 0; right: auto; }
+}
+
+/* ===================================================================== */
+/* 27. PART 9 BUTTONS: neutral at rest, red when pressed, with a bounce  */
+/* ===================================================================== */
+/* Every st.button, download and form button rests neutral: the surface,
+   an ink label and a hairline with a 2px key edge underneath, so it reads
+   as pressable without shouting. The area's main action (primary buttons
+   and Run Analysis) is marked by an ink outline and a red key edge, not a
+   red fill. On hover it lifts a pixel. Pressed, it turns red at once and
+   sinks into its edge; released, it springs back with a small overshoot
+   and stays red (data-p9-pressed, set by ui_interactions.js) until the
+   rerun or job it started has finished; then the red fades out. Job buttons drop their hover colour plate.
+   Reduced motion: no movement, only the colour change. Descendant
+   selectors: a button with a help tip sits inside a tooltip wrapper. */
+.stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button {
+  background: var(--pan-surface);
+  color: var(--pan-text);
+  border: 1px solid var(--pan-border-control);
+  box-shadow: 0 2px 0 var(--pan-border);
+  font-weight: var(--pan-weight-demi);
+  transform: none;
+  transition:
+    transform var(--pan-dur-bounce) var(--pan-ease-bounce),
+    background-color var(--pan-dur-press-out) var(--pan-ease),
+    color var(--pan-dur-press-out) var(--pan-ease),
+    border-color var(--pan-dur-press-out) var(--pan-ease),
+    box-shadow var(--pan-dur-fast) var(--pan-ease);
+}
+.stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button:is([data-testid="stBaseButton-primary"], [kind="primary"]),
+.stApp [class*="st-key-p8_btn_"] :is(.stButton, .stFormSubmitButton) button {
+  border-color: var(--pan-text);
+  box-shadow: 0 2px 0 var(--pan-primary);
+}
+@media (hover: hover) and (pointer: fine) {
+  .stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button:hover:not(:disabled) {
+    background: var(--pan-surface);
+    color: var(--pan-text);
+    border-color: var(--pan-text);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 0 var(--pan-border-control);
+  }
+  .stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button:is([data-testid="stBaseButton-primary"], [kind="primary"]):hover:not(:disabled),
+  .stApp [class*="st-key-p8_btn_"] :is(.stButton, .stFormSubmitButton) button:hover:not(:disabled) {
+    box-shadow: 0 3px 0 var(--pan-primary);
+  }
+}
+.stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button:active:not(:disabled),
+.stApp [class*="st-key-p8_btn_"] :is(.stButton, .stFormSubmitButton) button:active:not(:disabled) {
+  background: var(--pan-primary);
+  color: var(--pan-on-primary);
+  border-color: var(--pan-primary);
+  box-shadow: 0 0 0 transparent;
+  transform: translateY(2px) scale(0.96);
+  transition:
+    transform var(--pan-dur-fast) var(--pan-ease),
+    background-color var(--pan-dur-none),
+    color var(--pan-dur-none),
+    border-color var(--pan-dur-none),
+    box-shadow var(--pan-dur-none);
+}
+.stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button:active:not(:disabled) * { color: inherit; }
+.stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button:disabled {
+  background: var(--pan-surface-2);
+  color: var(--pan-text-muted);
+  border-color: var(--pan-border);
+  box-shadow: none;
+  transform: none;
+}
+/* Pressed and still working: red, over hover and the disabled look. */
+.stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button[data-p9-pressed],
+.stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button[data-p9-pressed]:disabled,
+.stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button[data-p9-pressed]:hover:not(:disabled) {
+  background: var(--pan-primary);
+  color: var(--pan-on-primary);
+  border-color: var(--pan-primary);
+  box-shadow: 0 0 0 transparent;
+  opacity: 1;
+}
+.stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button[data-p9-pressed] * { color: inherit; }
+.stApp [class*="st-key-p8_btn_"] :is(.stButton, .stFormSubmitButton) button[data-p9-pressed]::before { opacity: 0; }
+/* Job buttons (Run Analysis, Build Personas): no red hover plate. */
+.stApp [class*="st-key-p8_btn_"] :is(.stButton, .stFormSubmitButton) button::after { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button,
+  .stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button:hover:not(:disabled),
+  .stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button:active:not(:disabled),
+  .stApp [class*="st-key-p8_btn_"] :is(.stButton, .stFormSubmitButton) button:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* >>> PART 9 MOTIFS (generated) >>> */
+/* ===================================================================== */
+/* 23. PART 9 BACKGROUND: plain                                           */
+/* ===================================================================== */
+/* The woven lattice was removed (Part 9): the page is the flat background
+   token only (charcoal in dark mode). What remains here is the Ask
+   Assistant stone block's 8x8 pixel texture (section 24). */
+.stApp {
+  --pan-cube-tex: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8' shape-rendering='crispEdges'%3E%3Crect x='0' y='0' width='1' height='1' fill='white' fill-opacity='0.3'/%3E%3Crect x='1' y='0' width='1' height='1' fill='black' fill-opacity='0.75'/%3E%3Crect x='2' y='0' width='1' height='1' fill='black' fill-opacity='0.75'/%3E%3Crect x='3' y='0' width='1' height='1' fill='white' fill-opacity='0.3'/%3E%3Crect x='5' y='0' width='1' height='1' fill='white' fill-opacity='0.42'/%3E%3Crect x='6' y='0' width='1' height='1' fill='white' fill-opacity='0.18'/%3E%3Crect x='2' y='1' width='1' height='1' fill='black' fill-opacity='0.55'/%3E%3Crect x='3' y='1' width='1' height='1' fill='black' fill-opacity='0.75'/%3E%3Crect x='4' y='1' width='1' height='1' fill='black' fill-opacity='0.75'/%3E%3Crect x='7' y='1' width='1' height='1' fill='black' fill-opacity='0.35'/%3E%3Crect x='1' y='2' width='1' height='1' fill='white' fill-opacity='0.42'/%3E%3Crect x='5' y='2' width='1' height='1' fill='white' fill-opacity='0.3'/%3E%3Crect x='6' y='2' width='1' height='1' fill='white' fill-opacity='0.42'/%3E%3Crect x='7' y='2' width='1' height='1' fill='black' fill-opacity='0.55'/%3E%3Crect x='0' y='3' width='1' height='1' fill='white' fill-opacity='0.3'/%3E%3Crect x='3' y='3' width='1' height='1' fill='black' fill-opacity='0.35'/%3E%3Crect x='4' y='3' width='1' height='1' fill='black' fill-opacity='0.75'/%3E%3Crect x='7' y='3' width='1' height='1' fill='white' fill-opacity='0.3'/%3E%3Crect x='1' y='4' width='1' height='1' fill='black' fill-opacity='0.55'/%3E%3Crect x='3' y='4' width='1' height='1' fill='white' fill-opacity='0.42'/%3E%3Crect x='4' y='4' width='1' height='1' fill='black' fill-opacity='0.35'/%3E%3Crect x='7' y='4' width='1' height='1' fill='white' fill-opacity='0.3'/%3E%3Crect x='0' y='5' width='1' height='1' fill='white' fill-opacity='0.18'/%3E%3Crect x='2' y='5' width='1' height='1' fill='black' fill-opacity='0.35'/%3E%3Crect x='4' y='5' width='1' height='1' fill='black' fill-opacity='0.55'/%3E%3Crect x='5' y='5' width='1' height='1' fill='black' fill-opacity='0.75'/%3E%3Crect x='7' y='5' width='1' height='1' fill='white' fill-opacity='0.18'/%3E%3Crect x='1' y='6' width='1' height='1' fill='white' fill-opacity='0.3'/%3E%3Crect x='2' y='6' width='1' height='1' fill='white' fill-opacity='0.18'/%3E%3Crect x='6' y='6' width='1' height='1' fill='black' fill-opacity='0.75'/%3E%3Crect x='7' y='6' width='1' height='1' fill='black' fill-opacity='0.55'/%3E%3Crect x='1' y='7' width='1' height='1' fill='black' fill-opacity='0.75'/%3E%3Crect x='2' y='7' width='1' height='1' fill='white' fill-opacity='0.18'/%3E%3Crect x='5' y='7' width='1' height='1' fill='white' fill-opacity='0.42'/%3E%3Crect x='7' y='7' width='1' height='1' fill='white' fill-opacity='0.42'/%3E%3C/svg%3E");
+}
+/* <<< PART 9 MOTIFS (generated) <<< */

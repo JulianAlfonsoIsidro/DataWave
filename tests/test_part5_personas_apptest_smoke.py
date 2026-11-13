@@ -14,6 +14,8 @@ renders the per-card persona table when one is in session state (Requirement 7).
 
 from __future__ import annotations
 
+import re
+
 import html
 import sys
 from pathlib import Path
@@ -104,9 +106,9 @@ def test_default_attributes_all_leads_render_personas(app_test):
     assert not at.exception
     assert not at.error
     assert "Personas" in _subheaders(at)
-    assert "How the Personas Differ" in _subheaders(at)
-    assert len(at.dataframe) >= 1
-    assert len(at.dataframe[0].value) == 2  # k=2 -> two persona rows
+    # Part 9: the "How the Personas Differ" table was removed from the page.
+    assert "How the Personas Differ" not in _subheaders(at)
+    assert len(at.dataframe) == 0
     assert any("Built 2 personas" in s.value for s in at.success)
     assert GROUP_KEY not in {s.key for s in at.selectbox}  # single set: no dropdown
 
@@ -257,7 +259,8 @@ def test_expected_joiners_by_persona_renders_for_new_promo_run(app_test, sample)
         cards, run.sendable_by_segment, result.labels, result.persona_sets, drop_empty=True
     )[0]
     text = _markdown_text(at)
-    assert "P900 · Ready Toppers" in text
+    # Part 9 round 3: the promo id is wrapped in a muted span; compare the visible text.
+    assert "P900 · Ready Toppers" in re.sub(r"<[^>]+>", "", text)
     # Part 7 wording: sentence rows, "Total For <Segment>" line, no old table headers.
     assert "likely to join" in text
     assert "Total For Ready Toppers" in text

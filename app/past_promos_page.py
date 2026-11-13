@@ -74,6 +74,18 @@ def fmt_rate(value) -> str:
     return f"{float(value) * 100:.1f}%"
 
 
+def gap_text(predicted, actual) -> str:
+    """Actual minus predicted, in percentage points (round 3)."""
+    def ok(v):
+        return v is not None and not (isinstance(v, float) and math.isnan(v))
+    if not (ok(predicted) and ok(actual)):
+        return "No Leads"
+    gap = (float(actual) - float(predicted)) * 100
+    if abs(gap) < 0.05:
+        return "0.0 pts"
+    return f"{'+' if gap > 0 else '−'}{abs(gap):.1f} pts"
+
+
 def _segment_sort_key(row: dict) -> tuple[int, str]:
     segment = str(row.get("segment"))
     rank = SEGMENT_ORDER.index(segment) if segment in SEGMENT_ORDER else len(SEGMENT_ORDER)
@@ -87,6 +99,7 @@ def predicted_actual_html(rows: list[dict]) -> str:
         '<th class="pan-th">Segment</th>'
         '<th class="pan-th pan-num">Predicted</th>'
         '<th class="pan-th pan-num">Actual</th>'
+        '<th class="pan-th pan-num">Gap</th>'
         "</tr>"
     )
     body = []
@@ -95,7 +108,8 @@ def predicted_actual_html(rows: list[dict]) -> str:
             "<tr>"
             f'<td class="pan-td pan-strong">{html.escape(str(row.get("segment", "N/A")))}</td>'
             f'<td class="pan-td pan-num">{fmt_rate(row.get("predicted"))}</td>'
-            f'<td class="pan-td pan-num pan-accent">{fmt_rate(row.get("actual"))}</td></tr>'
+            f'<td class="pan-td pan-num pan-accent">{fmt_rate(row.get("actual"))}</td>'
+            f'<td class="pan-td pan-num">{gap_text(row.get("predicted"), row.get("actual"))}</td></tr>'
         )
     return f'<table class="pan-table">{header}{"".join(body)}</table>'
 
@@ -143,7 +157,8 @@ def similarity_chart_html(result: SimilarityResult) -> str:
         comp = by_key.get(key)
         name = COMPONENT_LABELS[key]
         if comp is None or comp.fraction is None:
-            parts.append(theme.bar_html(f"{name}: Unavailable", 0.0))
+            # Round 3: no empty bar, so Unavailable never reads as a 0 score.
+            parts.append(theme.unavailable_line_html(f"{name}: Unavailable"))
         else:
             parts.append(
                 theme.bar_html(f"{name}: {comp.points:.0f} of {comp.max_points:.0f}", comp.fraction)
@@ -184,7 +199,7 @@ def _campaign_body_html(
         ("Product Type", html.escape(p.product_type or pc.NOT_AVAILABLE)),
         ("Opt-In Rate", html.escape(detail.opt_in_display)),
     ]
-    out = [theme.fields_html(fields)]
+    out = [theme.fields_row_html(fields)]
     if detail.segment_responses:
         out.append(theme.section_label_html("Responses By Segment"))
         out.append(_segment_table_html(detail))
@@ -215,23 +230,42 @@ def _row_label(row: pc.CampaignRow, similarity_on: bool) -> str:
     p = row.profile
     label = f"{p.promo_id}: {p.name}" if p.name else p.promo_id
     if similarity_on and row.similarity is not None:
-        label += f" ({pc.display_score(row.similarity)})"
+        # Part 9: the bare "(64)" is named, as in the badge inside.
+        label += f" (Similarity Score: {pc.display_score(row.similarity)})"
     return label
+
+
+_PAST_FILES = ("promo_history.csv", "promo_leads.csv", "customer_dna.csv")
+
+
+def _load_past_data():
+    """The past-campaign frames and profiles, cached until a data file changes.
+
+    Part 9: these were re-read and rebuilt on every rerun (about 0.5 s), and
+    every tab switch reruns the app now, so the reveal after Run Analysis and
+    each tab switch paid for it. The data is read-only here.
+    """
+    stamps = tuple(
+        (name, (DATA_DIR / name).stat().st_mtime_ns if (DATA_DIR / name).exists() else 0)
+        for name in _PAST_FILES
+    )
+    return _cached_past_data(stamps)
+
+
+@st.cache_data(show_spinner=False)
+def _cached_past_data(stamps: tuple):
+    history, leads, dna = pc.load_all(*(DATA_DIR / name for name in _PAST_FILES))
+    return history, leads, dna, pc.build_profiles(history, leads, dna)
 
 
 def render_past_promos_tab() -> None:
     """Render the Past Promos tab."""
     try:
-        history, leads, dna = pc.load_all(
-            DATA_DIR / "promo_history.csv",
-            DATA_DIR / "promo_leads.csv",
-            DATA_DIR / "customer_dna.csv",
-        )
+        history, leads, dna, profiles = _load_past_data()
     except pc.PastCampaignsDataError as exc:
         theme.st_markdown(theme.banner_html(str(exc), "error"))
         return
 
-    profiles = pc.build_profiles(history, leads, dna)
     current = current_profile()
     rows = pc.build_rows(profiles, current)
     has_similarity = pc.similarity_available(rows)
@@ -241,6 +275,24 @@ def render_past_promos_tab() -> None:
         "Completed campaigns only. Open a campaign to see how it ran and how "
         "close the model's prediction came."
     )
+    if has_similarity:
+        # Part 9: the score is relative to the current run, so it moves when
+        # the run moves; say so, or the change looks like an error.
+        run = st.session_state.get(RUN_RESULT_KEY)
+        threshold = getattr(getattr(run, "promo_spec", None), "threshold_php", None)
+        if run is None:
+            # Round 3: before a run the score uses the New Promo form as it
+            # is filled in now; say so rather than imply a run exists.
+            st.caption(
+                "Similarity Score compares each past promo with the New Promo "
+                "form as filled in now. After Run Analysis it compares with the run."
+            )
+        else:
+            at = f" at ₱{float(threshold):,.0f}" if threshold is not None else ""
+            st.caption(
+                f"Similarity Score compares each past promo with your current run{at}, "
+                "so it changes when you rescore in What-If or run a new promo."
+            )
 
     product_opts, audience_opts = pc.filter_options(rows)
     sort_modes = list(pc.SORT_MODES) if has_similarity else [pc.SORT_NEWEST, pc.SORT_OLDEST]

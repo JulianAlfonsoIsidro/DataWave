@@ -35,7 +35,7 @@ DataWave is an analytical CRM tool for bank campaign planners. The UI should fee
 
 ## Part 8 motion and feedback
 
-- Jobs (Run Analysis, Build Personas, What-If rescore) show a loader that locks the page: clicks, Tab and the top-right menu are blocked, wheel scroll still works. Script: `app/static/p8_page_lock.js`.
+- Jobs (Run Analysis, Build Personas, What-If rescore) show a loader that locks the page: clicks, Tab and the top-right menu are blocked, wheel scroll still works. Script: `app/static/page_lock.js`.
 - Toasts: a Start_Toast on job start and a Completion_Toast after the finishing overlay. Each toast sits in its own custom element (`<p8-toast-tN>`) so React does not reuse a finished animation clock.
 - Hero and What-If numbers roll (about 600 ms) only on the render where the value changed. Pass `prev=` to `hero_kpi_html` / `metric_panel`. Unrelated reruns show static numbers.
 - Persona cards get a one-shot reveal and a 150 ms group crossfade. Tables and charts do not move.

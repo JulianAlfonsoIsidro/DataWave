@@ -101,8 +101,11 @@ def test_results_with_seeded_run_renders(no_aws, seeded_run):
     at = _open(seeded_run)
     assert not at.exception
     subs = [s.value for s in at.subheader]
-    for name in ("Results Grid", "Decision Cards", "Download Leads", "Export Summary"):
+    for name in ("Results Grid", "Decision Cards", "Download Leads"):
         assert name in subs
+    # Part 9: Export Summary moved into the Results action bar (no heading).
+    labels = [w.proto.label for w in at.get("download_button")]
+    assert "Export Summary" in labels
 
 
 def test_whatif_with_seeded_run_renders(no_aws, seeded_run):
