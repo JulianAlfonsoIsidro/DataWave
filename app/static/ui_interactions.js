@@ -21,6 +21,10 @@
  * 5. The app's colour scheme is copied to <html data-p9-scheme> so dialogs
  *    drawn outside the app root follow light and dark (section 28).
  *
+ * 6. The Bedrock wait line: timer and Mining/Crafting label (section 29).
+ *
+ * 7. The assistant's live character count for the 500 character limit.
+ *
  * Reads the DOM only; never talks to Streamlit and changes no widget value.
  */
 (function () {
@@ -264,5 +268,48 @@
   }
   syncScheme();
   setInterval(syncScheme, 500);
+
+  /* ---- 6. The Bedrock wait line --------------------------------------- */
+  // Each .pan-wait carries data-start (ms). The timer ticks every 100 ms; the
+  // label swaps between Mining and Crafting every 1.6 s with a short fade.
+  // With reduced motion the label stays (styles.css keeps the grid still);
+  // the timer still counts (spec part9-layout-fixes, Requirement 35.6).
+  var WAIT_LABELS = ["Mining", "Crafting"];
+  function fmtElapsed(ms) {
+    var total = Math.max(0, ms) / 1000;
+    if (total < 60) return total.toFixed(1) + "s";
+    return Math.floor(total / 60) + "m " + (total % 60).toFixed(1) + "s";
+  }
+  setInterval(function () {
+    var nodes = document.querySelectorAll(".pan-wait[data-start]");
+    if (!nodes.length) return;
+    var now = Date.now();
+    for (var i = 0; i < nodes.length; i++) {
+      var node = nodes[i];
+      var start = Number(node.getAttribute("data-start")) || now;
+      var time = node.querySelector(".pan-wait-time");
+      if (time) time.textContent = fmtElapsed(now - start);
+      if (reduce.matches) continue;
+      var label = node.querySelector(".pan-wait-label");
+      if (!label) continue;
+      var step = Math.floor((now - start) / 1600) % WAIT_LABELS.length;
+      var want = WAIT_LABELS[step];
+      if (label.textContent !== want && !label.classList.contains("is-swapping")) {
+        label.classList.add("is-swapping");
+        setTimeout(function (el, text) {
+          return function () { el.textContent = text; el.classList.remove("is-swapping"); };
+        }(label, want), 120);
+      }
+    }
+  }, 100);
+
+  /* ---- 7. Assistant character count ------------------------------------ */
+  // Mirrors the chat input's length into .pan-chat-count ("12 / 500").
+  document.addEventListener("input", function (e) {
+    var t = e.target;
+    if (!t || !t.closest || !t.closest('[data-testid="stChatInput"]')) return;
+    var out = document.querySelector(".pan-chat-count");
+    if (out) out.textContent = (t.value || "").length + " / 500 characters";
+  }, true);
 
 })();

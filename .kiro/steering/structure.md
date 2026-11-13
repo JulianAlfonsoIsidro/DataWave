@@ -84,6 +84,7 @@ Output-producing steps (writing the model, scores, cards, leads) run **last**, a
   - New `app/help_page.py`: the `st.dialog` opened by the `help_open` button; it only draws `help_content`.
   - Segment tables that show a fixed order import `SEGMENT_DISPLAY_ORDER` and do not define their own.
   - Figures in a rate or amount (10% control group, ₱1,000 per joiner, 1.645) are read from `part4_cards.config`, never copied into UI text.
+- Part 9 round 3 (built): `src/ai/answer_format.py`, `src/ai/privacy.py`; `src/webapp_core/ai_usage.py`, `run_summary.py`, `fairness.py`; `app/ai_ui.py`; `scripts/measure_ai_tokens.py` writes `docs/ai-token-report.md`; `docs/ai-validation-plan.md`.
 - Part 9 navigation: the six sections are `st.tabs(theme.TAB_LABELS, key=NAV_KEY)` in `app/main.py`. Use `go_to(label)` after the tabs exist, or `_go_to_now` in a button callback. Signpost buttons use `_nav_button`.
 - Part 8 presentation logic that is pure lives in `webapp_core`: `toast_queue.py` (toast queue and view planning), `number_roll.py` (digit-diff plan for the CSS number roll), `region_map.py` (four Map_Areas, PSGC codes, lead-count entries), `group_picker_items.py` (which Group_Visual fits a run, items, glass level, ring step, value sync, group-change check).
 - `app/group_picker.py` is the only bridge to the picker iframe. Read its component value (`pending_selection`) before the group dropdown renders. Widget keys and labels are unchanged; new keys are `p8_*` containers and the component key `p8_group_picker`.

@@ -146,7 +146,15 @@
   /* Part 9 buttons: a quick press, a springy release, red fading back */
   --pan-dur-bounce: 420ms;
   --pan-ease-bounce: cubic-bezier(0.34, 1.8, 0.64, 1);   /* overshoots, then settles */
-  --pan-dur-press-out: 600ms;     /* the red fading out once the work is done */
+  --pan-dur-press-out: 600ms;
+  /* Part 9 round 3: the Bedrock wait line (pixel loader and shimmering label) */
+  --pan-dur-pixel: 650ms;          /* one pixel cycle */
+  --pan-pixel-step: 90ms;          /* delay per chevron step */
+  --pan-dur-shimmer: 1400ms;       /* the label's light sweep */
+  --pan-pixel-size: 4px;
+  --pan-pixel-gap: 1.5px;
+  --pan-turn-marker: 1.75rem;      /* the transcript's marker column */
+  --pan-turn-dot: 0.5rem;          /* the user's dot */     /* the red fading out once the work is done */
   /* Part 9 round 2: the ? button sits left of the Settings menu; the header
      keeps clear of both (Requirement 28.3). Positions are approximate and
      follow Streamlit 1.66.1's toolbar. */
@@ -3609,6 +3617,238 @@ html[data-p9-scheme="light"] { color-scheme: light; }
   line-height: var(--pan-type-caption-leading);
   color: var(--pan-text-muted);
 }
+
+/* ===================================================================== */
+/* 29. PART 9 ROUND 3: AI notices, tags, chips, token lines, wait line   */
+/* ===================================================================== */
+/* Spec part9-layout-fixes, Requirements 32 to 36 and 39. Tokens only. */
+:root { --pan-bedrock-icon: url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22black%22%20fill-rule=%22evenodd%22%3E%3Cpath%20d=%22M13.05%2015.513h3.08c.214%200%20.389.177.389.394v1.82a1.704%201.704%200%20011.296%201.661c0%20.943-.755%201.708-1.685%201.708-.931%200-1.686-.765-1.686-1.708%200-.807.554-1.484%201.297-1.662v-1.425h-2.69v4.663a.395.395%200%2001-.188.338l-2.69%201.641a.385.385%200%2001-.405-.002l-4.926-3.086a.395.395%200%2001-.185-.336V16.3L2.196%2014.87A.395.395%200%20012%2014.555L2%2014.528V9.406c0-.14.073-.27.192-.34l2.465-1.462V4.448c0-.129.062-.249.165-.322l.021-.014L9.77%201.058a.385.385%200%2001.407%200l2.69%201.675a.395.395%200%2001.185.336V7.6h3.856V5.683a1.704%201.704%200%2001-1.296-1.662c0-.943.755-1.708%201.685-1.708.931%200%201.685.765%201.685%201.708%200%20.807-.553%201.484-1.296%201.662v2.311a.391.391%200%2001-.389.394h-4.245v1.806h6.624a1.69%201.69%200%20011.64-1.313c.93%200%201.685.764%201.685%201.707%200%20.943-.754%201.708-1.685%201.708a1.69%201.69%200%2001-1.64-1.314H13.05v1.937h4.953l.915%201.18a1.66%201.66%200%2001.84-.227c.931%200%201.685.764%201.685%201.707%200%20.943-.754%201.708-1.685%201.708-.93%200-1.685-.765-1.685-1.708%200-.346.102-.668.276-.937l-.724-.935H13.05v1.806zM9.973%201.856L7.93%203.122V6.09h-.778V3.604L5.435%204.669v2.945l2.11%201.36L9.712%207.61V5.334h.778V7.83c0%20.136-.07.263-.184.335L7.963%209.638v2.081l1.422%201.009-.446.646-1.406-.998-1.53%201.005-.423-.66%201.605-1.055v-1.99L5.038%208.29l-2.26%201.34v1.676l1.972-1.189.398.677-2.37%201.429V14.3l2.166%201.258%202.27-1.368.397.677-2.176%201.311V19.3l1.876%201.175%202.365-1.426.398.678-2.017%201.216%201.918%201.201%202.298-1.403v-5.78l-4.758%202.893-.4-.675%205.158-3.136V3.289L9.972%201.856zM16.13%2018.47a.913.913%200%2000-.908.92c0%20.507.406.918.908.918a.913.913%200%2000.907-.919.913.913%200%2000-.907-.92zm3.63-3.81a.913.913%200%2000-.908.92c0%20.508.406.92.907.92a.913.913%200%2000.908-.92.913.913%200%2000-.908-.92zm1.555-4.99a.913.913%200%2000-.908.92c0%20.507.407.918.908.918a.913.913%200%2000.907-.919.913.913%200%2000-.907-.92zM17.296%203.1a.913.913%200%2000-.907.92c0%20.508.406.92.907.92a.913.913%200%2000.908-.92.913.913%200%2000-.908-.92z%22/%3E%3C/svg%3E"); }
+
+/* Notice: one per section, caption size, note surface, never dismissible. */
+.pan-ai-notice {
+  display: grid;
+  gap: var(--pan-space-1);
+  margin: var(--pan-space-2) 0 var(--pan-space-4) 0;
+  padding: var(--pan-space-2) var(--pan-space-3);
+  border: 1px solid var(--pan-note-edge);
+  border-radius: var(--pan-radius-md);
+  background: var(--pan-note-bg);
+  color: var(--pan-note-text);
+  font-size: var(--pan-type-caption-size);
+  line-height: var(--pan-type-caption-leading);
+}
+.pan-ai-notice.is-prediction { background: var(--pan-surface-2); border-color: var(--pan-border); color: var(--pan-text); }
+.pan-ai-notice-text { font-weight: var(--pan-weight-demi); }
+.pan-ai-notice-does { color: var(--pan-text-muted); }
+.pan-ai-notice.is-bedrock .pan-ai-notice-does { color: inherit; opacity: 0.85; }
+.pan-ai-notice-chips { display: flex; flex-wrap: wrap; gap: var(--pan-space-2); margin-top: var(--pan-space-1); }
+
+/* Chips and tags. */
+.pan-ai-chip, .pan-ai-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pan-space-1);
+  padding: 0 var(--pan-space-2);
+  border: 1px solid var(--pan-border);
+  border-radius: var(--pan-radius-sm);
+  background: var(--pan-surface);
+  color: var(--pan-text);
+  font-size: var(--pan-type-caption-size);
+  line-height: 1.6;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.pan-ai-chip.is-demo { color: var(--pan-warning); border-color: var(--pan-warning); background: var(--pan-warning-bg); }
+.pan-ai-chip.is-bedrock { color: var(--pan-focus); border-color: var(--pan-focus); }
+.pan-ai-tag { color: var(--pan-focus); border-color: var(--pan-focus); font-weight: var(--pan-weight-demi); }
+.pan-ai-tag.is-builtin { color: var(--pan-text-muted); border-color: var(--pan-border); font-weight: var(--pan-weight-regular); }
+.pan-ai-chip.has-icon::before,
+[class*="st-key-bedrock_btn_"] button::before {
+  content: "";
+  flex: none;
+  inline-size: 1em;
+  block-size: 1em;
+  background: currentColor;
+  -webkit-mask: var(--pan-bedrock-icon) center / contain no-repeat;
+  mask: var(--pan-bedrock-icon) center / contain no-repeat;
+}
+/* Buttons that call Bedrock: the icon before the label, generous spacing. */
+[class*="st-key-bedrock_btn_"] button { gap: var(--pan-space-2); padding-inline: var(--pan-space-4); }
+
+/* Token line and the meta row under an AI output. */
+.pan-token-line {
+  font-size: var(--pan-type-caption-size);
+  line-height: var(--pan-type-caption-leading);
+  color: var(--pan-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.pan-token-line.is-estimate { font-style: italic; }
+.pan-ai-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pan-space-2) var(--pan-space-3);
+  margin-top: var(--pan-space-2);
+}
+.pan-ai-flag {
+  margin-top: var(--pan-space-2);
+  font-size: var(--pan-type-caption-size);
+  color: var(--pan-warning);
+}
+
+/* The wait line: a 3 by 3 pixel loader, a shimmering label, a timer. */
+.pan-wait {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pan-space-2);
+  margin: var(--pan-space-2) 0;
+  color: var(--pan-text-muted);
+  font-size: var(--pan-type-caption-size);
+}
+.pan-wait-grid {
+  display: grid;
+  grid-template-columns: repeat(3, var(--pan-pixel-size));
+  gap: var(--pan-pixel-gap);
+  flex: none;
+}
+.pan-wait-grid > i {
+  inline-size: var(--pan-pixel-size);
+  block-size: var(--pan-pixel-size);
+  border-radius: 1px;
+  background: var(--pan-text);
+  opacity: 0.15;
+  animation: pan-pixel-on var(--pan-dur-pixel) ease-in-out infinite;
+  animation-delay: calc(var(--d, 0) * var(--pan-pixel-step));
+}
+@keyframes pan-pixel-on { 0%, 100% { opacity: 0.15; } 35% { opacity: 1; } }
+.pan-wait-label {
+  font-weight: var(--pan-weight-medium);
+  color: transparent;
+  background-image: linear-gradient(90deg, var(--pan-text-muted) 35%, var(--pan-text) 50%, var(--pan-text-muted) 65%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: pan-shimmer-text var(--pan-dur-shimmer) var(--pan-ease-constant) infinite;
+  transition: opacity var(--pan-dur-fast) var(--pan-ease);
+}
+.pan-wait-label.is-swapping { opacity: 0; }
+@keyframes pan-shimmer-text { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+.pan-wait-time {
+  font-family: var(--pan-font-number);
+  font-variant-numeric: tabular-nums;
+  color: var(--pan-text-muted);
+}
+.pan-wait-sep { color: var(--pan-border-control); }
+.pan-wait-est { font-variant-numeric: tabular-nums; font-style: italic; }
+@media (prefers-reduced-motion: reduce) {
+  .pan-wait-grid > i { animation: none; opacity: 0.15; }
+  .pan-wait-label { animation: none; color: var(--pan-text-muted); background: none; }
+}
+
+/* Assistant transcript: a marker column and the turn's text; no bubbles. */
+[class*="st-key-pan_turn_"] > [data-testid="stVerticalBlock"],
+[class*="st-key-pan_turn_"][data-testid="stVerticalBlock"] {
+  display: grid;
+  grid-template-columns: var(--pan-turn-marker) minmax(0, 1fr);
+  column-gap: var(--pan-space-3);
+  row-gap: var(--pan-space-1);
+  align-items: start;
+}
+[class*="st-key-pan_turn_"] > [data-testid="stVerticalBlock"] > :nth-child(n+2),
+[class*="st-key-pan_turn_"][data-testid="stVerticalBlock"] > :nth-child(n+2) { grid-column: 2; }
+[class*="st-key-pan_turn_"] > [data-testid="stVerticalBlock"] > :first-child,
+[class*="st-key-pan_turn_"][data-testid="stVerticalBlock"] > :first-child { grid-column: 1; grid-row: 1 / span 6; }
+[class*="st-key-pan_turn_"] { padding: var(--pan-space-3) 0; border-bottom: 1px solid var(--pan-divider); }
+.pan-turn-mark { display: flex; justify-content: center; padding-top: var(--pan-space-1); }
+.pan-turn-dot {
+  display: inline-block;
+  inline-size: var(--pan-turn-dot);
+  block-size: var(--pan-turn-dot);
+  margin-top: var(--pan-space-2);
+  border-radius: 50%;
+  background: var(--pan-text);
+}
+.pan-turn-user { color: var(--pan-text-muted); }
+[class*="st-key-pan_turn_a"] [data-testid="stMarkdownContainer"] { max-inline-size: 72ch; }
+[class*="st-key-pan_turn_a"] [data-testid="stMarkdownContainer"] ul { margin: var(--pan-space-2) 0; padding-left: var(--pan-space-5); }
+[class*="st-key-pan_turn_a"] [data-testid="stMarkdownContainer"] li { margin-bottom: var(--pan-space-1); }
+[class*="st-key-pan_turn_a"] [data-testid="stMarkdownContainer"] blockquote {
+  margin: var(--pan-space-2) 0;
+  padding: var(--pan-space-2) var(--pan-space-3);
+  border-left: 2px solid var(--pan-border-control);
+  background: var(--pan-surface-2);
+  border-radius: 0 var(--pan-radius-sm) var(--pan-radius-sm) 0;
+}
+.pan-turn-mark .pan-cube-slot { position: relative; left: auto; top: auto; margin: 0; }
+/* The prompt line: a hairline above and a hint row. */
+.pan-prompt-hint {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--pan-space-3);
+  margin-top: var(--pan-space-4);
+  padding-top: var(--pan-space-2);
+  border-top: 1px solid var(--pan-divider);
+  font-size: var(--pan-type-caption-size);
+  color: var(--pan-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+/* Review card before Download Recommended Leads (Requirement 37.3). */
+.pan-review {
+  margin: var(--pan-space-2) 0 var(--pan-space-2) 0;
+  padding: var(--pan-space-3) var(--pan-space-4);
+  border: 1px solid var(--pan-border);
+  border-radius: var(--pan-radius-lg);
+  background: var(--pan-surface);
+  max-inline-size: 40rem;
+}
+.pan-review-title { font-weight: var(--pan-weight-bold); margin-bottom: var(--pan-space-2); color: var(--pan-text); }
+.pan-review-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--pan-space-1); }
+.pan-review-list li {
+  display: grid;
+  grid-template-columns: minmax(10rem, auto) 1fr;
+  column-gap: var(--pan-space-3);
+  font-size: var(--pan-type-body-size);
+}
+.pan-review-list li span { color: var(--pan-text-muted); }
+.pan-review-list li strong { color: var(--pan-text); font-variant-numeric: tabular-nums; }
+.pan-review-list li em {
+  grid-column: 2;
+  font-style: normal;
+  font-size: var(--pan-type-caption-size);
+  color: var(--pan-text-muted);
+}
+.pan-table tr.pan-flag .pan-td { background: var(--pan-warning-bg); }
+/* Inside a transcript turn: the meta row keeps clear of the next element
+   (Streamlit pulls the next block up by its own margin), and the turn's
+   text actions are quiet links, not buttons. */
+[class*="st-key-pan_turn_"] [data-testid="stMarkdownContainer"]:has(.pan-ai-meta, .pan-ai-flag) { margin-bottom: 0; }
+[class*="st-key-pan_turn_"] .pan-ai-meta { margin-bottom: var(--pan-space-2); }
+.stApp [class*="st-key-assistant_report_"] button,
+.stApp .st-key-assistant_clear button {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  color: var(--pan-text-muted);
+  font-size: var(--pan-type-caption-size);
+  font-weight: var(--pan-weight-regular);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.stApp [class*="st-key-assistant_report_"] button:hover:not(:disabled),
+.stApp .st-key-assistant_clear button:hover:not(:disabled),
+.stApp .stButton[class*="st-key-assistant_report_"] button[data-p9-pressed],
+.stApp [class*="st-key-assistant_report_"] .stButton button[data-p9-pressed],
+.stApp .st-key-assistant_clear .stButton button[data-p9-pressed] {
+  background: transparent;
+  color: var(--pan-text);
+  box-shadow: none;
+  transform: none;
+}
+.pan-review .pan-review-list { margin: 0 !important; padding: 0 !important; }
+.pan-review .pan-review-list li { margin: 0; }
+.pan-ai-status { display: flex; flex-wrap: wrap; gap: var(--pan-space-2); align-items: center; margin-bottom: var(--pan-space-2); }
 
 /* >>> PART 9 MOTIFS (generated) >>> */
 /* ===================================================================== */

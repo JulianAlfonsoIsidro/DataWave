@@ -15,6 +15,11 @@ Guarantees:
   (Requirement 1.13).
 - Demo Mode is reported per call and never latched (Requirement 1.8).
 - No numeric business logic lives here (Requirement 1.12).
+- Part 9 round 3 (Requirement 33): a finished call carries its token
+  :class:`Usage`, read from ``response["usage"]`` (``inputTokens``,
+  ``outputTokens``, ``totalTokens``) and never printed; ``max_tokens`` is
+  sent as ``inferenceConfig.maxTokens``; :func:`estimate_tokens` gives the
+  shown-while-waiting estimate (about four characters per token).
 
 This module has no Streamlit imports. boto3 is imported lazily so machines
 without it still work in Demo Mode.
@@ -23,9 +28,11 @@ without it still work in Demo Mode.
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import threading
+import time
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any, Literal
@@ -52,19 +59,66 @@ _RECORD_KEYS = frozenset({"client_id", "p_join", "best_channel", "control"})
 _FENCE = re.compile(r"^\s*```[A-Za-z0-9_-]*[ \t]*\r?\n?(.*?)\r?\n?```\s*$", re.DOTALL)
 
 
+CHARS_PER_TOKEN = 4  # the estimate shown while a call runs; labelled an estimate
+
+
+@dataclass(frozen=True)
+class Usage:
+    """Token counts of one finished call (each an int, or None when absent)."""
+
+    input_tokens: int | None = None
+    output_tokens: int | None = None
+    total_tokens: int | None = None
+
+    @classmethod
+    def from_response(cls, response: Any) -> "Usage":
+        """Read ``response["usage"]`` like the AWS example; never raises."""
+        try:
+            usage = response.get("usage", {}) if isinstance(response, Mapping) else {}
+        except Exception:
+            usage = {}
+        if not isinstance(usage, Mapping):
+            usage = {}
+
+        def num(key: str) -> int | None:
+            value = usage.get(key)
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                return None
+            return int(value)
+
+        total = num("totalTokens")
+        inp, out = num("inputTokens"), num("outputTokens")
+        if total is None and inp is not None and out is not None:
+            total = inp + out
+        return cls(inp, out, total)
+
+
+def estimate_tokens(text: str) -> int:
+    """About four characters per token (an estimate, labelled as one)."""
+    return int(math.ceil(len(text or "") / CHARS_PER_TOKEN))
+
+
+def request_text(system: str, payload: Mapping[str, Any]) -> str:
+    """The text one call sends: the system prompt and the JSON payload."""
+    return (system or "") + "\n" + json.dumps(payload, default=str, ensure_ascii=False)
+
+
 @dataclass(frozen=True)
 class BedrockResult:
     """Outcome of one Converse call.
 
     ``mode`` is ``"Bedrock"`` only when the call succeeded (and, when JSON
     was requested, parsed). Otherwise it is ``"Demo"`` and ``reason`` holds
-    one fixed code.
+    one fixed code. ``usage`` is set whenever Bedrock answered (even when
+    the reply was then rejected), so spent tokens are still counted.
     """
 
     mode: Literal["Bedrock", "Demo"]
     text: str | None
     parsed: Any | None
     reason: str = ""
+    usage: Usage | None = None
+    seconds: float = 0.0
 
 
 class PayloadRejected(ValueError):
@@ -135,6 +189,11 @@ def credentials_available(env: Mapping[str, str] | None = None) -> bool:
     return all(values[name] for name in REQUIRED_ENV)
 
 
+def model_id(env: Mapping[str, str] | None = None) -> str:
+    """The configured ``BEDROCK_MODEL_ID`` ('' when unset). Not a secret."""
+    return _read_env(env)["BEDROCK_MODEL_ID"]
+
+
 def _strip_fence(text: str) -> str:
     """Strip one surrounding Markdown code fence; nothing more lenient."""
     match = _FENCE.match(text)
@@ -165,8 +224,9 @@ def _build_client(values: Mapping[str, str]) -> Any:
     )
 
 
-def _demo(reason: str) -> BedrockResult:
-    return BedrockResult(mode="Demo", text=None, parsed=None, reason=reason)
+def _demo(reason: str, usage: Usage | None = None, seconds: float = 0.0) -> BedrockResult:
+    return BedrockResult(mode="Demo", text=None, parsed=None, reason=reason,
+                         usage=usage, seconds=seconds)
 
 
 def converse(
@@ -177,11 +237,13 @@ def converse(
     client: Any | None = None,
     env: Mapping[str, str] | None = None,
     timeout: float | None = None,
+    max_tokens: int | None = None,
 ) -> BedrockResult:
     """Call Bedrock Converse once and report Bedrock or Demo for this call.
 
     ``client`` and ``env`` are injection points for tests. ``timeout``
-    defaults to :data:`TIMEOUT_SECONDS` (read at call time).
+    defaults to :data:`TIMEOUT_SECONDS` (read at call time). ``max_tokens``
+    caps the reply (``inferenceConfig.maxTokens``).
     """
     try:
         assert_private(payload)
@@ -198,38 +260,44 @@ def converse(
         limit = TIMEOUT_SECONDS if timeout is None else timeout
         user_text = json.dumps(payload, default=str, ensure_ascii=False)
         box: dict[str, Any] = {}
+        request: dict[str, Any] = {
+            "modelId": values["BEDROCK_MODEL_ID"],
+            "system": [{"text": system}],
+            "messages": [{"role": "user", "content": [{"text": user_text}]}],
+        }
+        if max_tokens:
+            request["inferenceConfig"] = {"maxTokens": int(max_tokens)}
+        started = time.monotonic()
 
         def work() -> None:
             try:
                 api = client if client is not None else _build_client(values)
-                box["response"] = api.converse(
-                    modelId=values["BEDROCK_MODEL_ID"],
-                    system=[{"text": system}],
-                    messages=[{"role": "user", "content": [{"text": user_text}]}],
-                )
+                box["response"] = api.converse(**request)
             except BaseException:  # noqa: BLE001 - never leak exception text
                 box["error"] = True
 
         worker = threading.Thread(target=work, name="bedrock-converse", daemon=True)
         worker.start()
         worker.join(limit)
+        seconds = time.monotonic() - started
         if worker.is_alive():
-            return _demo(REASON_TIMEOUT)
+            return _demo(REASON_TIMEOUT, seconds=seconds)
         if box.get("error") or "response" not in box:
-            return _demo(REASON_ERROR)
+            return _demo(REASON_ERROR, seconds=seconds)
 
+        usage = Usage.from_response(box["response"])
         text = _extract_text(box["response"])
     except Exception:
         return _demo(REASON_ERROR)
 
     if not text or not text.strip():
-        return _demo(REASON_EMPTY)
+        return _demo(REASON_EMPTY, usage, seconds)
 
     if not expect_json:
-        return BedrockResult(mode="Bedrock", text=text, parsed=None)
+        return BedrockResult(mode="Bedrock", text=text, parsed=None, usage=usage, seconds=seconds)
 
     try:
         parsed = json.loads(_strip_fence(text))
     except (ValueError, TypeError):
-        return _demo(REASON_BAD_JSON)
-    return BedrockResult(mode="Bedrock", text=text, parsed=parsed)
+        return _demo(REASON_BAD_JSON, usage, seconds)
+    return BedrockResult(mode="Bedrock", text=text, parsed=parsed, usage=usage, seconds=seconds)

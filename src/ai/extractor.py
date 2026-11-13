@@ -12,6 +12,11 @@ Pure logic with no Streamlit imports (design section 2).
   one (2.13).
 
 pdfplumber and python-docx are imported lazily.
+
+Part 9 round 3 (Requirements 33, 37): the result carries the call's token
+Usage, seconds and fallback reason; the reply is capped with
+``inferenceConfig.maxTokens``; ``use_ai=False`` reads the file with the
+built-in rules on purpose. The page masks personal details before calling.
 """
 
 from __future__ import annotations
@@ -29,6 +34,7 @@ from webapp_core.threshold import THRESHOLD_SPECS, ThresholdType
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 MAX_PROMPT_CHARS = 30_000
 EXTRACTION_BUDGET_SECONDS = 60
+MAX_REPLY_TOKENS = 1200  # inferenceConfig.maxTokens; room for reasoning (design "Limits")
 MAX_REWARD_CHARS = 200
 
 PRODUCT_TYPE_OPTIONS: tuple[str, ...] = ("Savings", "Time Deposit", "Investment", "Credit Card")
@@ -86,6 +92,9 @@ class ExtractionResult:
     context: dict[str, str]
     mode: Literal["Bedrock", "Demo"]
     document_text: str = field(default="")
+    usage: Any = None          # ai.bedrock.Usage when Bedrock answered
+    seconds: float = 0.0
+    reason: str = ""           # fallback code when mode is Demo
 
 
 # ---------------------------------------------------------------------------
@@ -239,14 +248,24 @@ def _tag(fields: Mapping[str, Any]) -> dict[str, str]:
 # ---------------------------------------------------------------------------
 
 
-def _mock_result(text: str) -> ExtractionResult:
+def _mock_result(text: str, reason: str = "", usage: Any = None, seconds: float = 0.0) -> ExtractionResult:
     try:
         mocked = mocks.mock_extract(text)
         fields = validate_fields(mocked.get("fields", {}))
         context = _validate_context(mocked.get("context", {}))
     except Exception:  # noqa: BLE001 - never raise
         fields, context = {}, _validate_context({})
-    return ExtractionResult(fields, _tag(fields), context, "Demo", text)
+    return ExtractionResult(fields, _tag(fields), context, "Demo", text, usage, seconds, reason)
+
+
+def request_payload(text: str) -> dict[str, Any]:
+    """What one extraction sends: at most 30,000 characters of the text."""
+    return {"document_text": (text or "")[:MAX_PROMPT_CHARS]}
+
+
+def estimated_input_tokens(text: str) -> int:
+    """The input estimate shown while the call runs (labelled an estimate)."""
+    return bedrock.estimate_tokens(bedrock.request_text(SYSTEM_PROMPT, request_payload(text)))
 
 
 def extract_campaign(
@@ -255,22 +274,27 @@ def extract_campaign(
     client: Any | None = None,
     env: Mapping[str, str] | None = None,
     clock: Callable[[], float] = time.monotonic,
+    use_ai: bool = True,
+    off_reason: str = "ai_off",
 ) -> ExtractionResult:
     """Extract validated, tagged Campaign_Fields from document text. Never raises."""
     text = text if isinstance(text, str) else ""
+    if not use_ai:
+        return _mock_result(text, off_reason)
     try:
         started = clock()
         result = bedrock.converse(
             SYSTEM_PROMPT,
-            {"document_text": text[:MAX_PROMPT_CHARS]},
+            request_payload(text),
             expect_json=True,
             client=client,
             env=env,
+            max_tokens=MAX_REPLY_TOKENS,
         )
         if clock() - started > EXTRACTION_BUDGET_SECONDS:
-            return _mock_result(text)
+            return _mock_result(text, bedrock.REASON_TIMEOUT, result.usage, result.seconds)
         if result.mode != "Bedrock" or not isinstance(result.parsed, Mapping):
-            return _mock_result(text)
+            return _mock_result(text, result.reason or bedrock.REASON_BAD_JSON, result.usage, result.seconds)
 
         parsed = result.parsed
         raw_fields = parsed.get("fields")
@@ -278,6 +302,7 @@ def extract_campaign(
             raw_fields = parsed  # tolerate a flat object
         fields = validate_fields(raw_fields)
         context = _validate_context(parsed.get("context"))
-        return ExtractionResult(fields, _tag(fields), context, "Bedrock", text)
+        return ExtractionResult(fields, _tag(fields), context, "Bedrock", text,
+                                result.usage, result.seconds, "")
     except Exception:  # noqa: BLE001
-        return _mock_result(text)
+        return _mock_result(text, bedrock.REASON_ERROR)

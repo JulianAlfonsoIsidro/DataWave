@@ -13,6 +13,10 @@ the page can show the Demo badge (Requirement 6.11).
 
 No Streamlit imports. No numeric business logic: every number the model may
 mention must already be present in the aggregate (Requirement 6.5).
+
+Part 9 round 3 (Requirements 31, 33): each persona's call is recorded in
+``records`` with its mode, token Usage, seconds and fallback reason, and the
+reply is capped with ``inferenceConfig.maxTokens``.
 """
 
 from __future__ import annotations
@@ -33,6 +37,7 @@ from part5_personas.naming import PersonaNamer, PersonaNaming
 from part5_personas.profile import PersonaProfile
 
 VALID_CHANNELS: tuple[str, ...] = ("In-app", "Email", "SMS")
+MAX_REPLY_TOKENS = 800   # inferenceConfig.maxTokens; room for reasoning (design "Limits")
 
 NAME_MIN_WORDS, NAME_MAX_WORDS, NAME_MAX_CHARS = 2, 4, 40
 DESCRIPTION_MAX_SENTENCES, DESCRIPTION_MAX_CHARS = 2, 300
@@ -294,11 +299,17 @@ class BedrockNamer:
         self._env = env
         self._mock: PersonaNamer = mock if mock is not None else MockPersonaNamer()
         self._sources: dict[str, Literal["Bedrock", "Demo"]] = {}
+        self._records: list[dict[str, Any]] = []
 
     @property
     def sources(self) -> dict[str, Literal["Bedrock", "Demo"]]:
         """Persona name -> ``"Bedrock"`` or ``"Demo"`` (Requirement 6.11)."""
         return dict(self._sources)
+
+    @property
+    def records(self) -> list[dict[str, Any]]:
+        """One entry per persona: name, mode, usage, seconds, reason."""
+        return list(self._records)
 
     def name(self, profile: PersonaProfile, taken: set[str]) -> PersonaNaming:
         agg = build_aggregate(profile)
@@ -308,12 +319,27 @@ class BedrockNamer:
             expect_json=True,
             client=self._client,
             env=self._env,
+            max_tokens=MAX_REPLY_TOKENS,
         )
+        reason = result.reason
         if result.mode == "Bedrock":
             naming = validate_narration(result.parsed, agg, taken)
             if naming is not None:
                 self._sources[naming["name"]] = "Bedrock"
+                self._records.append({"name": naming["name"], "mode": "Bedrock",
+                                      "usage": result.usage, "seconds": result.seconds,
+                                      "reason": ""})
                 return naming
+            reason = "invalid_reply"
         naming = self._mock.name(profile, taken)
         self._sources[naming["name"]] = "Demo"
+        self._records.append({"name": naming["name"], "mode": "Demo", "usage": result.usage,
+                              "seconds": result.seconds, "reason": reason})
         return naming
+
+
+def estimated_tokens_per_persona(profile: PersonaProfile) -> int:
+    """Input estimate for one persona's request (labelled an estimate)."""
+    from ai.bedrock import estimate_tokens, request_text
+
+    return estimate_tokens(request_text(SYSTEM_PROMPT, aggregate_payload(build_aggregate(profile))))

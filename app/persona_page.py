@@ -981,6 +981,22 @@ PERSONA_KIND_KEY = "persona_clustering_kind"
 # Part 9 round 2: True when the last build clustered the run's sendable leads
 # (campaign level, current New Promo run), so group captions can say so.
 PERSONA_POOL_SENDABLE_KEY = "persona_pool_sendable"
+# Part 9 round 3 (Requirement 31): both name sets are kept, so switching
+# between them never rebuilds or calls Bedrock again.
+PERSONA_NAMES_BUILTIN_KEY = "persona_names_builtin"
+PERSONA_NAMES_BEDROCK_KEY = "persona_names_bedrock"
+PERSONA_NAMES_VIEW_KEY = "persona_names_view"
+PERSONA_NAME_RECORDS_KEY = "persona_name_records"
+VIEW_BUILTIN = "Built-in Names"
+VIEW_BEDROCK = "Bedrock Names"
+NAMING_DOES_LINE = (
+    "Here the AI suggests persona names, descriptions and message ideas from each "
+    "persona's totals. It never changes who is in a persona or any number: "
+    "clustering is the model, and built-in names are used when the AI is not."
+)
+CLUSTER_DOES_LINE = (
+    "Personas group similar leads with a clustering model; sizes are counts, not forecasts."
+)
 
 
 @dataclass(frozen=True)
@@ -1060,8 +1076,10 @@ def _run_personas_impl(
 
     # compute_elbow=False: the page never shows the Elbow_Plot, and its sweep
     # (five extra fits per group) was most of a build's time.
+    # Part 9 round 3 (Requirement 31.1): Build Personas names with the
+    # built-in namer and makes no Bedrock call; Bedrock names are on request.
     return run_personas(
-        _spec, cfg=Config(compute_elbow=False), live_leads=_live_leads, narration="ai"
+        _spec, cfg=Config(compute_elbow=False), live_leads=_live_leads, narration="builtin"
     )
 
 
@@ -1332,9 +1350,10 @@ def _render_summary_cards(
     import streamlit as st
     import theme
 
-    if getattr(result, "narration_source", "Bedrock") != "Bedrock":
-        # Some persona text is Mock text (Requirement 6.11).
-        st.markdown(theme.badge_html("Demo Mode", "warning"), unsafe_allow_html=True)
+    # Part 9 round 3 (Requirement 31.6): an accurate label for the name set.
+    _render_names_label(getattr(result, "narration_source", "Demo"))
+    name_records = st.session_state.get(PERSONA_NAME_RECORDS_KEY) or {}
+    show_sources = getattr(result, "narration_source", "") in ("Bedrock", "Mixed", "Demo")
 
     item = 1 if (visual is not None and visual()) else 0
 
@@ -1374,6 +1393,14 @@ def _render_summary_cards(
                     reveal_el if reveal else None, ui_effects.generation("personas") or ""
                 ):
                     sentence = distinguishing_sentences(persona.profile, profiles)
+                    meta = ""
+                    if show_sources:
+                        rec = name_records.get(f"{persona_set.group_key}||{persona.name}")
+                        if rec:
+                            import ai_ui
+                            from webapp_core import ai_usage
+
+                            meta = ai_ui.meta_html(ai_usage.UsageRecord(**rec))
                     theme.card(
                         persona.name,
                         _persona_card_html(
@@ -1383,7 +1410,7 @@ def _render_summary_cards(
                             persona.profile.pct_of_leads,
                             sentence,
                             persona.actions,
-                        ),
+                        ) + meta,
                         # Entrances come from theme.card's swoop: a new build
                         # or a group change brings new cards, one by one.
                     )
@@ -1887,6 +1914,119 @@ def _build_spec(
     )
 
 
+def _apply_name_view() -> None:
+    """Show the name set the switch asks for (Part 9 round 3, Requirement 31.3)."""
+    import streamlit as st
+
+    builtin = st.session_state.get(PERSONA_NAMES_BUILTIN_KEY)
+    bedrock_set = st.session_state.get(PERSONA_NAMES_BEDROCK_KEY)
+    if builtin is None:
+        return
+    view = st.session_state.get(PERSONA_NAMES_VIEW_KEY) or VIEW_BUILTIN
+    chosen = bedrock_set if (view == VIEW_BEDROCK and bedrock_set is not None) else builtin
+    if st.session_state.get(PERSONA_RESULT_KEY) is not chosen:
+        st.session_state[PERSONA_RESULT_KEY] = chosen
+
+
+def _render_names_label(source: str) -> None:
+    """One accurate label: Built-in names, Bedrock, Mixed or Demo Mode."""
+    import streamlit as st
+    import theme
+
+    if source == "Built-in":
+        theme.st_markdown(theme.ai_chip_html("Built-in names"))
+    elif source == "Bedrock":
+        theme.st_markdown(theme.ai_tag_html() + " " + theme.ai_chip_html("Bedrock", icon=True, kind="bedrock"))
+    elif source == "Mixed":
+        theme.st_markdown(theme.ai_chip_html("Mixed: some names are built-in", kind="demo"))
+        st.caption("Bedrock named some personas; the rest fell back to built-in names. Each card says which.")
+    else:
+        theme.st_markdown(theme.badge_html("Demo Mode", "warning"))
+        st.caption("Bedrock was asked for but was not available, so built-in names are shown.")
+
+
+def _render_naming_controls() -> None:
+    """The forecast notice, the name switch and "Name Personas with Bedrock"."""
+    import dataclasses
+
+    import streamlit as st
+
+    import ai_ui
+    import theme
+    from ai.persona_narrator import BedrockNamer, estimated_tokens_per_persona
+    from webapp_core import ai_usage
+    from webapp_core.personas import naming_source, rename_personas
+
+    ai_ui.notice("prediction", CLUSTER_DOES_LINE)
+    builtin = st.session_state.get(PERSONA_NAMES_BUILTIN_KEY)
+    if builtin is None:
+        return
+    bedrock_set = st.session_state.get(PERSONA_NAMES_BEDROCK_KEY)
+    if bedrock_set is not None:
+        st.segmented_control(
+            "Persona Names",
+            [VIEW_BUILTIN, VIEW_BEDROCK],
+            key=PERSONA_NAMES_VIEW_KEY,
+            help="Switch names at any time. Who is in each persona never changes.",
+        )
+        if (st.session_state.get(PERSONA_NAMES_VIEW_KEY) or VIEW_BUILTIN) == VIEW_BEDROCK:
+            ai_ui.notice("bedrock", NAMING_DOES_LINE, chips=True)
+            records = list((st.session_state.get(PERSONA_NAME_RECORDS_KEY) or {}).values())
+            if records:
+                total = ai_usage.combine(
+                    [ai_usage.UsageRecord(**r) for r in records],
+                    ai_usage.FEATURE_PERSONAS, "Bedrock",
+                )
+                theme.st_markdown(theme.token_line_html("Run total: " + ai_usage.usage_line(total)))
+        return
+
+    personas = [p for ps in builtin.persona_sets for p in ps.personas]
+    if not personas:
+        return
+    estimate = sum(estimated_tokens_per_persona(p.profile) for p in personas)
+    measured = ai_usage.MEASURED_TOKENS_PER_PERSONA
+    note = (
+        f"Sends each persona's totals (size, share and plain traits) to Amazon Bedrock. "
+        f"No client data is sent. About {estimate:,} input tokens for {len(personas)} "
+        f"personas (estimated from the request size)."
+    )
+    if measured:
+        note += f" The token report measured about {measured:,} tokens per persona in total."
+    st.caption(note)
+    allowed, off_reason = ai_ui.can_call()
+    clicked = st.button(
+        "Name Personas with Bedrock",
+        key="bedrock_btn_persona_names",
+        disabled=not allowed,
+        help="Renames the same personas with Bedrock. Clusters and sizes do not change.",
+    )
+    if not allowed:
+        st.caption(f"Bedrock is not available: {ai_usage.reason_text(off_reason)}.")
+    if clicked and allowed:
+        slot = st.empty()
+        slot.markdown(ai_ui.wait_html(estimate), unsafe_allow_html=True)
+        namer = BedrockNamer()
+        renamed = rename_personas(builtin, namer, source="Demo")
+        records = namer.records
+        renamed = dataclasses.replace(renamed, narration_source=naming_source(records))
+        keyed: dict[str, dict] = {}
+        index = 0
+        for ps in renamed.persona_sets:
+            for p in ps.personas:
+                if index < len(records):
+                    r = records[index]
+                    rec = ai_ui.record(ai_usage.record_from(
+                        ai_usage.FEATURE_PERSONAS, r["mode"], r["usage"], r["seconds"], r["reason"],
+                    ))
+                    keyed[f"{ps.group_key}||{p.name}"] = rec.as_dict()
+                index += 1
+        slot.empty()
+        st.session_state[PERSONA_NAMES_BEDROCK_KEY] = renamed
+        st.session_state[PERSONA_NAME_RECORDS_KEY] = keyed
+        st.session_state[PERSONA_NAMES_VIEW_KEY] = VIEW_BEDROCK
+        st.rerun()
+
+
 def render_persona_tab(run_result_key: str = "run_result") -> None:
     """Render the Persona_Page tab body: controls, Run, summary cards, downloads.
 
@@ -2099,6 +2239,7 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
     # Everything below persists across reruns and is gated on a run result
     # existing in the session (task 14.2: the comparison and expected joiners
     # render only after a successful persona run).
+    _apply_name_view()
     result: PersonaRunResult | None = st.session_state.get(PERSONA_RESULT_KEY)
     selected_group: str | None = None
     if result is not None:
@@ -2138,6 +2279,7 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
         st.session_state[ui_effects.P8_GROUP_PREV] = selected_group
 
         st.subheader("Personas")
+        _render_naming_controls()
         _caption = clustering_kind_caption(st.session_state.get(PERSONA_KIND_KEY))
         if _caption is not None:
             st.caption(_caption)
@@ -2286,6 +2428,10 @@ def _handle_run(
         # record already stored, the guard above skips the repeat on the next
         # run (Requirements 7.11, 7.12). No Streamlit call happens in between.
         st.session_state[PERSONA_RESULT_KEY] = result
+        st.session_state[PERSONA_NAMES_BUILTIN_KEY] = result
+        st.session_state.pop(PERSONA_NAMES_BEDROCK_KEY, None)
+        st.session_state.pop(PERSONA_NAME_RECORDS_KEY, None)
+        st.session_state[PERSONA_NAMES_VIEW_KEY] = VIEW_BUILTIN
         st.session_state[PERSONA_EXPORTS_KEY] = exports
         st.session_state[PERSONA_POOL_SENDABLE_KEY] = (
             getattr(spec, "level", None) == LEVEL_CAMPAIGN

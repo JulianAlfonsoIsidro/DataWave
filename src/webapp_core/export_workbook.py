@@ -135,7 +135,12 @@ def _threshold_type_text(spec: Any) -> str:
 def _summary_rows(run, impact, narration_source: str, run_date: date):
     """Rows of ``(field, value, number_format_or_None)`` for the Summary sheet."""
     spec = run.promo_spec
-    ai_source = SOURCE_BEDROCK if narration_source == SOURCE_BEDROCK else SOURCE_DEMO
+    # Part 9 round 3 (Requirement 31.7): follows the name set on screen.
+    ai_source = {
+        SOURCE_BEDROCK: SOURCE_BEDROCK,
+        "Built-in": "Built-in names",
+        "Mixed": "Mixed (Bedrock and built-in names)",
+    }.get(narration_source, SOURCE_DEMO)
 
     rows: list[tuple[str, Any, str | None]] = [
         ("Promo Id", spec.promo_id, None),

@@ -385,6 +385,64 @@ CSS section 28 (new) styles `[data-testid="stDialog"]` (surface, border, `--pan-
 - Container queries for the in-bar numbers are a newer CSS feature. The table shows the same numbers, so a browser without them loses nothing.
 - Fix 7 is read as button padding. The owner may have meant page gutters (task 14.6).
 
+## Round 3 design: the AI features (built 2026-11-13)
+
+Requirements 29 to 40. Pure logic stays in `src/ai` and `src/webapp_core` (no Streamlit); `app/` only draws.
+
+### New and changed modules
+
+| File | Kind | Role |
+|---|---|---|
+| `src/ai/bedrock.py` | changed | `Usage` dataclass; `BedrockResult.usage`; `max_tokens` argument sent as `inferenceConfig.maxTokens`; `estimate_tokens(text)`; `request_text(system, payload)` |
+| `src/ai/answer_format.py` | new, pure | `format_answer(text)` into the Answer_Layout; `quote_draft(channel, text)`; `unsupported_numbers(text, payload)` |
+| `src/ai/privacy.py` | new, pure | `mask_pii(text) -> MaskResult(text, counts)` for phones, emails and long digit strings |
+| `src/ai/assistant.py` | changed | Run_Summary in the payload; new routing; layout prompt; Usage and flagged numbers on the answer |
+| `src/ai/mocks.py` | changed | Demo answers built in the Answer_Layout, including run questions and drafts for SMS, email and in-app |
+| `src/ai/extractor.py` | changed | Usage and masking on `ExtractionResult` |
+| `src/ai/persona_narrator.py` | changed | per-persona Usage and source |
+| `src/webapp_core/ai_usage.py` | new, pure | `UsageRecord`, `usage_line`, `session_totals`, `cap_reached`, plain fallback reasons, feature limits |
+| `src/webapp_core/run_summary.py` | new, pure | Run_Summary from a `RunResult` and persona result |
+| `src/webapp_core/personas.py` | changed | `rename_personas(result, namer)` keeps clusters and remaps labels |
+| `src/webapp_core/fairness.py` | new, pure | group shares and past join rates; flags |
+| `app/ai_ui.py` | new | the notice, tag, chip, token line, wait line and usage dropdown drawers |
+| `app/assistant_page.py`, `app/persona_page.py`, `app/upload_panel.py`, `app/main.py` | changed | wiring |
+| `app/static/ui_interactions.js` | changed | part 6: the wait line label swap and timer |
+| `scripts/measure_ai_tokens.py` | new, not runtime | writes `docs/ai-token-report.md` |
+
+### Limits (Requirement 33.6)
+
+| Feature | `maxTokens` | Why |
+|---|---|---|
+| Ask Assistant | 1,500 | the answer is about 200 tokens; the configured model reasons first (about 400 to 900 tokens) |
+| Persona Naming | 800 | one JSON object with a name, two sentences and three short actions, after reasoning |
+| Upload Campaign File | 1,200 | one JSON object with eight fields and eight context strings, after reasoning |
+
+Found while measuring (2026-11-13): the configured model (`global.anthropic.claude-sonnet-5-5`) returns a reasoning block before its text, and reasoning tokens count as output. With a 400 token cap the reply stopped during reasoning (`stopReason` `max_tokens`) with no text, so the app fell back to the built-in rules while still spending the tokens. Converse rejected `thinking: disabled` for this model, so the caps were raised instead. A model without reasoning would allow the lower caps again.
+
+Per-session cap: 100,000 total tokens across all features. When reached, Bedrock_Features use Built_In and say why. Per-session assistant question limit: 30. At the measured average (5,730 tokens per question, docs/ai-token-report.md) the cap allows about 17 questions; with a 30,000 character file attached, about 8. The estimator is about four characters per token (`ceil(chars / 4)`), stated on screen as an estimate.
+
+### Run_Summary (Requirement 30)
+
+Built from `result.cards` and `result.sendable_by_segment` plus the Impact Summary: per segment `clients`, `not_contacted`, `control_group`, `sendable`, `expected_joiners` (one decimal), `action`, `dominant_channel`; the threshold label; and persona names with sizes when they exist. It holds no client id and no lists of records with per-client keys, so `assert_private` passes. Routing now refuses only questions about one client (`client`, `customer id`, `C` followed by digits, "this person").
+
+### Persona names (Requirement 31)
+
+Build Personas uses `RuleBasedNamer` (narration "rule"). "Name Personas with Bedrock" calls `rename_personas(result, BedrockNamer(...))`, which walks every set in order, names each `persona.profile` with a fresh `taken` set per group, builds new `Persona` objects with the same profile, and maps each lead's `persona_label` from the old name to the new one within its group. Clusters, profiles and sizes are reused, so nothing is re-clustered. Session keys: `persona_names_builtin`, `persona_names_bedrock`, `persona_names_view` (the switch).
+
+### Wait line (Requirement 35)
+
+Python draws the status line once in a slot before the blocking call: grid, label, elapsed, estimate. `ui_interactions.js` part 6 finds `.pan-wait` nodes, swaps the label text every 1.6 s with a short opacity fade, and updates the elapsed text every 100 ms from the node's start time. With Reduced_Motion the label stays and the grid is static; the timer still counts. When the call returns, the slot is replaced by the answer and its real token line.
+
+### Review before download (Requirement 37.3)
+
+The recommended download stays `download_leads_recommended`. A review card above it lists the threshold, the not-contacted count with reasons, and the control group size, and a checkbox ("I Checked These Figures", key `recommended_review_ok`) enables the button.
+
+### Decisions
+
+- The assistant now sees aggregate run results (owner bug report). It still never sees per-client data.
+- Streaming is not used: `converse` returns Usage only at the end, so the wait line shows an estimate, then the real numbers.
+- Masking happens before every extraction call, both Bedrock and Built_In, so the text kept for the assistant is the masked text too.
+
 ## Rejected options
 
 Do not reintroduce these without a new decision from the owner.

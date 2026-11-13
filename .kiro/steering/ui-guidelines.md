@@ -91,6 +91,16 @@ Spec Requirements 20 to 28 and tasks 16 to 18. Keep to these rules.
 - Dialogs are drawn outside the app root: `ui_interactions.js` part 5 copies the colour scheme to `html[data-p9-scheme]` so they follow light and dark.
 - Help And FAQs: a round "?" button (key `help_open`) at the top right, outside the tab bar, opens an `st.dialog`. Do not make it a tab or a separate page, because widgets that are not rendered lose their state. Content lives in `webapp_core/help_content.py`; `app/help_page.py` only draws it. Dialog CSS is section 28 and uses tokens only.
 
+## Part 9 round 3: AI features (built)
+
+Spec Requirements 29 to 40, tasks 19 to 25.
+
+- Every Bedrock output carries an "AI-generated" tag and its token line ("Input 412 | Output 96 | Total 508 tokens"). Token lines show numbers only.
+- One notice per section, two kinds (Bedrock, Prediction), fixed words, caption size, never dismissible. Build them with the shared drawer in `app/ai_ui.py`.
+- Every button that calls Bedrock shows the Bedrock icon (a CSS mask from a data URI token). Nothing is sent to Bedrock without a deliberate click.
+- Every Bedrock wait uses the wait line: the 3 by 3 pixel loader, the Mining/Crafting label, the timer and the token estimate. The What-If rescoring line stays as it is.
+- The assistant is a plain transcript: a dot for the user, the stone block for the assistant, no bubbles.
+
 ## Scope
 
 - Styling and layout only.

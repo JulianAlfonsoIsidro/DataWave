@@ -31,7 +31,10 @@ def test_validate_question_bounds():
 
 
 def test_route():
-    assert assistant.route("What is the score for this segment?") == "model_results"
+    # Part 9 round 3 (Requirement 30.4): only one-client questions are refused;
+    # segment and persona questions are answered from the run summary.
+    assert assistant.route("What is the score of client 1042?") == "model_results"
+    assert assistant.route("What is the score for this segment?") == "campaign"
     assert assistant.route("What's the weather?") == "off_topic"
     for q in assistant.SUGGESTED_QUESTIONS:
         assert assistant.route(q) == "campaign"
@@ -59,7 +62,7 @@ def test_answer_demo_logs_and_log_failure(tmp_path):
 
 def test_routed_answers_make_no_model_call(tmp_path):
     res = assistant.answer(
-        "Show persona scores", GROUND, client=FailingClient(),
+        "Show the score of client 1042", GROUND, client=FailingClient(),
         env={k: "x" for k in ("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_REGION", "BEDROCK_MODEL_ID")},
         log_path=tmp_path / "l.jsonl",
     )

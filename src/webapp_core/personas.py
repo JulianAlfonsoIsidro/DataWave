@@ -84,8 +84,13 @@ MIX_TOTAL_PERCENT = 100.0
 # "ai" builds the BedrockNamer, which falls back to Mock text per persona.
 NARRATION_RULE = "rule"
 NARRATION_AI = "ai"
+# Part 9 round 3 (Requirement 31): Build Personas names with the built-in
+# namer (the same names Bedrock falls back to) and makes no Bedrock call.
+NARRATION_BUILTIN = "builtin"
 NARRATION_BEDROCK = "Bedrock"
 NARRATION_DEMO = "Demo"
+NARRATION_BUILTIN_SOURCE = "Built-in"
+NARRATION_MIXED = "Mixed"
 
 
 def segment_slug(segment: str) -> str:
@@ -370,12 +375,18 @@ def run_personas(
     """
     cfg = cfg or Config()
     bedrock_namer = None
+    builtin = False
     if namer is None:
         if narration == NARRATION_AI:
             from ai.persona_narrator import BedrockNamer
 
             bedrock_namer = BedrockNamer()
             namer = bedrock_namer
+        elif narration == NARRATION_BUILTIN:
+            from ai.mocks import MockPersonaNamer
+
+            namer = MockPersonaNamer()
+            builtin = True
         else:
             namer = RuleBasedNamer()
 
@@ -390,7 +401,12 @@ def run_personas(
     from part5_personas.cluster import cluster_memo
 
     with cluster_memo():
-        return _run_personas_body(spec, cfg, namer, bedrock_namer, live_leads)
+        result = _run_personas_body(spec, cfg, namer, bedrock_namer, live_leads)
+        if builtin:
+            from dataclasses import replace as _replace
+
+            result = _replace(result, narration_source=NARRATION_BUILTIN_SOURCE)
+        return result
 
 
 def _run_personas_body(spec, cfg, namer, bedrock_namer, live_leads):
@@ -441,6 +457,62 @@ def _run_personas_body(spec, cfg, namer, bedrock_namer, live_leads):
         joined_attributes=joined,
         narration_source=source,
     )
+
+
+# --------------------------------------------------------------------------- #
+# rename_personas (Part 9 round 3, Requirement 31)                            #
+# --------------------------------------------------------------------------- #
+def rename_personas(
+    result: PersonaRunResult, namer: PersonaNamer, *, source: str
+) -> PersonaRunResult:
+    """Give the same personas new names, without touching any cluster.
+
+    Walks every set in order and names each persona's existing profile with
+    ``namer`` (a fresh ``taken`` set per group, as when the sets were built).
+    Profiles, sizes and the per-lead assignment are reused: each lead's
+    ``persona_label`` is mapped from the old name to the new one within its
+    group. Nothing is re-clustered, so switching names never moves a lead.
+    """
+    from dataclasses import replace as _replace
+
+    mapping: dict[tuple[str, str], str] = {}
+    new_sets = []
+    for persona_set in result.persona_sets:
+        if persona_set.too_small or not persona_set.personas:
+            new_sets.append(persona_set)
+            continue
+        taken: set[str] = set()
+        personas = []
+        for persona in persona_set.personas:
+            naming = namer.name(persona.profile, taken)
+            taken.add(naming["name"])
+            mapping[(str(persona_set.group_key), persona.name)] = naming["name"]
+            personas.append(_replace(
+                persona,
+                name=naming["name"],
+                description=naming["description"],
+                actions=list(naming["actions"]),
+            ))
+        new_sets.append(_replace(persona_set, personas=personas))
+    labels = result.labels.copy()
+    if not labels.empty and "persona_label" in labels.columns:
+        groups = labels["group"].astype(str) if "group" in labels.columns else [""] * len(labels)
+        labels["persona_label"] = [
+            mapping.get((g, str(old)), old) for g, old in zip(groups, labels["persona_label"])
+        ]
+    return _replace(result, persona_sets=new_sets, labels=labels, narration_source=source)
+
+
+def naming_source(records: Sequence[Mapping]) -> str:
+    """Bedrock when every persona was named by Bedrock, Demo when none, else Mixed."""
+    modes = {str(r.get("mode")) for r in records}
+    if not modes:
+        return NARRATION_DEMO
+    if modes == {NARRATION_BEDROCK}:
+        return NARRATION_BEDROCK
+    if NARRATION_BEDROCK not in modes:
+        return NARRATION_DEMO
+    return NARRATION_MIXED
 
 
 # --------------------------------------------------------------------------- #

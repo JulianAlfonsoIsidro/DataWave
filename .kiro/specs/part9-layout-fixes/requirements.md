@@ -501,6 +501,169 @@ The reference image shows the Personas button "Not sure how many? Suggest a numb
 15. UNDER 900 px, THE help button SHALL follow the Settings menu rule of Requirement 15.1 and SHALL return on scroll up.
 16. THE help button and dialog SHALL NOT change any calculation, key or label outside their own.
 
+## Round 3 requirements: the AI features (built 2026-11-13)
+
+These requirements cover the three places that call Amazon Bedrock: Upload Campaign File (`ai.extractor`), persona naming (`ai.persona_narrator`, from `app/persona_page.py`) and Ask Assistant (`ai.assistant`). Every Bedrock call still goes through `ai.bedrock.converse`. The prediction model (Parts 1 to 4) is not a language model and does not change. Requirement 1 still holds, except the changes that Requirement 30 and Requirement 31 name.
+
+Terms used below:
+
+- **Bedrock_Feature**: one of Upload Campaign File, Persona Naming or Ask Assistant.
+- **Usage**: the token counts Bedrock returns with a finished call: input, output and total.
+- **Built_In**: the rule-based fallback for a Bedrock_Feature (`ai.mocks`, `RuleBasedNamer`).
+- **Answer_Layout**: one short lead line, then 3 to 6 hyphen bullets, each one idea.
+- **Run_Summary**: the aggregate figures of the current Run (segment counts, actions, expected joiners, threshold, impact), with no per-client data.
+
+### Requirement 29: Assistant answer layout
+
+**User Story:** As a CRM manager, I want every assistant answer laid out the same way, so that I can scan it.
+
+#### Acceptance Criteria
+
+1. EVERY assistant answer, Bedrock or Demo, SHALL follow the Answer_Layout.
+2. A drafted message (SMS, email or in-app) SHALL appear as a quoted block with the channel name and its character count.
+3. A "what is missing" answer SHALL list one bullet per gap, naming the field in plain words.
+4. A pure function SHALL normalise a reply into the Answer_Layout, keep line breaks, cap it at 150 words by whole bullets (never cutting a bullet), and leave no underscores or code names.
+5. THE function SHALL be idempotent: formatting a formatted answer changes nothing.
+6. THE Bedrock system prompt SHALL ask for exactly this layout: plain hyphen bullets, no headings, no tables.
+7. THE page SHALL render the answer as Markdown, with list spacing from the spacing tokens.
+
+### Requirement 30: The assistant sees the current run
+
+**User Story:** As a CRM manager, I want the assistant to answer about the results I just ran, so that I do not have to copy figures into it.
+
+The owner reported as a bug that the assistant could not see the other tabs after Run Analysis. The cause was by design in Part 7: the payload held the form and document only, and any question that named segments, personas or scores was refused. This requirement replaces that rule.
+
+#### Acceptance Criteria
+
+1. WHEN a Run exists, THE assistant payload SHALL include the Run_Summary: per segment the clients, not contacted, control group, sendable, expected joiners, action and dominant channel; the threshold the Run uses; and the Impact Summary figures.
+2. WHEN personas exist, THE payload SHALL include each persona's name, size and share, and nothing per client.
+3. THE payload SHALL still pass `bedrock.assert_private`: no client id, no per-client row, no table.
+4. A question about segments, personas or the forecast SHALL be answered from the Run_Summary. ONLY a question about one client SHALL be refused, with a message that says the assistant works with totals.
+5. WHEN no Run exists, a question about results SHALL get an answer that says to press Run Analysis first.
+6. THE Demo answer SHALL use the same Run_Summary, so it can answer "Which segment should I act on first?" without Bedrock.
+
+### Requirement 31: Persona names, built-in by default and Bedrock on request
+
+**User Story:** As a CRM manager, I want to choose when persona names come from Bedrock, so that I control what is sent and what it costs.
+
+#### Acceptance Criteria
+
+1. Build Personas SHALL name personas with the Built_In namer and make no Bedrock call.
+2. A separate button, "Name Personas with Bedrock" (with the Bedrock icon), SHALL rename the existing personas with Bedrock.
+3. A control SHALL switch between the built-in names and the Bedrock names at any time. Both name sets SHALL be kept in session state, so switching neither rebuilds nor calls Bedrock again.
+4. RENAMING SHALL NOT change any cluster: every lead keeps its persona and every group size stays the same. A test SHALL prove it.
+5. BEFORE the Bedrock call, THE page SHALL say what is sent (aggregate persona summaries, no client data) and the estimated tokens from the token report.
+6. THE label SHALL be accurate: "Built-in names" for the rule-based set; a "Bedrock" tag when every persona was named by Bedrock; "Demo Mode" when Bedrock was asked for and every persona fell back; "Mixed" when some fell back, with the source shown on each persona.
+7. THE Export Summary "Ai Source" row SHALL follow the name set on screen.
+
+### Requirement 32: AI notices, tags and the mode chip
+
+**User Story:** As a CRM manager, I want to know which figures and words come from a model, so that I check them before I act.
+
+#### Acceptance Criteria
+
+1. ONE notice component SHALL have two kinds, each with fixed words:
+   - Bedrock kind: "AI-generated. It can be wrong or incomplete. Check it against your campaign before you use it. Do not rely on it alone."
+   - Prediction kind: "These figures are forecasts from a prediction model. They are estimates, not promises. Use them to compare options, not as a guarantee."
+2. THE Bedrock kind SHALL show near the top of Upload Campaign File, Ask Assistant, and Personas when Bedrock names are on screen. THE Prediction kind SHALL show near the top of Results, What-If and Personas.
+3. EACH notice SHALL be compact (caption size, note surface, token spacing), always visible and not dismissible. NO section SHALL show more than one notice of a kind.
+4. EACH Bedrock output (an assistant answer, a Bedrock persona name and text, a field read by Bedrock) SHALL carry a small "AI-generated" tag.
+5. A status chip SHALL show the mode (Bedrock or Demo Mode) and the model id from `BEDROCK_MODEL_ID`. NO key, secret or `.env` content SHALL ever be shown.
+6. EACH Bedrock notice SHALL carry a "Powered by Amazon Bedrock" chip with the Bedrock icon, and one line saying what the AI does and does not do (Requirement 39).
+
+### Requirement 33: Token usage
+
+**User Story:** As the team lead, I want to see the tokens each AI call uses, so that I can judge cost and limits.
+
+#### Acceptance Criteria
+
+1. `BedrockResult` SHALL carry a Usage value read from the response as `usage.inputTokens`, `usage.outputTokens` and `usage.totalTokens`, each an integer or none. Nothing SHALL be printed.
+2. EVERY AI call SHALL be recorded in session state: feature, mode, tokens and seconds. A Demo or Local call SHALL record zero tokens and say so.
+3. A token line SHALL show under each AI output as "Input 412 | Output 96 | Total 508 tokens": under an extraction, under each persona name and as a run total, and under each assistant answer.
+4. WHILE a call runs, THE page SHALL show "Input about N tokens (estimated)" computed from the request size, labelled as an estimate, then replace it with the real Usage.
+5. AN "AI Usage" dropdown SHALL show session totals per Bedrock_Feature, the Bedrock and Demo counts, and the plain reason for each fallback (timed out, no credentials, payload blocked, unreadable reply).
+6. EACH Bedrock_Feature SHALL set `inferenceConfig.maxTokens`. A per-session token cap SHALL stop further Bedrock calls with a friendly message and use Built_In instead.
+7. Token lines SHALL show numbers only, never a credential.
+
+### Requirement 34: Measured token report
+
+**User Story:** As the team lead, I want measured token averages, so that the cost plan rests on numbers.
+
+#### Acceptance Criteria
+
+1. A script (`scripts/measure_ai_tokens.py`, not part of the runtime) SHALL run a realistic assistant chat on three campaign fixtures (form only; form plus a 2,000 character document; form plus a 30,000 character document), plus persona naming and upload extraction.
+2. WHEN credentials are present, THE script SHALL make real calls and label the figures measured. OTHERWISE it SHALL use a documented estimator and label every figure "estimated, not measured".
+3. THE script SHALL write `docs/ai-token-report.md`: per interaction input, output and total; average, minimum, maximum and 95th percentile by type; persona and upload figures; and a growth table (users times interactions per day) with price-per-million-token cells left for the owner. NO vendor price SHALL be invented.
+4. THE averages SHALL feed the persona note (Requirement 31.5) and a Help And FAQs entry.
+
+### Requirement 35: Assistant transcript and the Bedrock wait line
+
+**User Story:** As a CRM manager, I want the assistant to read like a plain transcript and to show that it is working, so that waiting is clear.
+
+#### Acceptance Criteria
+
+1. THE conversation SHALL be a plain transcript: no bubbles, no round avatars. Each turn SHALL have a narrow marker column: a small solid dot for the user, the stone block for the assistant (spin, finish and rest states kept).
+2. USER text SHALL be muted ink. ASSISTANT text SHALL be full width within the 72 character measure.
+3. THE input SHALL be one prompt line at the bottom with a top hairline and a hint row "Enter to send | 500 characters max", keeping the chat input and the `assistant_suggested_N` keys.
+4. WHILE a Bedrock call runs (assistant, persona naming, upload reading), ONE status line SHALL show a 3 by 3 pixel loader, a shimmering label that alternates "Mining" and "Crafting", a live elapsed timer, and the token estimate.
+5. THE loader SHALL be plain HTML and CSS: nine 4 px squares with a 1.5 px gap, each delayed by (column + |row - 1|) times 90 ms on a 650 ms cycle.
+6. WITH Reduced_Motion, THE grid SHALL stay dim and still, THE label SHALL stop alternating, and THE timer SHALL still count.
+7. AN answer SHALL appear in short steps on the page. NO streaming API SHALL be used.
+8. A collapsed "What The AI Used" dropdown under each answer SHALL list the fields sent, the mode and the token line. IT SHALL NOT show hidden reasoning.
+
+### Requirement 36: Bedrock icon
+
+**User Story:** As a CRM manager, I want buttons that call Bedrock to say so, so that I know when data leaves the app.
+
+#### Acceptance Criteria
+
+1. EVERY button that triggers a Bedrock call SHALL show the Bedrock icon before its label.
+2. THE icon SHALL be the supplied SVG in `currentColor`, stored as a data URI custom property and drawn with a CSS mask, so it follows light and dark with no image file.
+3. THE label SHALL keep `--pan-space-4` padding and a gap of at least `--pan-space-2` after the icon.
+
+### Requirement 37: Safeguards and human oversight
+
+**User Story:** As the team lead, I want people to decide when data goes to Bedrock and to sign off before leads are sent, so that the AI never acts alone.
+
+#### Acceptance Criteria
+
+1. AFTER a file is read locally, THE page SHALL offer "Fill Form with Bedrock" (with the icon) and "Fill Form with Built-in Rules". NOTHING SHALL be sent before the user chooses.
+2. BEFORE sending, THE text SHALL be masked: phone numbers, email addresses and long digit strings. THE page SHALL show how many items were masked and a one-line privacy note.
+3. BEFORE Download Recommended Leads, A review card SHALL show the threshold used, who is left out, and the control group size, and the download SHALL stay disabled until the user confirms.
+4. THE assistant SHALL offer "Report A Wrong Answer" (logs the question and answer), "Clear Conversation And Log", a per-session question limit, and a visible character count for the 500 character limit.
+5. A number check SHALL flag any figure in an answer that is not in the payload, using the same approach as `persona_narrator.numbers_in`.
+6. A "Use AI Features" switch SHALL force Built_In behaviour on purpose for every Bedrock_Feature.
+
+### Requirement 38: Risk awareness
+
+**User Story:** As the team lead, I want to see who is being targeted and when a forecast looks too good, so that I can catch bias and overconfidence.
+
+#### Acceptance Criteria
+
+1. A read-only "Who Is Being Targeted" view SHALL show, for age band, region and socio-economic class, each group's share of eligible clients and share of sendable leads.
+2. THE same view SHALL show, for the past promos, the predicted and actual join rate by group.
+3. WHEN a group's sendable share differs from its eligible share by 10 percentage points or more, THE view SHALL flag it in plain words.
+4. WHEN a Run's expected join rate (forecast over sendable leads) is at least twice the historical join rate of treated past leads, THE Results page SHALL show a short caution with both rates.
+5. NO model, score or segment SHALL change.
+
+### Requirement 39: Purposeful AI use and transparency
+
+**User Story:** As a CRM manager, I want to know what the AI does and does not do, so that I trust the right parts.
+
+#### Acceptance Criteria
+
+1. EACH Bedrock notice SHALL carry one line saying what the AI does in that section and that it never produces or changes a number; scoring is the prediction model; the built-in rules are the fallback.
+2. Help And FAQs SHALL answer: what the AI does, why use AI instead of rules, how data is protected, how to check a persona name, and how many tokens it uses (from the token report).
+
+### Requirement 40: Validation
+
+**User Story:** As the team lead, I want a written plan and automated checks for the AI, so that we know it works before and after launch.
+
+#### Acceptance Criteria
+
+1. `docs/ai-validation-plan.md` SHALL cover extractor accuracy on sample files, assistant groundedness (answers use only payload figures), persona-name validity, and a post-launch A/B check with the control group.
+2. AUTOMATED tests SHALL cover each, with Hypothesis where useful, including the payload privacy guard with masked text.
+
 ## Number definitions
 
 Users have asked why some figures differ. These definitions were checked on the default run (threshold 530,000) and against the code in `src/part4_cards/cards.py` and `src/webapp_core/personas.py`. They describe how the numbers are made. They do not add behavior.

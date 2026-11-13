@@ -83,8 +83,15 @@ def test_invalid_question_makes_no_call_and_no_log(tmp_path):
 
 
 def test_route_model_results_questions():
-    for q in ("What is the score of client 1?", "Show me the segments", "Describe the personas"):
+    # Part 9 round 3 (Requirement 30.4): "model_results" now means one client.
+    for q in ("What is the score of client 1?", "Look up client C100245", "Why was this client left out?"):
         assert route(q) == "model_results"
+
+
+def test_route_results_questions_are_answered():
+    # Part 9 round 3 (Requirement 30.4): segments and personas are answered.
+    for q in ("Show me the segments", "Describe the personas", "Which segments are best?"):
+        assert route(q) == "campaign"
 
 
 def test_route_off_topic():
@@ -98,7 +105,7 @@ def test_route_campaign():
 def test_model_results_and_off_topic_answers_are_local_without_call(tmp_path):
     client = FakeClient()
     log = tmp_path / "log.jsonl"
-    r1 = answer("Which segments are best?", _grounding(), client=client, env=ENV, log_path=log)
+    r1 = answer("Look up client C100245", _grounding(), client=client, env=ENV, log_path=log)
     r2 = answer("Tell me a joke", _grounding(), client=client, env=ENV, log_path=log)
     assert (r1.text, r1.mode) == (MODEL_RESULTS_MESSAGE, "Local")
     assert (r2.text, r2.mode) == (OFF_TOPIC_MESSAGE, "Local")

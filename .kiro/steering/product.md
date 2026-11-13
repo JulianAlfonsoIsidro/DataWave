@@ -54,6 +54,15 @@ The product is now called **Promo Audience Manager** (DataWave is the project na
 - Download Recommended Leads = the sendable leads of the "Act first" segment(s).
 - Personas at "All leads" cluster all clients; "By campaign" on the current run clusters the sendable leads.
 
+## Part 9 round 3: AI features (built)
+
+- The assistant sees aggregate run results (segments, personas, impact) and refuses only questions about one client. It never sees per-client data.
+- Persona names are built-in by default; "Name Personas with Bedrock" renames them on request, with no change to any cluster.
+- Upload sends text to Bedrock only on a deliberate click, after masking phones, emails and long digit strings.
+- Every AI call records its tokens; a session cap and per-feature `maxTokens` limit cost. `docs/ai-token-report.md` holds the measured or estimated averages.
+- A review card signs off Download Recommended Leads. A "Who Is Being Targeted" view and a forecast caution cover fairness and overconfidence.
+- Spec: Requirements 29 to 40 in `.kiro/specs/part9-layout-fixes/`.
+
 ## Part 9 (current branch: part9-layout-fixes)
 
 A UI layout and polish pass. No pipeline, model or calculation changes. Spec: `.kiro/specs/part9-layout-fixes/`.

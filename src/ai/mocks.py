@@ -278,8 +278,15 @@ _ASSISTANT_FIELD_LABELS: tuple[tuple[str, str], ...] = (
 
 _INTENT_RULES: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("missing", re.compile(r"missing|gap|incomplete|lack", re.I)),
+    ("email", re.compile(r"e-?mail", re.I)),
+    ("inapp", re.compile(r"in-?app|push|app message|notification", re.I)),
     ("sms", re.compile(r"\bsms\b|text\s+message|draft", re.I)),
+    ("improve", re.compile(r"improv|suggest|better|stronger|tips?\b|recommend.*(copy|offer|message)", re.I)),
     ("eligibility", re.compile(r"eligib|qualif|who\s+can", re.I)),
+    ("results", re.compile(
+        r"segment|persona|result|forecast|joiner|sendable|leads?\b|act first|"
+        r"prioriti|which .* first|recommend|control group|not contacted|impact|"
+        r"messages saved|cost saved|expected", re.I)),
     ("summary", re.compile(r"summar|overview|recap", re.I)),
 )
 
@@ -305,11 +312,87 @@ def _present_fields(form: Any) -> list[tuple[str, Any]]:
 
 
 def assistant_intent(question: str) -> str:
-    """Classify a question as missing / sms / eligibility / summary / generic."""
+    """Classify a question (missing, drafts, improve, eligibility, results, summary)."""
     for intent, pattern in _INTENT_RULES:
         if pattern.search(question or ""):
             return intent
     return "generic"
+
+
+def _layout(lead: str, items: list[str]) -> str:
+    """Lead line, blank line, then the bullets and quote blocks in order."""
+    body = "\n".join(items)
+    return f"{lead}\n\n{body}" if body else lead
+
+
+def _offer_bits(form: Any, ctx: dict[str, str]) -> tuple[str, str, str]:
+    product = str(form.get("product_type") or "our offer")
+    reward = str(form.get("reward") or "").strip()
+    threshold = form.get("threshold_value")
+    qualify = f"top up {_fmt_value(threshold)}" if threshold not in (None, "") else ""
+    return product, reward, qualify
+
+
+def _draft_text(kind: str, form: Any, ctx: dict[str, str]) -> str:
+    product, reward, qualify = _offer_bits(form, ctx)
+    when = f" {ctx['timeline']}." if ctx.get("timeline") else ""
+    if kind == "SMS":
+        text = f"Hi! Get {reward or 'a reward'} on your {product}."
+        if qualify:
+            text += f" Just {qualify} to qualify."
+        return text + when + " Reply STOP to opt out."
+    if kind == "Email":
+        subject = f"Subject: {reward or 'A reward'} on your {product}"
+        body = f"Hi, we have an offer for you: {reward or 'a reward'} on your {product}."
+        if qualify:
+            body += f" To qualify, {qualify}."
+        return subject + " | " + body + when + " Questions? Reply to this email."
+    text = f"{reward or 'New reward'} on your {product}."
+    if qualify:
+        text += f" {qualify[0].upper() + qualify[1:]} to unlock it."
+    return text + " Tap to see details."
+
+
+def _results_answer(run: Any) -> str:
+    if not run:
+        return _layout(
+            "There are no results to read yet.",
+            [
+                "- Press Run Analysis on the New Promo tab first.",
+                "- Then ask again about segments, expected joiners or the files to send.",
+                "- The form and any uploaded file are already available to me.",
+            ],
+        )
+    segments = list(run.get("segments") or [])
+    totals = run.get("totals") or {}
+    act_first = list(run.get("act_first_segments") or [])
+    lead = (
+        f"Start with {act_first[0]}." if act_first
+        else "Here is what the current run shows."
+    )
+    items = []
+    for seg in segments[:4]:
+        items.append(
+            f"- {seg['segment']}: {seg['action'] or 'no action set'}, "
+            f"{_fmt_value(seg['sendable'])} sendable leads, about "
+            f"{_fmt_value(seg['expected_joiners_rounded'])} expected to join"
+            + (f", mainly by {seg['main_channel']}" if seg.get("main_channel") else "")
+            + "."
+        )
+    if totals:
+        items.append(
+            f"- In total, about {_fmt_value(totals.get('expected_joiners_rounded'))} of "
+            f"{_fmt_value(totals.get('sendable'))} sendable leads are expected to join"
+            + (f" ({totals['expected_join_rate']})" if totals.get("expected_join_rate") else "")
+            + "."
+        )
+    if run.get("threshold"):
+        items.append(f"- These figures use a threshold of {run['threshold']}.")
+    personas = run.get("personas") or []
+    if personas:
+        biggest = max(personas, key=lambda p: p.get("size", 0))
+        items.append(f"- The largest persona is {biggest['name']} ({_fmt_value(biggest['size'])} leads).")
+    return _layout(lead, items[:6])
 
 
 def mock_assistant_answer(
@@ -317,50 +400,85 @@ def mock_assistant_answer(
     form: Any,
     context: Any,
     missing: list[str],
+    run: Any = None,
 ) -> str:
-    """Deterministic templated answer from form fields and context only."""
+    """Deterministic answer in the answer layout, from the form, context and run.
+
+    Part 9 round 3 (Requirements 29, 30): every answer is a lead line and
+    3 to 6 bullets; a draft is a caption bullet with its character count and
+    a quote block; the run summary answers results questions.
+    """
     intent = assistant_intent(question)
     fields = _present_fields(form)
     ctx = {k: str(context.get(k) or "").strip() for k in CONTEXT_KEYS}
 
     if intent == "missing":
         if not missing:
-            return "Nothing obvious is missing. Every field is filled in, each channel has a budget, and a control group is stated."
-        return "Gaps found in this proposal: " + "; ".join(missing) + "."
+            return _layout(
+                "Nothing obvious is missing.",
+                [
+                    "- Every form field is filled in.",
+                    "- Each channel has a budget stated.",
+                    "- A control group is stated.",
+                ],
+            )
+        items = [f"- {m}." for m in missing[:6]]
+        return _layout(f"I found {len(missing)} gap{'' if len(missing) == 1 else 's'} in this proposal.", items)
 
-    if intent == "sms":
-        product = str(form.get("product_type") or "our offer")
-        reward = str(form.get("reward") or "").strip()
-        threshold = form.get("threshold_value")
-        parts = [f"Hi! Enjoy our {product} offer"]
-        if reward:
-            parts[0] += f": {reward}"
-        if threshold not in (None, ""):
-            parts.append(f"Qualify with {_fmt_value(threshold)}.")
-        if ctx["timeline"]:
-            parts.append(f"{ctx['timeline']}.")
-        parts.append("Reply STOP to opt out.")
-        return "Draft SMS: " + " ".join(parts)
+    if intent in ("sms", "email", "inapp"):
+        kind = {"sms": "SMS", "email": "Email", "inapp": "In-app"}[intent]
+        message = _draft_text(kind, form, ctx)
+        lead = f"Here is a short {kind} draft for this offer."
+        items = [f"- {kind} draft, {len(message)} characters:", "> " + message]
+        tips = [
+            "- Check the reward and the threshold against the final terms.",
+            "- Add the promo end date before you send it.",
+        ]
+        if kind == "SMS":
+            tips.append("- Keep it under 160 characters so it sends as one message.")
+        return _layout(lead, items + tips)
+
+    if intent == "improve":
+        items = []
+        if not ctx["key_messages"]:
+            items.append("- Add one key message that says why the client should act now.")
+        if not ctx["timeline"]:
+            items.append("- State the start and end dates so the urgency is clear.")
+        if missing:
+            items.append(f"- Fill the gaps first: {missing[0].rstrip('.')}.")
+        items.append("- Lead with the reward, then the one step to qualify.")
+        items.append("- Match each channel to a short message: SMS for the nudge, email for the details.")
+        return _layout("A few changes would make this proposal stronger.", items[:6])
 
     if intent == "eligibility":
         segments = form.get("eligible_segments")
         min_adb = form.get("min_adb")
-        bits: list[str] = []
+        items: list[str] = []
         if segments:
-            bits.append(f"eligible segments are {_fmt_value(segments)}")
+            items.append(f"- Eligible segments: {_fmt_value(segments)}.")
         if min_adb not in (None, ""):
-            bits.append(f"minimum ADB is {_fmt_value(min_adb)}")
+            items.append(f"- Minimum ADB (average daily balance): {_fmt_value(min_adb)}.")
         if ctx["target_audience"]:
-            bits.append(f"target audience is {ctx['target_audience']}")
-        if not bits:
-            return "Eligibility is not clear: no segments, minimum ADB, or target audience is stated."
-        text = "Eligibility as stated: " + "; ".join(bits) + "."
+            items.append(f"- Target audience: {ctx['target_audience']}.")
+        if not items:
+            return _layout(
+                "Eligibility is not clear yet.",
+                [
+                    "- No eligible segments are stated.",
+                    "- No minimum ADB is stated.",
+                    "- No target audience is stated.",
+                ],
+            )
+        lead = "Eligibility is stated, with these rules."
         if not segments or min_adb in (None, ""):
-            text += " Consider stating both the eligible segments and the minimum ADB."
-        return text
+            items.append("- State both the eligible segments and the minimum ADB to make it clear.")
+        return _layout(lead, items)
+
+    if intent == "results":
+        return _results_answer(run)
 
     # summary and generic share the same template
-    lines = [f"{label}: {_fmt_value(value)}" for label, value in fields]
+    items = [f"- {label}: {_fmt_value(value)}." for label, value in fields]
     for key, label in (
         ("objective", "Objective"),
         ("offer_details", "Offer"),
@@ -368,10 +486,17 @@ def mock_assistant_answer(
         ("key_messages", "Key messages"),
     ):
         if ctx[key]:
-            lines.append(f"{label}: {ctx[key]}")
-    if not lines:
-        return "There is not enough campaign detail yet to summarize."
-    return "Campaign summary. " + "; ".join(lines) + "."
+            items.append(f"- {label}: {ctx[key]}.")
+    if not items:
+        return _layout(
+            "There is not enough campaign detail yet to summarise.",
+            [
+                "- Fill in the New Promo form, or upload a campaign file.",
+                "- Then ask again for a summary.",
+                "- You can also ask what is missing.",
+            ],
+        )
+    return _layout("Here is the campaign as it stands.", items[:6])
 
 
 # ---------------------------------------------------------------------------

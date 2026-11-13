@@ -16,21 +16,35 @@ Flow (design section 12, Requirements 2.1, 2.3, 2.9, 2.11, 2.12, 2.13, 1.7):
 - The document text, context, and tags are stored in session state for the
   assistant, replacing any earlier upload (2.13).
 - Nothing here runs the analysis (2.12). The user presses Run Analysis.
-- The Demo Mode badge appears when the extraction used the Mock (1.7).
+- The Demo Mode label appears when the extraction used the Mock (1.7).
+
+Part 9 round 3 (spec part9-layout-fixes, Requirements 32, 33, 37):
+
+- The file is read on this computer first. Phone numbers, email addresses
+  and long digit strings are masked, and the page says how many.
+- Nothing is sent to Bedrock until the user presses "Fill Form with Bedrock"
+  (with the Bedrock icon). "Fill Form with Built-in Rules" never sends.
+- The Bedrock notice, the wait line, an "AI-generated" tag on fields read by
+  Bedrock, and the token line follow the shared AI drawers (``ai_ui``).
 """
 
 from __future__ import annotations
 
+
 import streamlit as st
 
+import ai_ui
 import theme
 from ai.extractor import (
     FOUND,
     ExtractionResult,
     UploadError,
+    estimated_input_tokens,
     extract_campaign,
     extract_text,
 )
+from ai.privacy import mask_pii, masked_note
+from webapp_core import ai_usage
 from webapp_core.threshold import THRESHOLD_SPECS, ThresholdType
 
 UPLOAD_TAB_LABEL = "Upload Campaign File"
@@ -60,7 +74,19 @@ EXTRACTION_MODE_KEY = "campaign_extraction_mode"
 _UPLOAD_SIGNATURE_KEY = "upload_signature"
 _UPLOAD_ERROR_KEY = "upload_error"
 _UPLOAD_SUMMARY_KEY = "upload_summary"
+# Round 3: the file's masked text waits here until the user chooses how to read it.
+_PENDING_KEY = "upload_pending"
+_UPLOAD_USAGE_KEY = "upload_usage"
 
+DOES_LINE = (
+    "Here the AI reads your file and fills in the form for you to check. It never "
+    "produces or changes a number in the results: scoring is the prediction model, "
+    "and built-in rules read the file when the AI is not used."
+)
+PRIVACY_NOTE = (
+    "The file was read on this computer. Only the masked text is sent, and only "
+    "when you choose Fill Form with Bedrock."
+)
 UPLOAD_ERROR_MESSAGES = {
     "type": "This file type is not supported. Upload a PDF or DOCX file.",
     "size": "This file is larger than 10 MB. Upload a smaller PDF or DOCX file.",
@@ -152,25 +178,57 @@ def field_tag(*names: str) -> None:
     if not tags:
         return
     found = all(tags.get(name) == FOUND for name in names)
+    if found and st.session_state.get(EXTRACTION_MODE_KEY) == "Bedrock":
+        # Round 3 (Requirement 32.4): a field read by Bedrock is tagged.
+        theme.st_markdown(
+            f'<div class="pan-ai-meta"><span class="pan-token-line">{FOUND}</span>'
+            f"{theme.ai_tag_html()}</div>"
+        )
+        return
     st.caption(FOUND if found else "Needs Input")
 
 
-def _process(data: bytes, filename: str, **options) -> None:
-    """Extract and prefill, or record the specific error and change nothing."""
+def _read_locally(data: bytes, filename: str) -> None:
+    """Read the file on this computer and mask it; send nothing yet.
+
+    A failure records the specific error and changes nothing (2.3).
+    """
     st.session_state[_UPLOAD_ERROR_KEY] = None
+    st.session_state.pop(_UPLOAD_SUMMARY_KEY, None)
     try:
         text = extract_text(data, filename)
     except UploadError as exc:
         st.session_state[_UPLOAD_ERROR_KEY] = UPLOAD_ERROR_MESSAGES.get(
             exc.cause, UPLOAD_ERROR_MESSAGES["unreadable"]
         )
+        st.session_state.pop(_PENDING_KEY, None)
         return
-    with st.spinner("Reading the campaign file..."):
-        result = extract_campaign(text)
+    masked = mask_pii(text)
+    st.session_state[_PENDING_KEY] = {
+        "text": masked.text, "filename": filename, "note": masked_note(masked),
+    }
+
+
+def _fill(use_bedrock: bool, slot, **options) -> None:
+    """Read the masked text with Bedrock or the built-in rules, then prefill."""
+    pending = st.session_state.get(_PENDING_KEY) or {}
+    text = pending.get("text", "")
+    allowed, off_reason = ai_ui.can_call()
+    use_ai = use_bedrock and allowed
+    if use_ai:
+        slot.markdown(ai_ui.wait_html(estimated_input_tokens(text)), unsafe_allow_html=True)
+    result = extract_campaign(
+        text, use_ai=use_ai, off_reason=off_reason if use_bedrock else "builtin_choice",
+    )
+    slot.empty()
+    rec = ai_ui.record(ai_usage.record_from(
+        ai_usage.FEATURE_UPLOAD, result.mode, result.usage, result.seconds, result.reason,
+    ))
+    st.session_state[_UPLOAD_USAGE_KEY] = rec.as_dict()
     apply_prefill(result, **options)
     found = sum(1 for tag in result.tags.values() if tag == FOUND)
     st.session_state[_UPLOAD_SUMMARY_KEY] = (
-        f"Found {found} of {len(result.tags)} fields in {filename}. "
+        f"Found {found} of {len(result.tags)} fields in {pending.get('filename', 'the file')}. "
         f"Open the {FORM_TAB_LABEL} tab to review them, then press Run Analysis."
     )
 
@@ -188,6 +246,7 @@ def render_upload_panel(
         "Upload a PDF or DOCX file up to 10 MB. Details found in the file "
         f"prefill the {FORM_TAB_LABEL} tab. Nothing runs until you press Run Analysis."
     )
+    ai_ui.notice("bedrock", DOES_LINE, chips=True)
     uploaded = st.file_uploader(
         "Campaign File",
         type=["pdf", "docx"],
@@ -195,31 +254,51 @@ def render_upload_panel(
         key="campaign_file_upload",
     )
 
+    options = dict(
+        segment_options=segment_options,
+        product_options=product_options,
+        mechanic_options=mechanic_options,
+        channel_options=channel_options,
+    )
     if uploaded is not None:
         signature = (uploaded.name, uploaded.size)
         if st.session_state.get(_UPLOAD_SIGNATURE_KEY) != signature:
             st.session_state[_UPLOAD_SIGNATURE_KEY] = signature
-            _process(
-                uploaded.getvalue(),
-                uploaded.name,
-                segment_options=segment_options,
-                product_options=product_options,
-                mechanic_options=mechanic_options,
-                channel_options=channel_options,
-            )
+            _read_locally(uploaded.getvalue(), uploaded.name)
     else:
         st.session_state.pop(_UPLOAD_SIGNATURE_KEY, None)
         st.session_state.pop(_UPLOAD_ERROR_KEY, None)
+        st.session_state.pop(_PENDING_KEY, None)
 
     error = st.session_state.get(_UPLOAD_ERROR_KEY)
     if error:
         st.error(error)
-    elif uploaded is not None and st.session_state.get(_UPLOAD_SUMMARY_KEY):
-        st.success(st.session_state[_UPLOAD_SUMMARY_KEY])
 
-    if st.session_state.get(EXTRACTION_MODE_KEY) == "Demo":
-        theme.st_markdown(theme.badge_html("Demo Mode", "warning"))
-        st.caption(
-            "Details were read with built-in rules because the AI service "
-            "was not available."
-        )
+    pending = st.session_state.get(_PENDING_KEY) if uploaded is not None else None
+    if pending:
+        # Round 3 (Requirement 37.1, 37.2): masked first; the user decides.
+        st.caption(f"{pending['note']} {PRIVACY_NOTE}")
+        allowed, off_reason = ai_ui.can_call()
+        with st.container(key="pan_upload_choice", horizontal=True):
+            use_bedrock = st.button(
+                "Fill Form with Bedrock",
+                key="bedrock_btn_upload_fill",
+                disabled=not allowed,
+                help="Sends the masked text to Amazon Bedrock to read the fields.",
+            )
+            use_builtin = st.button(
+                "Fill Form with Built-in Rules",
+                key="upload_fill_builtin",
+                help="Reads the fields on this computer. Nothing is sent.",
+            )
+        if not allowed:
+            st.caption(f"Bedrock is not available: {ai_usage.reason_text(off_reason)}.")
+        slot = st.empty()
+        if use_bedrock or use_builtin:
+            _fill(bool(use_bedrock), slot, **options)
+
+    if uploaded is not None and st.session_state.get(_UPLOAD_SUMMARY_KEY):
+        st.success(st.session_state[_UPLOAD_SUMMARY_KEY])
+        rec = st.session_state.get(_UPLOAD_USAGE_KEY)
+        if rec:
+            theme.st_markdown(ai_ui.meta_html(ai_usage.UsageRecord(**rec)))

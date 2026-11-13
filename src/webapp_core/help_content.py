@@ -242,6 +242,68 @@ ENTRIES: tuple[HelpEntry, ...] = (
     ),
 )
 
+def _tokens_answer() -> str:
+    from webapp_core import ai_usage as u
+
+    q, n, f = u.MEASURED_TOKENS_PER_QUESTION, u.MEASURED_TOKENS_PER_PERSONA, u.MEASURED_TOKENS_PER_UPLOAD
+    if not (q and n and f):
+        return ("Every call shows its tokens under the answer, and the [[AI Usage]] dropdown "
+                "adds them up. The averages are in docs/ai-token-report.md. Built-in answers use none.")
+    return (f"On average ({u.MEASURED_LABEL}): about {q:,} tokens per assistant question, "
+            f"{n:,} per persona named and {f:,} per file read. Built-in answers use none. "
+            "Each call shows its own count, and the [[AI Usage]] dropdown adds them up.")
+
+
+# Part 9 round 3 (Requirement 39.2): what the AI does, and its limits.
+ENTRIES = ENTRIES + (
+    HelpEntry(
+        "ai_does",
+        "What does the AI do in this app, and what does it never do?",
+        "It reads an uploaded file to fill the form, suggests persona names, and answers "
+        "questions in [[Ask Assistant]]. It never produces or changes a number: every "
+        "score and forecast comes from the prediction model. When the AI is off or not "
+        "available, built-in rules do the same jobs.",
+        None,
+        "[[Upload Campaign File]], [[Personas]] and [[Ask Assistant]]",
+    ),
+    HelpEntry(
+        "ai_why",
+        "Why use AI here instead of only built-in rules?",
+        "Campaign files and questions are written in free text that rules read poorly. "
+        "The AI handles that wording, and its output is checked: fields are validated, "
+        "persona names are checked against the persona's own figures, and answers are "
+        "checked for figures that are not in your campaign or run.",
+        None,
+        "[[Upload Campaign File]], [[Personas]] and [[Ask Assistant]]",
+    ),
+    HelpEntry(
+        "ai_privacy",
+        "What data is sent to the AI, and how is it protected?",
+        "Only totals and campaign text. Phone numbers, email addresses and long numbers "
+        "are masked before a file is sent, and nothing is sent until you press a button "
+        "with the Bedrock mark. A guard blocks any request that holds a client id or "
+        "per-client rows.",
+        None,
+        "[[Upload Campaign File]] and [[Ask Assistant]]",
+    ),
+    HelpEntry(
+        "ai_check_persona",
+        "How do I check a persona name from Bedrock?",
+        "Read the card under the name: the size, share and what sets it apart come from "
+        "the clustering, not the AI. The name should match those traits. If it does not, "
+        "switch [[Persona Names]] back to built-in names; who is in each persona never changes.",
+        None,
+        "[[Personas]] tab",
+    ),
+    HelpEntry(
+        "ai_tokens",
+        "How many tokens does the AI use?",
+        _tokens_answer(),
+        "Total Tokens = Input Tokens + Output Tokens",
+        "Under each AI answer, and [[AI Usage]] in [[Ask Assistant]]",
+    ),
+)
+
 NEXT_STEPS: tuple[tuple[str, str], ...] = (
     ("Results", "Which segment to act on, and the files to send."),
     ("What-If", "Try another threshold and compare."),

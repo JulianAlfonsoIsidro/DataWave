@@ -1861,3 +1861,98 @@ def job_ring_html(state: str, phase: float = 0.0) -> str:
         f"{sparks}"
         "</div>"
     )
+
+
+
+# --- Part 9 round 3: AI notices, tags, chips, token lines, the wait line ---
+# Spec part9-layout-fixes, Requirements 32 to 36 and 39. Fixed words live here
+# so every section says the same thing.
+
+AI_NOTICE_BEDROCK = (
+    "AI-generated. It can be wrong or incomplete. Check it against your campaign "
+    "before you use it. Do not rely on it alone."
+)
+AI_NOTICE_PREDICTION = (
+    "These figures are forecasts from a prediction model. They are estimates, not "
+    "promises. Use them to compare options, not as a guarantee."
+)
+AI_DOES_NOT = (
+    "The AI never produces or changes a number: scoring is the prediction model, "
+    "and built-in rules take over when the AI is not used."
+)
+WAIT_LABELS = ("Mining", "Crafting")
+# (column + |row - 1|) for the nine pixels, row by row: a chevron that runs
+# left to right (multiplied by --pan-pixel-step in CSS).
+_PIXEL_STEPS = tuple((i % 3) + abs(i // 3 - 1) for i in range(9))
+
+
+def ai_chip_html(text: str, *, icon: bool = False, kind: str = "neutral") -> str:
+    """A small chip (mode, model id, token counts). ``icon`` adds the Bedrock mark."""
+    cls = "pan-ai-chip" + (" has-icon" if icon else "") + (f" is-{kind}" if kind != "neutral" else "")
+    return f'<span class="{cls}">{html.escape(text)}</span>'
+
+
+def ai_tag_html(text: str = "AI-generated") -> str:
+    """The small tag on every Bedrock output (or "Built-in rules" on a fallback)."""
+    cls = "pan-ai-tag" + (" is-builtin" if text != "AI-generated" else "")
+    return f'<span class="{cls}">{html.escape(text)}</span>'
+
+
+def ai_notice_html(kind: str, does: str = "", *, powered: bool | None = None) -> str:
+    """One section notice: "bedrock" or "prediction" kind, fixed words.
+
+    The Bedrock kind carries the "Powered by Amazon Bedrock" chip and a line
+    on what the AI does and does not do (Requirements 32.6, 39.1).
+    """
+    bedrock = kind == "bedrock"
+    words = AI_NOTICE_BEDROCK if bedrock else AI_NOTICE_PREDICTION
+    chip = ai_chip_html("Powered by Amazon Bedrock", icon=True) if (bedrock if powered is None else powered) else ""
+    extra = ""
+    if does:
+        extra = f'<div class="pan-ai-notice-does">{html.escape(does)}</div>'
+    label = "AI notice" if bedrock else "Forecast notice"
+    return (
+        f'<div class="pan-ai-notice is-{"bedrock" if bedrock else "prediction"}" role="note" aria-label="{label}">'
+        f'<div class="pan-ai-notice-text">{html.escape(words)}</div>{extra}'
+        f'{f"<div class=pan-ai-notice-chips>{chip}</div>" if chip else ""}</div>'
+    )
+
+
+def token_line_html(text: str, *, estimate: bool = False) -> str:
+    """The token line under an AI output (numbers only)."""
+    cls = "pan-token-line" + (" is-estimate" if estimate else "")
+    return f'<div class="{cls}">{html.escape(text)}</div>'
+
+
+def ai_meta_html(tag: str, mode_chip: str, token_text: str) -> str:
+    """One row under an AI output: tag, mode chip and token line."""
+    return (
+        f'<div class="pan-ai-meta">{ai_tag_html(tag)}{mode_chip}'
+        f'<span class="pan-token-line">{html.escape(token_text)}</span></div>'
+    )
+
+
+def wait_line_html(estimate_text: str = "", *, start_ms: int | None = None, label: str = "Mining") -> str:
+    """The Bedrock wait line: pixel loader, Mining/Crafting label, timer, estimate.
+
+    ``ui_interactions.js`` part 6 swaps the label and ticks the timer from
+    ``data-start`` (milliseconds). With Reduced_Motion the grid is still and
+    dim, the label stays, and the timer still counts (Requirement 35.6).
+    """
+    import time as _time
+
+    start = int(_time.time() * 1000) if start_ms is None else int(start_ms)
+    pixels = "".join(f'<i style="--d:{d}"></i>' for d in _PIXEL_STEPS)
+    est = f'<span class="pan-wait-sep">|</span><span class="pan-wait-est">{html.escape(estimate_text)}</span>' if estimate_text else ""
+    return (
+        f'<div class="pan-wait" role="status" aria-live="polite" data-start="{start}">'
+        f'<span class="pan-wait-grid" aria-hidden="true">{pixels}</span>'
+        f'<span class="pan-wait-label">{html.escape(label)}</span>'
+        '<span class="pan-wait-time">0.0s</span>'
+        f"{est}</div>"
+    )
+
+
+def user_marker_html() -> str:
+    """The user's turn marker in the assistant transcript: a small solid dot."""
+    return '<span class="pan-turn-dot" aria-label="You"></span>'

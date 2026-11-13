@@ -63,6 +63,8 @@ from webapp_core import number_help  # noqa: E402  (Part 9 round 2 plain descrip
 from webapp_core.number_format import shown_joiners  # noqa: E402
 from webapp_core.segment_flow import display_rank, flow_rows, flow_total  # noqa: E402
 import help_page  # noqa: E402  (Part 9 round 2 Help And FAQs dialog)
+import ai_ui  # noqa: E402  (Part 9 round 3 AI notices and usage)
+from webapp_core import fairness  # noqa: E402  (Part 9 round 3 risk views)
 from webapp_core.run_promo import PromoSpec, run_promo  # noqa: E402
 from webapp_core.threshold import (  # noqa: E402
     THRESHOLD_SPECS,
@@ -725,8 +727,11 @@ def _render_results_tab() -> None:
         if str(card.get("action", "")) == RECOMMENDED_ACTION
     }
 
+    # --- Part 9 round 3: the forecast notice, once, at the top (Req 32) ---
+    ai_ui.notice("prediction")
     # --- which threshold these results use, then the action bar (Part 9) ---
     _render_threshold_context(result)
+    _render_forecast_caution(result)
     _render_results_actions(result, recommended)
 
     # --- 2x2 Results grid: score (rows) by capacity (columns), axes labelled ---
@@ -756,6 +761,7 @@ def _render_results_tab() -> None:
 
     # --- where each segment's clients go (Part 9 round 2, Requirement 27) ---
     _render_segment_flow(result, reveal=run_el[0] is not None)
+    _render_fairness(result)
 
     # --- decision cards, two per row on wide screens ---
     st.subheader("Decision Cards")
@@ -983,6 +989,8 @@ def _render_results_actions(result, recommended: set[str]) -> None:
     """Top of Results: Download Recommended Leads (primary) and Export Summary."""
     sendable = result.sendable_by_segment or {}
     frames = [sendable[s] for s in sorted(recommended) if s in sendable]
+    # Part 9 round 3 (Requirement 37.3): a person signs off before the file.
+    reviewed = _render_review_card(result, recommended) if frames else True
     with st.container(key="pan_results_actions", horizontal=True):
         if frames:
             leads = pd.concat(frames, ignore_index=True) if len(frames) > 1 else frames[0]
@@ -996,6 +1004,7 @@ def _render_results_actions(result, recommended: set[str]) -> None:
                 mime="text/csv",
                 type="primary",
                 key="download_leads_recommended",
+                disabled=not reviewed,
                 help=(
                     "The sendable leads of the segment marked Act first, at a "
                     f"threshold of {_threshold_context(result)[0]}."
@@ -1009,6 +1018,117 @@ def _render_results_actions(result, recommended: set[str]) -> None:
             for s in recommended if s in sendable
         )
         st.caption(number_help.recommended_caption(forecast, len(leads)))
+
+
+def _render_review_card(result, recommended: set[str]) -> bool:
+    """The sign-off before Download Recommended Leads (Requirement 37.3)."""
+    cards = _cards_by_segment()
+    label, _base, _changed = _threshold_context(result)
+    left_out = 0
+    reasons: dict[str, int] = {}
+    control = 0
+    for seg in sorted(recommended):
+        card = cards.get(seg, {})
+        for code, n in (card.get("excluded_by_reason") or {}).items():
+            left_out += int(n or 0)
+            reasons[code] = reasons.get(code, 0) + int(n or 0)
+        control += int(card.get("control_count", 0) or 0)
+    reason_text = "; ".join(
+        f"{line}" for line in build_card_view({"excluded_by_reason": reasons}).exclusions
+    ) if reasons else "nobody"
+    segs = ", ".join(sorted(recommended))
+    theme.st_markdown(
+        '<div class="pan-review" role="group" aria-label="Check before you download">'
+        '<div class="pan-review-title">Check Before You Download</div>'
+        '<ul class="pan-review-list">'
+        f"<li><span>Segment</span><strong>{html.escape(segs)}</strong></li>"
+        f"<li><span>Threshold used</span><strong>{html.escape(label)}</strong></li>"
+        f"<li><span>Left out</span><strong>{left_out:,}</strong>"
+        f'<em>{html.escape(reason_text)}</em></li>'
+        f"<li><span>Control group held back</span><strong>{control:,}</strong></li>"
+        "</ul></div>"
+    )
+    return st.checkbox("I Checked These Figures", key="recommended_review_ok")
+
+
+def _render_forecast_caution(result) -> None:
+    """A short caution when the expected join rate is far above history (Req 38.4)."""
+    forecast, sendable = _run_forecast(result)
+    note = fairness.forecast_caution(forecast, sendable, _historical_join_rate())
+    if note:
+        st.markdown(theme.banner_html(note, "warning"), unsafe_allow_html=True)
+
+
+@st.cache_data(show_spinner=False)
+def _historical_join_rate() -> float | None:
+    try:
+        return fairness.historical_join_rate(pd.read_csv(PROMO_LEADS_PATH))
+    except Exception:  # noqa: BLE001 - the caution is optional
+        return None
+
+
+@st.cache_data(show_spinner=False)
+def _fairness_inputs():
+    """Profiles, past leads and past scores (read-only; cached)."""
+    dna = pd.read_csv(CUSTOMER_DNA_PATH)
+    leads = pd.read_csv(PROMO_LEADS_PATH)
+    try:
+        scores = pd.read_csv(OUTPUTS_DIR / "scores.csv")
+    except Exception:  # noqa: BLE001 - predicted rates are optional
+        scores = None
+    return dna, leads, scores
+
+
+def _render_fairness(result) -> None:
+    """"Who Is Being Targeted" (Requirement 38.1 to 38.3): read-only shares."""
+    try:
+        dna, leads, scores = _fairness_inputs()
+    except Exception:  # noqa: BLE001
+        return
+    scored = getattr(result, "scored", None)
+    if scored is None or "client_id" not in getattr(scored, "columns", []):
+        return
+    sendable_ids = [
+        cid for df in (result.sendable_by_segment or {}).values()
+        if df is not None and "client_id" in df.columns for cid in df["client_id"]
+    ]
+    with st.expander("Who Is Being Targeted", key="pan_fairness"):
+        st.caption(
+            "Each group's share of the eligible clients and of the sendable leads, "
+            "and how past promos went for it. Read-only: nothing here changes the model."
+        )
+        for column, title in fairness.GROUP_COLUMNS:
+            shares = fairness.group_shares(dna, scored["client_id"], sendable_ids, column)
+            past = {r.group: r for r in fairness.past_join_rates(dna, leads, scores, column)}
+            if not shares:
+                continue
+            rows = []
+            for g in shares:
+                pr = past.get(g.group)
+                pred = f"{pr.predicted_pct:.1f}%" if pr and pr.predicted_pct is not None else "No data"
+                act = f"{pr.actual_pct:.1f}%" if pr and pr.actual_pct is not None else "No data"
+                flag = " pan-flag" if g.flagged else ""
+                rows.append(
+                    f"<tr class='{flag.strip()}'><td class='pan-td pan-strong'>{html.escape(g.group)}</td>"
+                    f"<td class='pan-td pan-num'>{g.eligible_pct:.1f}%</td>"
+                    f"<td class='pan-td pan-num'>{g.sendable_pct:.1f}%</td>"
+                    f"<td class='pan-td pan-num'>{g.gap_pts:+.1f} pts</td>"
+                    f"<td class='pan-td pan-num'>{pred}</td><td class='pan-td pan-num'>{act}</td></tr>"
+                )
+            theme.st_markdown(
+                f"<div class='pan-group-head'><strong>{html.escape(title)}</strong></div>"
+                "<div class='pan-flow-scroll'><table class='pan-table'><tr><th class='pan-th'>Group</th>"
+                "<th class='pan-th pan-num'>Eligible</th><th class='pan-th pan-num'>Sendable</th>"
+                "<th class='pan-th pan-num'>Difference</th><th class='pan-th pan-num'>Past Predicted</th>"
+                "<th class='pan-th pan-num'>Past Actual</th></tr>" + "".join(rows) + "</table></div>"
+            )
+            for g in shares:
+                if g.flagged:
+                    direction = "more" if g.gap_pts > 0 else "less"
+                    st.caption(
+                        f"{title} {g.group} makes up {abs(g.gap_pts):.1f} points {direction} of the "
+                        "sendable leads than of the eligible clients. Check this is intended."
+                    )
 
 
 def _download_cell(label: str, value: str, notes: tuple[str, ...] = (), tip: str = "") -> str:
@@ -1151,6 +1271,7 @@ def _render_whatif_tab() -> None:
                 st.rerun()
 
     st.subheader("What-If: Vary The Threshold")
+    ai_ui.notice("prediction")
     st.caption(
         "Drag the threshold to rescore the current eligible audience with the "
         "already-fitted model. No model is retrained; only the threshold "

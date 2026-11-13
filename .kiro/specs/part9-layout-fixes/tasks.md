@@ -234,6 +234,60 @@ Hard constraints for every task:
     - _Requirements: 26_
   - [ ] 18.5 Download Leads dropdown opens and closes, files download with the threshold in their names
     - _Requirements: 25_
+- [x] 19. Bedrock foundations (built 2026-11-13)
+  - [x] 19.1 `Usage` on `BedrockResult`, `max_tokens` as `inferenceConfig.maxTokens`, `estimate_tokens`, `request_text`
+    - _Requirements: 33.1, 33.6_
+  - [x] 19.2 `src/webapp_core/ai_usage.py`: records, token line, totals, cap, plain fallback reasons, feature limits
+    - _Requirements: 33.2 to 33.7_
+  - [x] 19.3 `src/ai/privacy.py`: masking of phones, emails and long digit strings
+    - _Requirements: 37.2_
+
+- [x] 20. Assistant (built 2026-11-13)
+  - [x] 20.1 `src/ai/answer_format.py` and the layout prompt; Demo answers rebuilt in the layout, including email and in-app drafts
+    - _Requirements: 29.1 to 29.7_
+  - [x] 20.2 `src/webapp_core/run_summary.py`; Run_Summary in the payload; new routing; Demo run answers
+    - _Requirements: 30.1 to 30.6_
+  - [x] 20.3 Transcript layout, prompt line and hint, stepped reveal, "What The AI Used" dropdown, token line, number-check flags
+    - _Requirements: 35.1 to 35.3, 35.7, 35.8, 37.5_
+  - [x] 20.4 Report a wrong answer, clear conversation and log, question limit, character count
+    - _Requirements: 37.4_
+
+- [x] 21. Personas (built 2026-11-13)
+  - [x] 21.1 `rename_personas`; Build Personas names with the built-in namer; "Name Personas with Bedrock"; the name switch; accurate labels; Export "Ai Source"
+    - _Requirements: 31.1 to 31.7_
+  - [x] 21.2 Per-persona and run token lines; the pre-call note with the token estimate
+    - _Requirements: 31.5, 33.3_
+
+- [x] 22. Upload (built 2026-11-13)
+  - [x] 22.1 Read locally, then "Fill Form with Bedrock" or "Fill Form with Built-in Rules"; masking count and privacy note; token line; AI-generated tags on fields read by Bedrock
+    - _Requirements: 32.4, 33.3, 37.1, 37.2_
+
+- [x] 23. Shared AI interface (built 2026-11-13)
+  - [x] 23.1 Notice component (two kinds), AI-generated tag, mode chip, Bedrock icon, "Powered by Amazon Bedrock" chip
+    - _Requirements: 32.1 to 32.6, 36.1 to 36.3, 39.1_
+  - [x] 23.2 Wait line: pixel loader, Mining/Crafting label, timer, token estimate; `ui_interactions.js` part 6; Reduced_Motion
+    - _Requirements: 35.4 to 35.6, 33.4_
+  - [x] 23.3 "AI Usage" dropdown and the "Use AI Features" switch
+    - _Requirements: 33.5, 37.6_
+
+- [x] 24. Risk, oversight and transparency (built 2026-11-13)
+  - [x] 24.1 Review card before Download Recommended Leads
+    - _Requirements: 37.3_
+  - [x] 24.2 `src/webapp_core/fairness.py` and the "Who Is Being Targeted" view; forecast caution
+    - _Requirements: 38.1 to 38.5_
+  - [x] 24.3 Help And FAQs entries for the AI
+    - _Requirements: 39.2_
+
+- [x] 25. Measurement, validation and tests (built 2026-11-13)
+  - [x] 25.1 `scripts/measure_ai_tokens.py` and `docs/ai-token-report.md`
+    - _Requirements: 34.1 to 34.4_
+  - [x] 25.2 `docs/ai-validation-plan.md`
+    - _Requirements: 40.1_
+  - [x]* 25.3 Tests: answer layout (Hypothesis), masking and the privacy guard, Usage parsing, rename keeps clusters, Run_Summary privacy, fairness shares, number check
+    - _Requirements: 29.4, 29.5, 30.3, 31.4, 37.2, 37.5, 38, 40.2_
+  - [ ] 25.4 Browser checks: transcript and wait line in light and dark, Reduced_Motion, 390 px; persona name switch; upload choice; review card
+    - _Requirements: 31, 35, 37_
+
 ## Round 2 build notes (2026-11-13)
 
 - Built: `webapp_core/number_format.py`, `segment_flow.py`, `number_help.py`, `help_content.py`, `app/help_page.py`; `theme.joiners_pair_html`, `segment_flow_html`, header sub-line, What-If cells; CSS section 28; `ui_interactions.js` part 5.
@@ -249,3 +303,15 @@ Hard constraints for every task:
   - Segment Flow: a "Segment" dropdown (key `pan_flow_segment`, display order, "All Segments" last) shows one stacked bar for the chosen segment, with each part's count and share inside the bar and in a legend under it. The separate table is removed. Supersedes Requirement 27.2, 27.4 and 27.7 to 27.8.
   - Help: a page section, tab or button named in a question, answer or "Where to see it" line is written `[[Name]]` in `help_content` and shown bold in quotes (`help_page.marked_html` / `marked_md`). Answers get room under "Where to see it" (Streamlit's negative markdown margin is reset inside the dialog).
   - Download Leads dropdown: its label style no longer resets the font of the icon span, which made the arrow show as the text "keyboard_arrow_right".
+
+## Round 3 build notes (2026-11-13)
+
+- The owner's bug ("the AI can't see the other tabs after Run Analysis") had two causes, both by design in Part 7: the payload held only the form and document, and any question naming segments, personas or scores was refused before any call. Requirement 30 replaces both. Routing now refuses only questions about one client.
+- Run-on answers: `truncate_words` rejoined words with single spaces, which removed every line break, and the Demo answers were built as one paragraph. Both now go through `ai.answer_format.format_answer`.
+- Found while measuring: the configured model returns a reasoning block before its text, and reasoning counts as output. A 400 token cap ended the reply during reasoning with no text, so the app fell back while still spending tokens. Converse rejected `thinking: disabled`; the caps were raised (design "Limits").
+- Measured with real calls (docs/ai-token-report.md): 5,730 tokens per assistant question on average (2,005 form only; 2,727 with a 2,000 character file; 12,456 with a 30,000 character file), 740 per persona named, 1,323 to 11,037 per file read. The uploaded document is resent with every question and dominates the cost.
+- Built-in names use the same namer Bedrock falls back to (`ai.mocks.MockPersonaNamer`), so the familiar names stay.
+- The review step before Download Recommended Leads is a card and a checkbox ("I Checked These Figures", key `recommended_review_ok`); the download stays disabled until it is ticked.
+- Not built: the optional confidence meter (the forecast caution is a banner instead).
+- New session keys: `ai_usage_records`, `ai_enabled`, `upload_pending`, `upload_usage`, `persona_names_builtin`, `persona_names_bedrock`, `persona_names_view`, `persona_name_records`, `recommended_review_ok`, `pan_flow_segment` (round 2), and widget keys `bedrock_btn_upload_fill`, `upload_fill_builtin`, `bedrock_btn_persona_names`, `assistant_report_<n>`, `assistant_used_<n>`, `assistant_clear`, `ai_usage_panel`, `pan_fairness`.
+- Test expectations changed: `tests/test_ai_assistant_unit.py` (`test_route`, `test_routed_answers_make_no_model_call`) and `tests/test_part7_assistant_unit.py` (`test_route_model_results_questions`, `test_model_results_and_off_topic_answers_are_local_without_call`) now use one-client questions for the refusal; a new test checks segment and persona questions are answered.
