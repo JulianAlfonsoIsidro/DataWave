@@ -31,6 +31,15 @@ MEASURED_TOKENS_PER_UPLOAD: int | None = 6_180     # 1,323 (2,000 chars) to 11,0
 MEASURED_LABEL = "measured"
 SESSION_QUESTION_LIMIT = 30
 
+# What makes a call use more tokens, one short line per place it matters.
+# Shown as hover text or added to an existing caption, never as a new block.
+TOKEN_HINTS = {
+    "personas": "More personas means more tokens: each persona is named in its own request.",
+    "upload": "Longer files use more tokens: the whole masked text is sent.",
+    "question": "Longer questions, drafts and summaries use more tokens than short facts.",
+    "suggested": "Drafts and summaries write longer answers, so they use more tokens.",
+}
+
 CAP_MESSAGE = (
     "This session has used its AI token allowance, so the built-in rules are "
     "used from now on. Start a new session to use Bedrock again."

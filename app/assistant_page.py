@@ -15,7 +15,7 @@ Part 9 round 3 (spec part9-layout-fixes):
   actions, expected joiners, impact, persona names), so the assistant can
   answer about the results after Run Analysis. The owner reported that it
   could not; the payload used to hold the form and document only.
-- Requirement 35: a plain transcript, a dot for the user and the stone block
+- Requirement 35: a plain transcript, a dot for the user and no avatar
   for the assistant, a prompt line with a hint row, the Bedrock wait line
   while an answer is fetched, and the answer revealed in short steps.
 - Requirements 32, 33, 37: the notice, the mode chips, an "AI-generated"
@@ -217,12 +217,15 @@ def _record_of(message: dict) -> ai_usage.UsageRecord | None:
 def _render_turn(index: int, message: dict) -> None:
     """One transcript row: the marker column, then the turn's text."""
     if message["role"] == "user":
+        # Chat layout (owner request): your question is a bubble on the right.
         with st.container(key=f"pan_turn_u{index}"):
-            theme.st_markdown(f'<div class="pan-turn-mark">{theme.user_marker_html()}</div>')
-            theme.st_markdown(f'<div class="pan-turn-user">{html.escape(message["text"])}</div>')
+            theme.st_markdown(theme.user_bubble_html(message["text"]))
         return
     with st.container(key=f"pan_turn_a{index}"):
-        theme.st_markdown(f'<div class="pan-turn-mark">{theme.bedrock_html("rest")}</div>')
+        # The reply: the model's mark and name, then the answer under them.
+        theme.st_markdown(theme.assistant_header_html(
+            *ai_ui.assistant_identity(message.get("mode") == "Bedrock")
+        ))
         st.markdown(_md(message["text"]))
         rec = _record_of(message)
         if rec is not None and message.get("mode") != "Local":
@@ -259,17 +262,6 @@ def _render_turn(index: int, message: dict) -> None:
                 st.rerun()
 
 
-def _finish_seconds() -> float:
-    """How long the block's finish plays before the answer shows (a token)."""
-    import ui_effects
-
-    try:
-        parsed = ui_effects._parse_duration_s(theme.token_pair("--pan-dur-cube-finish")[0])
-    except Exception:  # noqa: BLE001 - the token is optional; fall back
-        parsed = None
-    return parsed if parsed else 0.9
-
-
 def _reveal_steps(text: str) -> list[str]:
     """The answer as growing prefixes of its lines (each keeps valid Markdown)."""
     lines = text.split("\n")
@@ -304,15 +296,10 @@ def _handle_question(question: str, history: list[dict], thread) -> None:
         allowed, off_reason = ai_ui.can_call()
         estimate = estimated_input_tokens(question, grounding) if allowed else None
         with st.container(key=f"pan_turn_a{len(history)}_wait"):
-            mark = st.empty()
-            mark.markdown(f'<div class="pan-turn-mark">{theme.bedrock_html("spin")}</div>',
-                          unsafe_allow_html=True)
+            theme.st_markdown(theme.assistant_header_html(*ai_ui.assistant_identity(allowed)))
             slot = st.empty()
             slot.markdown(ai_ui.wait_html(estimate), unsafe_allow_html=True)
             reply: AssistantAnswer = answer(question, grounding, use_ai=allowed, off_reason=off_reason)
-            mark.markdown(f'<div class="pan-turn-mark">{theme.bedrock_html("finish")}</div>',
-                          unsafe_allow_html=True)
-            time.sleep(_finish_seconds())
             # Stepped reveal: converse returns the whole reply, so it is shown
             # in short steps here (no streaming API, Requirement 35.7).
             for step in _reveal_steps(reply.text):
@@ -349,7 +336,8 @@ def render_assistant_page() -> None:
     columns = st.columns(len(SUGGESTED_QUESTIONS))
     for index, (column, label) in enumerate(zip(columns, SUGGESTED_QUESTIONS)):
         with column:
-            if st.button(label, key=f"assistant_suggested_{index}", width="stretch"):
+            if st.button(label, key=f"assistant_suggested_{index}", width="stretch",
+                         help=ai_usage.TOKEN_HINTS["suggested"]):
                 pending = label
 
     # The conversation is one container drawn before the input, and a new
@@ -367,7 +355,8 @@ def render_assistant_page() -> None:
 
     asked = _questions_asked(history)
     theme.st_markdown(
-        '<div class="pan-prompt-hint"><span>Enter to send | 500 characters max</span>'
+        # The token hint is hover text on "Enter to send", so the row stays one line.
+        f'<div class="pan-prompt-hint"><span>{theme.tooltip_html("Enter to send", ai_usage.TOKEN_HINTS["question"])}</span>'
         f'<span class="pan-chat-count">0 / 500 characters</span>'
         f"<span>{asked} of {ai_usage.SESSION_QUESTION_LIMIT} questions</span></div>"
     )

@@ -61,6 +61,7 @@ from webapp_core.promo_id import next_promo_id  # noqa: E402
 from webapp_core import toast_queue  # noqa: E402  (Part 8 loader stage texts)
 from webapp_core import number_help  # noqa: E402  (Part 9 round 2 plain descriptions)
 from webapp_core.number_format import shown_joiners  # noqa: E402
+from webapp_core.required_fields import missing_promo_fields, required_message  # noqa: E402
 from webapp_core.segment_flow import display_rank, flow_rows, flow_total  # noqa: E402
 import help_page  # noqa: E402  (Part 9 round 2 Help And FAQs dialog)
 import ai_ui  # noqa: E402  (Part 9 round 3 AI notices and usage)
@@ -390,6 +391,7 @@ def _render_fill_in_details(*, segment_options: list[str], auto_promo_id: str) -
     )
 
     st.subheader("Design A Promo")
+    st.caption("Fields marked * are required.")
 
     # Threshold controls live above the form so a type change reruns the page
     # and the slider (keyed by type) resets to its default (Requirements 5.1-5.3).
@@ -450,7 +452,12 @@ def _render_fill_in_details(*, segment_options: list[str], auto_promo_id: str) -
             )
             upload_panel.field_tag("mechanic")
         with basics_c:
-            reward = st.text_input("Reward", key=upload_panel.REWARD_KEY)
+            reward = st.text_input(
+                "Reward (Recommended)",
+                key=upload_panel.REWARD_KEY,
+                help="Describes the offer in exports and past-promo comparisons. "
+                     "It does not change any number.",
+            )
             upload_panel.field_tag("reward")
 
         theme.section_label("Offer Terms", "The amounts that qualify a client.")
@@ -470,7 +477,7 @@ def _render_fill_in_details(*, segment_options: list[str], auto_promo_id: str) -
         aud_a, aud_b = st.columns(2)
         with aud_a:
             eligible_segments = st.multiselect(
-                "Eligible Segments",
+                "Eligible Segments *",
                 options=segment_options,
                 help="Customer_DNA segments. Clients outside these are excluded.",
                 key=upload_panel.SEGMENTS_KEY,
@@ -478,7 +485,7 @@ def _render_fill_in_details(*, segment_options: list[str], auto_promo_id: str) -
             upload_panel.field_tag("eligible_segments")
         with aud_b:
             channels = st.multiselect(
-                "Channels",
+                "Channels *",
                 options=CHANNEL_OPTIONS,
                 key=upload_panel.CHANNELS_KEY,
             )
@@ -491,7 +498,13 @@ def _render_fill_in_details(*, segment_options: list[str], auto_promo_id: str) -
 
     # With no usable ADB the error is shown above and the run is blocked
     # (Requirement 5.11).
-    if submitted and threshold_fields is not None:
+    # Required fields: stop here with one plain message, before any loader.
+    required_missing = (
+        missing_promo_fields(eligible_segments, channels) if submitted else []
+    )
+    if required_missing:
+        st.error(required_message(required_missing))
+    elif submitted and threshold_fields is not None:
         spec = PromoSpec(
             promo_id=auto_promo_id,
             product_type=product_type,
@@ -702,6 +715,7 @@ def _render_impact_summary(result) -> None:
     ]
     st.markdown(theme.stat_tiles_html(tiles), unsafe_allow_html=True)
     st.caption(number_help.impact_help())
+    st.caption(number_help.impact_why())
 
 
 def _render_results_tab() -> None:
@@ -732,7 +746,6 @@ def _render_results_tab() -> None:
     # --- which threshold these results use, then the action bar (Part 9) ---
     _render_threshold_context(result)
     _render_forecast_caution(result)
-    _render_results_actions(result, recommended)
 
     # --- 2x2 Results grid: score (rows) by capacity (columns), axes labelled ---
     st.subheader("Results Grid")
@@ -761,7 +774,6 @@ def _render_results_tab() -> None:
 
     # --- where each segment's clients go (Part 9 round 2, Requirement 27) ---
     _render_segment_flow(result, reveal=run_el[0] is not None)
-    _render_fairness(result)
 
     # --- decision cards, two per row on wide screens ---
     st.subheader("Decision Cards")
@@ -782,20 +794,16 @@ def _render_results_tab() -> None:
         ),
         key=lambda s: _action_rank(cards_by_segment[s]),
     )
-    for i in range(0, len(ordered_segments), 2):
-        pair = ordered_segments[i : i + 2]
-        card_cols = st.columns(2)
-        for card_col, segment_label in zip(card_cols, pair):
-            with card_col:
-                card = cards_by_segment[segment_label]
-                view = build_card_view(
-                    card, persona=_results_persona_section(result, card, segment_label)
-                )
-                theme.card(
-                    view.title,
-                    theme.decision_card_body_html(view),
-                    recommended=segment_label in recommended,
-                )
+    for segment_label in ordered_segments:
+        card = cards_by_segment[segment_label]
+        view = build_card_view(
+            card, persona=_results_persona_section(result, card, segment_label)
+        )
+        theme.card(
+            view.title,
+            theme.decision_card_body_html(view),
+            recommended=segment_label in recommended,
+        )
 
     # --- Download Leads: one row per segment, in action order (Part 9) ---
     # Each row reconciles the grid: clients = not contacted + control group +
@@ -822,6 +830,10 @@ def _render_results_tab() -> None:
                     recommended=segment_label in recommended,
                 )
             st.caption(DOWNLOAD_NOTE)
+            # The check, the file and Export Summary live together at the
+            # bottom of the dropdown: pick a segment (or all), tick, download.
+            _render_download_picker(result, rows, sendable, recommended)
+            _render_export_summary(result)
 
     # --- where to go next: real actions instead of a "Next:" sentence ---
     with st.container(key="pan_next_actions", horizontal=True):
@@ -985,49 +997,46 @@ def _render_threshold_context(result) -> None:
         )
 
 
-def _render_results_actions(result, recommended: set[str]) -> None:
-    """Top of Results: Download Recommended Leads (primary) and Export Summary."""
-    sendable = result.sendable_by_segment or {}
-    frames = [sendable[s] for s in sorted(recommended) if s in sendable]
-    # Part 9 round 3 (Requirement 37.3): a person signs off before the file.
-    reviewed = _render_review_card(result, recommended) if frames else True
-    with st.container(key="pan_results_actions", horizontal=True):
-        if frames:
-            leads = pd.concat(frames, ignore_index=True) if len(frames) > 1 else frames[0]
-            st.download_button(
-                f"Download Recommended Leads ({len(leads):,})",
-                data=leads.to_csv(index=False).encode("utf-8"),
-                file_name=(
-                    f"{result.promo_spec.promo_id}_{_threshold_slug(result)}"
-                    "_recommended_leads.csv"
-                ),
-                mime="text/csv",
-                type="primary",
-                key="download_leads_recommended",
-                disabled=not reviewed,
-                help=(
-                    "The sendable leads of the segment marked Act first, at a "
-                    f"threshold of {_threshold_context(result)[0]}."
-                ),
-            )
-        _render_export_summary(result)
-    if frames:
-        cards = _cards_by_segment()
-        forecast = sum(
-            float(cards.get(s, {}).get("expected_joiners", 0.0) or 0.0)
-            for s in recommended if s in sendable
-        )
-        st.caption(number_help.recommended_caption(forecast, len(leads)))
+ALL_SEGMENTS = "All Segments"
+DOWNLOAD_PICK_KEY = "pan_dl_pick"
 
 
-def _render_review_card(result, recommended: set[str]) -> bool:
-    """The sign-off before Download Recommended Leads (Requirement 37.3)."""
+def _render_download_picker(result, rows: list[str], sendable: dict, recommended: set[str]) -> None:
+    """Download Leads: pick one segment (or all), check the figures, download.
+
+    The check sits with the file it guards (Requirement 37.3): the box is
+    per selection, so ticking one never unlocks another.
+    """
+    options = list(rows) + [ALL_SEGMENTS]
+    if st.session_state.get(DOWNLOAD_PICK_KEY) not in options:
+        first = next((s for s in rows if s in recommended), rows[0])
+        st.session_state[DOWNLOAD_PICK_KEY] = first
+    col, _rest = st.columns([1, 1])
+    with col:
+        choice = st.selectbox("Choose Leads To Download", options, key=DOWNLOAD_PICK_KEY)
+    segments = list(rows) if choice == ALL_SEGMENTS else [choice]
+    frames = [sendable[s] for s in segments if s in sendable]
+    leads = pd.concat(frames, ignore_index=True) if len(frames) > 1 else frames[0]
+    slug = re.sub(r"[^a-z0-9]+", "_", choice.lower()).strip("_")
+    reviewed = _render_review_card(result, segments, choice, slug)
+    st.download_button(
+        f"Download {len(leads):,} Leads",
+        data=leads.to_csv(index=False).encode("utf-8"),
+        file_name=_leads_file_name(result, choice),
+        mime="text/csv",
+        key=f"download_leads_{choice}",
+        disabled=not reviewed,
+    )
+
+
+def _render_review_card(result, segments: list[str], title: str, slug: str) -> bool:
+    """The sign-off before a lead file (Requirement 37.3)."""
     cards = _cards_by_segment()
     label, _base, _changed = _threshold_context(result)
     left_out = 0
     reasons: dict[str, int] = {}
     control = 0
-    for seg in sorted(recommended):
+    for seg in segments:
         card = cards.get(seg, {})
         for code, n in (card.get("excluded_by_reason") or {}).items():
             left_out += int(n or 0)
@@ -1036,19 +1045,19 @@ def _render_review_card(result, recommended: set[str]) -> bool:
     reason_text = "; ".join(
         f"{line}" for line in build_card_view({"excluded_by_reason": reasons}).exclusions
     ) if reasons else "nobody"
-    segs = ", ".join(sorted(recommended))
     theme.st_markdown(
         '<div class="pan-review" role="group" aria-label="Check before you download">'
         '<div class="pan-review-title">Check Before You Download</div>'
         '<ul class="pan-review-list">'
-        f"<li><span>Segment</span><strong>{html.escape(segs)}</strong></li>"
+        f"<li><span>Segment</span><strong>{html.escape(title)}</strong></li>"
         f"<li><span>Threshold used</span><strong>{html.escape(label)}</strong></li>"
         f"<li><span>Left out</span><strong>{left_out:,}</strong>"
         f'<em>{html.escape(reason_text)}</em></li>'
-        f"<li><span>Control group held back</span><strong>{control:,}</strong></li>"
+        f"<li><span>Control group held back</span><strong>{control:,}</strong>"
+        f'<em>{html.escape(number_help.control_reason_help())}</em></li>'
         "</ul></div>"
     )
-    return st.checkbox("I Checked These Figures", key="recommended_review_ok")
+    return st.checkbox("I Checked These Figures", key=f"review_ok_{slug}")
 
 
 def _render_forecast_caution(result) -> None:
@@ -1065,70 +1074,6 @@ def _historical_join_rate() -> float | None:
         return fairness.historical_join_rate(pd.read_csv(PROMO_LEADS_PATH))
     except Exception:  # noqa: BLE001 - the caution is optional
         return None
-
-
-@st.cache_data(show_spinner=False)
-def _fairness_inputs():
-    """Profiles, past leads and past scores (read-only; cached)."""
-    dna = pd.read_csv(CUSTOMER_DNA_PATH)
-    leads = pd.read_csv(PROMO_LEADS_PATH)
-    try:
-        scores = pd.read_csv(OUTPUTS_DIR / "scores.csv")
-    except Exception:  # noqa: BLE001 - predicted rates are optional
-        scores = None
-    return dna, leads, scores
-
-
-def _render_fairness(result) -> None:
-    """"Who Is Being Targeted" (Requirement 38.1 to 38.3): read-only shares."""
-    try:
-        dna, leads, scores = _fairness_inputs()
-    except Exception:  # noqa: BLE001
-        return
-    scored = getattr(result, "scored", None)
-    if scored is None or "client_id" not in getattr(scored, "columns", []):
-        return
-    sendable_ids = [
-        cid for df in (result.sendable_by_segment or {}).values()
-        if df is not None and "client_id" in df.columns for cid in df["client_id"]
-    ]
-    with st.expander("Who Is Being Targeted", key="pan_fairness"):
-        st.caption(
-            "Each group's share of the eligible clients and of the sendable leads, "
-            "and how past promos went for it. Read-only: nothing here changes the model."
-        )
-        for column, title in fairness.GROUP_COLUMNS:
-            shares = fairness.group_shares(dna, scored["client_id"], sendable_ids, column)
-            past = {r.group: r for r in fairness.past_join_rates(dna, leads, scores, column)}
-            if not shares:
-                continue
-            rows = []
-            for g in shares:
-                pr = past.get(g.group)
-                pred = f"{pr.predicted_pct:.1f}%" if pr and pr.predicted_pct is not None else "No data"
-                act = f"{pr.actual_pct:.1f}%" if pr and pr.actual_pct is not None else "No data"
-                flag = " pan-flag" if g.flagged else ""
-                rows.append(
-                    f"<tr class='{flag.strip()}'><td class='pan-td pan-strong'>{html.escape(g.group)}</td>"
-                    f"<td class='pan-td pan-num'>{g.eligible_pct:.1f}%</td>"
-                    f"<td class='pan-td pan-num'>{g.sendable_pct:.1f}%</td>"
-                    f"<td class='pan-td pan-num'>{g.gap_pts:+.1f} pts</td>"
-                    f"<td class='pan-td pan-num'>{pred}</td><td class='pan-td pan-num'>{act}</td></tr>"
-                )
-            theme.st_markdown(
-                f"<div class='pan-group-head'><strong>{html.escape(title)}</strong></div>"
-                "<div class='pan-flow-scroll'><table class='pan-table'><tr><th class='pan-th'>Group</th>"
-                "<th class='pan-th pan-num'>Eligible</th><th class='pan-th pan-num'>Sendable</th>"
-                "<th class='pan-th pan-num'>Difference</th><th class='pan-th pan-num'>Past Predicted</th>"
-                "<th class='pan-th pan-num'>Past Actual</th></tr>" + "".join(rows) + "</table></div>"
-            )
-            for g in shares:
-                if g.flagged:
-                    direction = "more" if g.gap_pts > 0 else "less"
-                    st.caption(
-                        f"{title} {g.group} makes up {abs(g.gap_pts):.1f} points {direction} of the "
-                        "sendable leads than of the eligible clients. Check this is intended."
-                    )
 
 
 def _download_cell(label: str, value: str, notes: tuple[str, ...] = (), tip: str = "") -> str:
@@ -1155,8 +1100,8 @@ def _render_download_row(i: int, result, segment_label: str, leads_df, card: dic
     tag = theme.act_first_tag_html() if recommended else ""
     action = str(card.get("action", "")) or "Not set"
     with st.container(key=f"pan_dl_row_{i}"):
-        name_col, clients_col, out_col, control_col, send_col, file_col = st.columns(
-            [2.6, 1, 2.6, 1.2, 1, 2], vertical_alignment="center"
+        name_col, clients_col, out_col, control_col, send_col = st.columns(
+            [2.6, 1, 2.6, 1.2, 1], vertical_alignment="center"
         )
         with name_col:
             st.markdown(
@@ -1180,17 +1125,6 @@ def _render_download_row(i: int, result, segment_label: str, leads_df, card: dic
             st.markdown(_download_cell("Sendable", f"{len(leads_df):,}", (),
                                        number_help.sendable_help()),
                         unsafe_allow_html=True)
-        with file_col:
-            # The row already names the segment, so the label stays short
-            # enough not to truncate; the file name still carries it.
-            st.download_button(
-                label=f"Download {len(leads_df):,} Leads",
-                data=leads_df.to_csv(index=False).encode("utf-8"),
-                file_name=_leads_file_name(result, segment_label),
-                mime="text/csv",
-                key=f"download_leads_{segment_label}",
-                width="stretch",
-            )
 
 
 def _render_export_summary(result) -> None:
@@ -1290,11 +1224,8 @@ def _render_whatif_tab() -> None:
     # Part 9: a plain readout (no digit roll, which showed wrong amounts
     # mid-roll) in a slot the rescore reuses for "Rescoring at ...", so
     # nothing below moves while it works.
+    # (The "Selected: ..." line was removed: the slider shows the amount.)
     readout = st.empty()
-    readout.markdown(
-        theme.selected_readout_html(format_value(t_type, new_threshold)),
-        unsafe_allow_html=True,
-    )
 
     fields, error, note = _threshold_kwargs(t_type, new_threshold)
     if note:

@@ -71,8 +71,28 @@ def adb_help() -> str:
     return "ADB is the average daily balance."
 
 
+def control_reason_help() -> str:
+    """Why a slice of each group is not messaged (shown in the download check)."""
+    return "Not messaged on purpose, so you can compare and see if the promo works."
+
+
 def impact_help() -> str:
     return "Compared with messaging every eligible lead, skipping segments marked Skip."
+
+
+def impact_why() -> str:
+    """Why these three figures are shown, and why some leads are left out.
+
+    Longer than the one-line helps on purpose: it is the one place the
+    summary says what the figures are for. Not in ``ALL_STATIC`` (90 chars).
+    """
+    return (
+        "Why these figures? Segments marked Skip are the least likely to join, so "
+        "leaving them out saves messages and money while keeping most of the "
+        f"expected joiners. About {control_pct()} of each group is also held back "
+        "on purpose, as a control group. Comparing it with the messaged leads "
+        "later shows whether the promo itself worked."
+    )
 
 
 def whatif_table_help() -> str:
@@ -115,7 +135,7 @@ def persona_group_caption(group: str, size: int, total: int, *, sendable: bool) 
 
 ALL_STATIC = (
     header_help, clients_help, not_contacted_help, control_help, sendable_help,
-    range_help, value_help, threshold_help, adb_help, impact_help,
+    range_help, value_help, threshold_help, adb_help, impact_help, control_reason_help,
     whatif_table_help, flow_help, flow_table_help, predicted_actual_help,
     gap_help, similarity_help,
 )

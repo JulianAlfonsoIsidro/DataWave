@@ -112,6 +112,8 @@ from part5_personas.profile import PersonaProfile
 from webapp_core.card_view import build_card_view
 from webapp_core.group_picker_items import group_changed, plan_picker
 from webapp_core.persona_view import build_persona_section
+from webapp_core.required_fields import missing_persona_split, required_message
+from webapp_core import ai_usage
 from webapp_core.personas import (
     EQUAL_TAKEAWAY,
     PersonaRunResult,
@@ -1988,7 +1990,7 @@ def _render_naming_controls() -> None:
     note = (
         f"Sends each persona's totals (size, share and plain traits) to Amazon Bedrock. "
         f"No client data is sent. About {estimate:,} input tokens for {len(personas)} "
-        f"personas (estimated from the request size)."
+        f"personas (estimated from the request size). {ai_usage.TOKEN_HINTS['personas']}"
     )
     if measured:
         note += f" The token report measured about {measured:,} tokens per persona in total."
@@ -2118,39 +2120,49 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
                 max_value=6,
                 step=1,
                 key="persona_k_input",
-                help="Between 2 and 6. Start at 3 and adjust, or use Suggest a number below.",
+                help="Between 2 and 6. Start at 3 and adjust, or use Suggest a number below. "
+                     "Naming them with Bedrock later: " + ai_usage.TOKEN_HINTS["personas"],
             )
         )
+        # The suggest helper sits right under the field it fills. It needs the
+        # chosen attributes, which are created further down, so its place is
+        # reserved here and filled once they are known.
+        suggest_place = st.container()
 
     business_segment_field: str | None = None
     campaign_pool: str | None = None
-
-    # The page never uses the business-segment level; split by "segment" instead.
-    if level == LEVEL_CAMPAIGN:
-        campaign_pool = _render_campaign_pool_selector(run_result_key)
-
-    # --- split control, above the picker, at both levels (Req 3.8, 3.22) ---
     grouping_attributes: list[str] = []
     split_offered, split_left_out = _split_column_info()
-    two_step = st.checkbox(
-        "Split into groups first, then build personas within each group",
-        value=False,
-        key="persona_two_step",
-        help=(
-            "Optional. Choose attributes to split leads into groups first; "
-            "personas are then built within each group."
-        ),
-    )
-    if two_step:
-        grouping_attributes = st.multiselect(
-            "Split by",
-            options=split_offered,
-            default=[],
-            format_func=attribute_display_label,
-            key="persona_grouping_attrs",
-            help='Reads as "Split by [these] first, then create personas within each group".',
+
+    # The left column keeps everything that belongs to "how to group" (audience,
+    # split), so a suggestion note appearing under "Number of personas" on the
+    # right never moves it. If the note is taller, the whole section grows and
+    # what follows moves down once, for both sides.
+    with ctl_left:
+        # The page never uses the business-segment level; split by "segment" instead.
+        if level == LEVEL_CAMPAIGN:
+            campaign_pool = _render_campaign_pool_selector(run_result_key)
+
+        # --- split control, above the picker, at both levels (Req 3.8, 3.22) ---
+        two_step = st.checkbox(
+            "Split into groups first, then build personas within each group",
+            value=False,
+            key="persona_two_step",
+            help=(
+                "Optional. Choose attributes to split leads into groups first; "
+                "personas are then built within each group."
+            ),
         )
-        st.caption(split_columns_caption(split_left_out))
+        if two_step:
+            grouping_attributes = st.multiselect(
+                "Split by *",
+                options=split_offered,
+                default=[],
+                format_func=attribute_display_label,
+                key="persona_grouping_attrs",
+                help='Reads as "Split by [these] first, then create personas within each group".',
+            )
+            st.caption(split_columns_caption(split_left_out))
 
     # --- Attribute_Picker: grouped multiselect with readable labels ---
     # Chosen split columns are removed from the options and defaults (Req 3.23).
@@ -2162,7 +2174,7 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
         st.caption(_exclusion)
     # Part 9: the section label already says what these are, so the extra
     # "Attributes to build personas on" line was removed (owner request).
-    theme.section_label("Attributes", "What the personas are built from.")
+    theme.section_label("Attributes", "What the personas are built from. Pick at least one.")
     selected_attributes: list[str] = []
     picker_cols = st.columns(2)
     for i, (group, cols) in enumerate(grouped.items()):
@@ -2198,13 +2210,15 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
         st.warning(_warning)
 
     # --- Suggest a number (optional helper; never runs during a build) ---
-    _render_suggest_helper(
-        level=level,
-        attributes=selected_attributes,
-        business_segment_field=business_segment_field,
-        campaign_pool=campaign_pool,
-        run_result_key=run_result_key,
-    )
+    # Drawn in the place reserved under "Number of personas".
+    with suggest_place:
+        _render_suggest_helper(
+            level=level,
+            attributes=selected_attributes,
+            business_segment_field=business_segment_field,
+            campaign_pool=campaign_pool,
+            run_result_key=run_result_key,
+        )
 
     # --- Run control + validation (Requirements 6.1, 6.2) ---
     with st.container(key=ui_effects.P8_BTN_BUILD_PERSONAS):
@@ -2217,6 +2231,8 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
     loader_slot = st.empty()
     if run_clicked:
         error = validation_error(len(selected_attributes), k, level)
+        if error is None and missing_persona_split(two_step, grouping_attributes):
+            error = required_message(["Split by"])
         if error is not None:
             # Reject the run, RETAIN config + displayed results (Requirement 6.2):
             # we simply show the error and fall through to re-render whatever run

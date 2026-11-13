@@ -63,10 +63,15 @@ def status_chips_html() -> str:
 
 
 def notice(kind: str, does: str = "", *, chips: bool = False) -> None:
-    """One section notice (Requirement 32); with ``chips`` the mode chips too."""
-    markup = theme.ai_notice_html(kind, does)
+    """One section notice (Requirement 32); with ``chips`` it also names the model."""
     if chips:
-        markup = status_chips_html() + markup
+        # The mode and the model live inside the notice: a blue "Powered by
+        # Amazon Bedrock" chip and a "Model:" line (never a key or secret).
+        markup = theme.ai_notice_html(
+            kind, does, model=bedrock.model_id() or "", demo=mode_label() != "Bedrock"
+        )
+    else:
+        markup = theme.ai_notice_html(kind, does)
     theme.st_markdown(markup)
 
 
@@ -88,6 +93,20 @@ def meta_html(rec: ai_usage.UsageRecord | None) -> str:
         why = ai_usage.reason_text(rec.reason)
         line += f" | {why[:1].upper() + why[1:]}"
     return theme.ai_meta_html(tag, chip, line)
+
+
+def assistant_identity(bedrock_used: bool) -> tuple[str, str]:
+    """(name, logo) shown above an assistant reply in the transcript.
+
+    A Bedrock reply from an Anthropic model is "Claude" with the Claude mark;
+    another Bedrock model shows its own name; a built-in reply says so.
+    """
+    if not bedrock_used:
+        return "Built-in Rules", ""
+    provider, name = theme.model_display(bedrock.model_id() or "")
+    if provider == "Anthropic" or not name:
+        return "Claude", "claude"
+    return name, ""
 
 
 def wait_html(estimate_tokens: int | None = None) -> str:

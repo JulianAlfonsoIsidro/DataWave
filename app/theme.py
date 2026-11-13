@@ -883,16 +883,17 @@ def whatif_change_html(
         if value is None:
             return ""
         return f' <span class="pan-jp-fc">({html.escape(forecast_text(value))})</span>'
-    def fig(k: str, v_html: str, cls: str = "") -> str:
-        return (
-            f'<div class="pan-wi-fig{cls}"><span class="pan-wi-k">{html.escape(k)}</span>'
-            f'<span class="pan-wi-v">{v_html}</span></div>'
-        )
+    def fig(k: str, v_html: str, cls: str = "", *, key_below: bool = False) -> str:
+        key = f'<span class="pan-wi-k">{html.escape(k)}</span>'
+        val = f'<span class="pan-wi-v">{v_html}</span>'
+        return f'<div class="pan-wi-fig{cls}">{val + key if key_below else key + val}</div>'
 
     now_html = _kpi_number_html(number, prev) + fc(forecast)
     if base_number is None or base_label is None or base_label == now_label:
+        # One figure: the number leads and the threshold is one muted line
+        # under it (the slider already shows the amount).
         suffix = " (as run)" if base_label == now_label and base_label is not None else ""
-        figs = fig(f"At {now_label}{suffix}", now_html, " is-now")
+        figs = fig(f"At {now_label}{suffix}", now_html, " is-now", key_below=True)
     else:
         try:
             delta = float(str(number).replace(",", "")) - float(str(base_number).replace(",", ""))
@@ -907,34 +908,6 @@ def whatif_change_html(
         '<section class="pan-wi" aria-label="Expected joiners at this threshold">'
         f'<div class="pan-wi-title">{html.escape(label)}</div>'
         f'<div class="pan-wi-figs">{figs}</div></section>'
-    )
-
-
-_CUBE_FACES = ("front", "back", "right", "left", "top", "bottom")
-# Finish sparks: (dx, dy) in px, outward from the cube.
-_CUBE_SPARKS = ((-14, -10), (14, -10), (-17, 3), (17, 3), (-7, -17), (7, -17))
-
-
-def bedrock_html(state: str = "rest") -> str:
-    """The Ask Assistant avatar (Part 9): a small 8-bit stone block in 3D.
-
-    ``state`` is "spin" (thinking: turns steadily), "finish" (the answer is
-    ready: spins up, hops with a few pixel sparks, lands and wobbles to rest)
-    or "rest" (still, on every answer). The block sits exactly over the
-    assistant avatar (styles.css section 24); the texture is an original
-    pixel pattern, drawn in greys.
-    """
-    state = state if state in ("spin", "finish", "rest") else "rest"
-    faces = "".join(f'<i class="pan-cube-{face}"></i>' for face in _CUBE_FACES)
-    sparks = ""
-    if state == "finish":
-        sparks = "".join(
-            f'<b class="pan-cube-spark" style="--dx:{dx}px;--dy:{dy}px"></b>'
-            for dx, dy in _CUBE_SPARKS
-        )
-    return (
-        f'<span class="pan-cube-slot is-{state}" aria-hidden="true">'
-        f'<span class="pan-cube">{faces}</span>{sparks}</span>'
     )
 
 
@@ -1537,7 +1510,13 @@ _FIREWORKS = (
     ("25%", "100%", 100), ("50%", "100%", 90), ("75%", "100%", 80),
     ("0%", "33%", 190), ("0%", "67%", 170), ("100%", "33%", -10), ("100%", "67%", 10),
 )
-_FIREWORK_COLOURS = ("--pan-primary", "--pan-gold", "--pan-primary-to")
+# Owner request: red and gold only.
+_FIREWORK_COLOURS = ("--pan-primary", "--pan-gold")
+# The fireworks fill the whole ending: three waves back to back, the first
+# starting with the ending and the last landing as it ends (styles.css
+# section 17). Each wave turns the burst a little so they do not overlap.
+_FIREWORK_WAVES = 3
+_FIREWORK_WAVE_TURN = 14   # degrees between waves
 
 
 def _finish_analysis(elapsed: float) -> str:
@@ -1614,11 +1593,14 @@ def _finish_suggest(elapsed: float) -> str:
 
 def _fireworks_html() -> str:
     parts = []
-    for i, (x, y, a) in enumerate(_FIREWORKS):
-        c = _FIREWORK_COLOURS[i % len(_FIREWORK_COLOURS)]
-        style = f"--x:{x};--y:{y};--a:{a}deg;--i:{i};--c:var({c})"
-        parts.append(f'<span class="pan-fin-spark" style="{style}"></span>')
-        parts.append(f'<span class="pan-fin-dot" style="{style}"></span>')
+    for w in range(_FIREWORK_WAVES):
+        for i, (x, y, a) in enumerate(_FIREWORKS):
+            # Alternate red and gold, and swap the pattern each wave.
+            c = _FIREWORK_COLOURS[(i + w) % len(_FIREWORK_COLOURS)]
+            turn = a + (w - 1) * _FIREWORK_WAVE_TURN
+            style = f"--x:{x};--y:{y};--a:{turn}deg;--i:{i};--w:{w};--c:var({c})"
+            parts.append(f'<span class="pan-fin-spark" style="{style}"></span>')
+            parts.append(f'<span class="pan-fin-dot" style="{style}"></span>')
     return f'<span class="pan-fin-sparks" aria-hidden="true">{"".join(parts)}</span>'
 
 
@@ -1886,10 +1868,46 @@ WAIT_LABELS = ("Mining", "Crafting")
 _PIXEL_STEPS = tuple((i % 3) + abs(i // 3 - 1) for i in range(9))
 
 
-def ai_chip_html(text: str, *, icon: bool = False, kind: str = "neutral") -> str:
-    """A small chip (mode, model id, token counts). ``icon`` adds the Bedrock mark."""
+def ai_chip_html(text: str, *, icon: bool = False, kind: str = "neutral", logo: str = "") -> str:
+    """A small chip (mode, model, token counts).
+
+    ``icon`` adds the Bedrock mark (drawn in the chip's text colour);
+    ``logo="claude"`` adds the Claude mark in its own colour.
+    """
     cls = "pan-ai-chip" + (" has-icon" if icon else "") + (f" is-{kind}" if kind != "neutral" else "")
-    return f'<span class="{cls}">{html.escape(text)}</span>'
+    mark = f'<i class="pan-ai-logo is-{html.escape(logo)}" aria-hidden="true"></i>' if logo else ""
+    return f'<span class="{cls}">{mark}{html.escape(text)}</span>'
+
+
+_PROVIDERS = {"anthropic": "Anthropic", "amazon": "Amazon", "meta": "Meta",
+              "mistral": "Mistral", "cohere": "Cohere", "ai21": "AI21"}
+_REGION_PREFIXES = ("global", "us", "eu", "apac", "ap", "ca", "jp", "au")
+
+
+def model_display(model_id: str) -> tuple[str, str]:
+    """``("Anthropic", "Claude Sonnet 5.5")`` from a Bedrock model id.
+
+    Drops the region prefix ("global.", "us."), the version suffix (":0",
+    "-v1") and a date stamp; joins number parts with a dot and capitalises the
+    words. An id it cannot read comes back as ``("", model_id)``.
+    """
+    raw = str(model_id or "").strip()
+    parts = raw.split(".")
+    if len(parts) > 2 and parts[0].lower() in _REGION_PREFIXES:
+        parts = parts[1:]
+    if len(parts) < 2:
+        return "", raw
+    provider = _PROVIDERS.get(parts[0].lower(), parts[0].title())
+    name = ".".join(parts[1:]).split(":")[0]
+    words: list[str] = []
+    for tok in name.split("-"):
+        if not tok or re.fullmatch(r"v\d+", tok) or re.fullmatch(r"\d{8}", tok):
+            continue
+        if tok.isdigit() and words and re.fullmatch(r"\d+(\.\d+)*", words[-1]):
+            words[-1] += "." + tok
+        else:
+            words.append(tok if tok.isdigit() else tok[:1].upper() + tok[1:])
+    return provider, " ".join(words) or raw
 
 
 def ai_tag_html(text: str = "AI-generated") -> str:
@@ -1898,7 +1916,10 @@ def ai_tag_html(text: str = "AI-generated") -> str:
     return f'<span class="{cls}">{html.escape(text)}</span>'
 
 
-def ai_notice_html(kind: str, does: str = "", *, powered: bool | None = None) -> str:
+def ai_notice_html(
+    kind: str, does: str = "", *, powered: bool | None = None,
+    model: str = "", demo: bool = False,
+) -> str:
     """One section notice: "bedrock" or "prediction" kind, fixed words.
 
     The Bedrock kind carries the "Powered by Amazon Bedrock" chip and a line
@@ -1906,7 +1927,20 @@ def ai_notice_html(kind: str, does: str = "", *, powered: bool | None = None) ->
     """
     bedrock = kind == "bedrock"
     words = AI_NOTICE_BEDROCK if bedrock else AI_NOTICE_PREDICTION
-    chip = ai_chip_html("Powered by Amazon Bedrock", icon=True) if (bedrock if powered is None else powered) else ""
+    chip = (
+        ai_chip_html("Powered by Amazon Bedrock", icon=True, kind="bedrock")
+        if (bedrock if powered is None else powered) else ""
+    )
+    if chip and model:
+        # The model sits in its own neutral chip beside "Powered by", in plain
+        # words ("Model from Anthropic: Claude Sonnet 5.5"), with the
+        # provider's mark when there is one.
+        provider, name = model_display(model)
+        text = f"Model from {provider}: {name}" if provider else f"Model: {name}"
+        chip += ai_chip_html(text, logo="claude" if provider == "Anthropic" else "", kind="model")
+    if chip and demo:
+        # Keep the session honest: the built-in rules are answering.
+        chip += ai_chip_html("Demo Mode", kind="demo")
     extra = ""
     if does:
         extra = f'<div class="pan-ai-notice-does">{html.escape(does)}</div>'
@@ -1943,11 +1977,18 @@ def wait_line_html(estimate_text: str = "", *, start_ms: int | None = None, labe
 
     start = int(_time.time() * 1000) if start_ms is None else int(start_ms)
     pixels = "".join(f'<i style="--d:{d}"></i>' for d in _PIXEL_STEPS)
+    # Both words sit in one cell (the box is as wide as the longer one, so the
+    # timer never shifts); the page script slides one out and the other in.
+    names = list(WAIT_LABELS) if label in WAIT_LABELS else [label, *WAIT_LABELS]
+    words = "".join(
+        f'<span class="pan-wait-word{" is-on" if name == label else ""}">{html.escape(name)}</span>'
+        for name in names
+    )
     est = f'<span class="pan-wait-sep">|</span><span class="pan-wait-est">{html.escape(estimate_text)}</span>' if estimate_text else ""
     return (
         f'<div class="pan-wait" role="status" aria-live="polite" data-start="{start}">'
         f'<span class="pan-wait-grid" aria-hidden="true">{pixels}</span>'
-        f'<span class="pan-wait-label">{html.escape(label)}</span>'
+        f'<span class="pan-wait-label">{words}</span>'
         '<span class="pan-wait-time">0.0s</span>'
         f"{est}</div>"
     )
@@ -1956,3 +1997,17 @@ def wait_line_html(estimate_text: str = "", *, start_ms: int | None = None, labe
 def user_marker_html() -> str:
     """The user's turn marker in the assistant transcript: a small solid dot."""
     return '<span class="pan-turn-dot" aria-label="You"></span>'
+
+
+def user_bubble_html(text: str) -> str:
+    """A question in the transcript: a bubble on the right (chat layout)."""
+    return (
+        '<div class="pan-chat-user" role="group" aria-label="You">'
+        f'<div class="pan-chat-bubble">{html.escape(text)}</div></div>'
+    )
+
+
+def assistant_header_html(name: str, logo: str = "") -> str:
+    """The name line above a reply: the model's mark, then its name."""
+    mark = f'<i class="pan-ai-logo is-{html.escape(logo)}" aria-hidden="true"></i>' if logo else ""
+    return f'<div class="pan-chat-who">{mark}<span>{html.escape(name)}</span></div>'

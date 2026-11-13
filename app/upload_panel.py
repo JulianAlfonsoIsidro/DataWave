@@ -284,7 +284,8 @@ def render_upload_panel(
                 "Fill Form with Bedrock",
                 key="bedrock_btn_upload_fill",
                 disabled=not allowed,
-                help="Sends the masked text to Amazon Bedrock to read the fields.",
+                help="Sends the masked text to Amazon Bedrock to read the fields. "
+                     + ai_usage.TOKEN_HINTS["upload"],
             )
             use_builtin = st.button(
                 "Fill Form with Built-in Rules",

@@ -120,17 +120,49 @@
   function hold(fin) {
     fin.setAttribute("data-p8-adopted", "");
     fin.classList.add("is-held");
+    // Copy the live positions NOW, in the same task the ending mounts: the
+    // old running loader is still on the page for the first moments of the
+    // rerun. Waiting until it is gone (as before) left nothing to copy, so
+    // the ending started from a server-side guess and the trace, strip and
+    // tiles visibly jumped.
+    adopt(fin);
     var t0 = performance.now(), last = t0, smooth = 0;
     fin.setAttribute("data-p8-held-at", String(Math.round(t0)));
     function release() {
-      adopt(fin);
+      // Positions were adopted when the ending mounted; copy again only if
+      // the old loader is somehow still here (cap reached), else keep them.
+      if (document.querySelector(LOADER)) adopt(fin);
       // Restart the overlay's own fade so its hold-and-fade counts from now.
       fin.style.animation = "none";
       void fin.offsetWidth;
       fin.style.animation = "";
       fin.classList.remove("is-held");
       fin.setAttribute("data-p8-released-after", String(Math.round(performance.now() - t0)));
+      frameLock(fin);
       awaitRun();
+    }
+    // Owner request: the ending always takes its full 2 s on screen. CSS
+    // animations run on the clock, so when the browser stalls (the rest of the
+    // rerun drawing the page) they jump ahead and look rushed. Each frame, any
+    // time beyond one normal frame is given back to the ending's animations,
+    // so a stall freezes the ending instead of skipping part of it.
+    function frameLock(el) {
+      var prev = performance.now(), started = prev;
+      var FRAME = 1000 / 60;
+      function tick(now) {
+        if (!el.isConnected || el.classList.contains("p8-ended") || now - started > 12000) return;
+        var lost = (now - prev) - FRAME * 1.5;
+        prev = now;
+        if (lost > 0 && el.getAnimations) {
+          el.getAnimations({ subtree: true }).forEach(function (a) {
+            if (a.playState === "running" && a.currentTime !== null) {
+              a.currentTime = Math.max(0, a.currentTime - lost);
+            }
+          });
+        }
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
     }
     // Part 9: the ending plays now, but Streamlit may still be drawing the
     // rest of the page (every tab renders on each run). Just before the card
@@ -164,7 +196,22 @@
     requestAnimationFrame(frame);
   }
 
+  // Part 9: a job click dims the page at once (ui_interactions.js, scrim on
+  // <html>). When the real loader mounts it takes that scrim over at full
+  // strength and fades in only its card, then the click scrim goes: the page
+  // never dips or jumps between the two.
+  function handoff() {
+    var root = document.documentElement;
+    var loaders = document.querySelectorAll(LOADER + ":not([data-p9-handoff])");
+    if (!loaders.length) return;
+    if (root.hasAttribute("data-p9-job-click")) {
+      loaders.forEach(function (l) { l.setAttribute("data-p9-handoff", ""); });
+      root.removeAttribute("data-p9-job-click");
+    }
+  }
+
   function sync() {
+    handoff();
     document.querySelectorAll(".pan-loading.is-finishing:not([data-p8-adopted])").forEach(hold);
     var on = document.querySelector(LOADER) !== null;
     if (on) {

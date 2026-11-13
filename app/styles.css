@@ -41,7 +41,8 @@
 
   /* text */
   --pan-text:            light-dark(#1F2328, #ECEEF1);
-  --pan-text-muted:      light-dark(#5B616B, #A7ADB8);
+  /* Light mode muted text is a step darker (was #5B616B), still not black. */
+  --pan-text-muted:      light-dark(#454A52, #A7ADB8);
   --pan-on-primary:      #FFFFFF;
 
   /* brand red */
@@ -129,11 +130,6 @@
   --pan-radius-pill: 999px;
 
 
-  /* Part 9: the Ask Assistant stone block (section 24) */
-  --pan-cube-base: #5E5E5E;                  /* the block's grey, the same in both modes */
-  --pan-cube-size: 19px;
-  --pan-dur-cube-spin: 1600ms;               /* one turn while thinking */
-  --pan-dur-cube-finish: 900ms;              /* spin up, hop, land, wobble */
 
   /* Part 9: one control height for tabs, inputs and buttons */
   --pan-control-h: 40px;
@@ -141,7 +137,7 @@
   --pan-dur-tip: 160ms;
   /* Part 9: light/dark switch, the new theme rises like liquid filling a
      tray. Long on purpose (asked for, and a rare action). */
-  --pan-dur-theme-fill: 1100ms;
+  --pan-dur-theme-fill: 1000ms;   /* owner request: 1 s in all */
   --pan-ease-bubble: cubic-bezier(0.42, 0, 1, 1);   /* Part 9: a bubble speeds up as it rises */
   /* Part 9 buttons: a quick press, a springy release, red fading back */
   --pan-dur-bounce: 420ms;
@@ -155,12 +151,9 @@
   --pan-pixel-gap: 1.5px;
   --pan-turn-marker: 1.75rem;      /* the transcript's marker column */
   --pan-turn-dot: 0.5rem;          /* the user's dot */     /* the red fading out once the work is done */
-  /* Part 9 round 2: the ? button sits left of the Settings menu; the header
-     keeps clear of both (Requirement 28.3). Positions are approximate and
-     follow Streamlit 1.66.1's toolbar. */
-  --pan-help-top: 10px;          /* centred on the 28px Settings button at 16px */
-  --pan-help-right: 58px;
-  --pan-help-clearance: 108px;
+  /* The ? button now sits at the bottom right (owner request), so the header
+     only keeps clear of Streamlit 1.66.1's Settings menu. */
+  --pan-help-clearance: 56px;
   --pan-flow-bar-h: 56px;      /* room for a count over its share */
   --pan-flow-min: 4px;          /* a small part stays visible */
   /* Part 9: Ask Assistant waiting indicator (loops only while waiting) */
@@ -218,8 +211,12 @@
      1600ms + 500ms linger + 600ms fireworks + 250ms hold, about 3s before
      the results showed; now about 1.15s). The stories keep their shape; they
      run on this one clock. */
-  --pan-dur-finish: 800ms;
-  --pan-dur-finish-linger: 200ms;  /* the finished frame stays this much longer */
+  /* Owner request: every loader ending lasts 2 s in all (story 1600 ms, the
+     speed the trace and strip were matched to, so nothing speeds up as the
+     loop hands over; then 150 ms hold and 250 ms linger). page_lock.js keeps
+     it at 2 s on a busy page too: a dropped frame never skips ahead. */
+  --pan-dur-finish: 1600ms;
+  --pan-dur-finish-linger: 250ms;  /* the finished frame stays this much longer */
   /* Trace fill: starts at the running lap speed (100 units per 1400 ms over
      78 units in 1600 ms gives an initial slope of 1.465), then eases to a stop. */
   --pan-ease-trace: cubic-bezier(0.3, 0.44, 0.45, 1);
@@ -1132,7 +1129,10 @@ div[data-baseweb="input"]:has(input:disabled), div[data-baseweb="select"]:has(in
    It stays invisible for --pan-loader-delay (see MOTION note) so a fast or
    cached run never flashes it. */
 .pan-loading {
-  --pan-loader-delay: 350ms;
+  /* A job button was pressed on purpose, so the loader answers at once
+     (ui_interactions.js draws the scrim on the click itself, before the
+     rerun reaches the server). Only a slow variant still waits. */
+  --pan-loader-delay: 0ms;
   position: fixed;
   inset: 0;
   z-index: var(--pan-z-loader);
@@ -1148,6 +1148,29 @@ div[data-baseweb="input"]:has(input:disabled), div[data-baseweb="select"]:has(in
   animation: pan-reveal var(--pan-dur) var(--pan-ease) var(--pan-loader-delay) forwards;
 }
 .pan-loading--slow { --pan-loader-delay: 800ms; }
+
+/* Instant answer to a job click (ui_interactions.js part 6). The scrim is the
+   loader's own, so when the real loader arrives it takes over the scrim at
+   full strength (data-p9-handoff, set by page_lock.js) and only its card fades
+   in: the page never dips or jumps between the two. */
+html[data-p9-job-click]::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: var(--pan-z-loader);
+  background: var(--pan-scrim);
+  cursor: progress;
+  pointer-events: auto;
+  animation: pan-reveal var(--pan-dur-fast) var(--pan-ease) both;
+}
+.pan-loading[data-p9-handoff] { opacity: 1; animation: none; }
+.pan-loading[data-p9-handoff]:not(.is-finishing) .pan-loading-card {
+  animation: pan-reveal var(--pan-dur) var(--pan-ease) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-p9-job-click]::after,
+  .pan-loading[data-p9-handoff]:not(.is-finishing) .pan-loading-card { animation: none; }
+}
 .pan-loading-card {
   width: min(360px, 90vw);
   text-align: center;
@@ -2641,22 +2664,26 @@ div[data-testid="stElementContainer"][data-stale="true"]:has(.pan-loading) {
   100% { transform: translate(var(--xb), var(--yb)) scale(1.75); }
 }
 
-/* ---- Fireworks: the moment the border is full ----
-   Part 9: not shown. Finishing a run is routine, not a celebration; the
-   full border and the headline already say it is done. */
-.pan-fin-sparks { position: absolute; inset: -6px; pointer-events: none; display: none; }
+/* ---- Fireworks: red and gold particles out of the card ----
+   Owner request: they run in tandem with the ending. Three waves back to
+   back fill exactly --pan-reveal-start (the whole 2 s ending): the first
+   wave starts with the ending, the last one fades out as it ends. They sit
+   on the same clock as the story, so the hold (is-held) and page_lock.js's
+   frame lock pause and stretch them with it. Transform and opacity only. */
+.pan-fin-sparks { position: absolute; inset: -6px; pointer-events: none; }
 .pan-fin-spark,
 .pan-fin-dot {
+  --pan-fw-wave: calc(var(--pan-reveal-start) / 3);
   position: absolute;
   left: var(--x);
   top: var(--y);
   opacity: 0;
   background: var(--c);
   transform-origin: 0 50%;
-  animation-duration: var(--pan-dur-spark);
+  animation-duration: var(--pan-fw-wave);
   animation-timing-function: var(--pan-ease);
-  animation-fill-mode: forwards;
-  animation-delay: calc(var(--pan-dur-finish) + var(--pan-dur-fast) * var(--i) / 20);
+  animation-fill-mode: both;
+  animation-delay: calc(var(--pan-fw-wave) * var(--w, 0));
 }
 .pan-fin-spark {
   inline-size: 12px;
@@ -2673,14 +2700,15 @@ div[data-testid="stElementContainer"][data-stale="true"]:has(.pan-loading) {
   animation-name: p8-fin-dot;
 }
 @keyframes p8-fin-spark {
-  0%   { opacity: 1; transform: rotate(var(--a)) translateX(2px) scaleX(0.4); }
-  40%  { opacity: 1; transform: rotate(var(--a)) translateX(12px) scaleX(1); }
-  100% { opacity: 0; transform: rotate(var(--a)) translateX(24px) scaleX(0.2); }
+  0%   { opacity: 0; transform: rotate(var(--a)) translateX(2px) scaleX(0.4); }
+  10%  { opacity: 1; }
+  45%  { opacity: 1; transform: rotate(var(--a)) translateX(16px) scaleX(1); }
+  100% { opacity: 0; transform: rotate(var(--a)) translateX(30px) scaleX(0.2); }
 }
 @keyframes p8-fin-dot {
   0%   { opacity: 0; transform: rotate(var(--a)) translateX(6px) scale(0.5); }
-  30%  { opacity: 1; transform: rotate(var(--a)) translateX(18px) scale(1); }
-  100% { opacity: 0; transform: rotate(var(--a)) translateX(34px) scale(0.6); }
+  30%  { opacity: 1; transform: rotate(var(--a)) translateX(22px) scale(1); }
+  100% { opacity: 0; transform: rotate(var(--a)) translateX(42px) scale(0.6); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2908,7 +2936,8 @@ body:has(.pan-loading.is-finishing) .pan-loading:not(.is-finishing) { visibility
 /* ===================================================================== */
 /* 21. PART 9 THEME SWITCH: the new theme rises like bubbling liquid     */
 /* ===================================================================== */
-/* ui_interactions.js adds .p9-liquid (in the new theme's page colour, set as
+/* Fallback (no View Transitions; the main path is the wave mask at the end
+   of this section). ui_interactions.js adds .p9-liquid (in the new theme's page colour, set as
    --liquid) and holds the theme click. The liquid rises from the bottom
    over --pan-dur-theme-fill; its top edge is a strip with round bubbles
    that grow, float up and shrink, melted together by the #p9-blob filter
@@ -2970,6 +2999,26 @@ body:has(.pan-loading.is-finishing) .pan-loading:not(.is-finishing) { visibility
   100% { bottom: var(--distance); }
 }
 
+/* Owner request: the whole page changes as the water passes it. With View
+   Transitions (ui_interactions.js waveSwitch) the page in the new theme is
+   revealed through --pan-theme-mask: a level water surface with many even
+   waves, rising from below the page while the waves drift sideways, drawn
+   by the script as an animated SVG for this window. Under the water the page is
+   already in the new theme; above it, the old one. The hold animation only
+   keeps the transition open for the whole fill (a transition ends when its
+   pseudo-elements stop animating). The overlay above is the fallback. */
+html.p9-theme-wave::view-transition-old(root),
+html.p9-theme-wave::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+html.p9-theme-wave::view-transition-new(root) {
+  -webkit-mask: var(--pan-theme-mask) 0 0 / 100% 100% no-repeat;
+  mask: var(--pan-theme-mask) 0 0 / 100% 100% no-repeat;
+  animation: p9-theme-hold var(--pan-dur-theme-fill) var(--pan-ease-constant) both;
+}
+@keyframes p9-theme-hold { from { opacity: 1; } to { opacity: 1; } }
+
 /* ===================================================================== */
 /* 22. PART 9 ASSISTANT THINKING: a dot circles the avatar while waiting */
 /* ===================================================================== */
@@ -3003,116 +3052,14 @@ body:has(.pan-loading.is-finishing) .pan-loading:not(.is-finishing) { visibility
 }
 
 /* ===================================================================== */
-/* 24. PART 9 ASK ASSISTANT AVATARS: the stone block, and a gold user    */
+/* 24. PART 9 ASK ASSISTANT: the user's avatar is gold                   */
 /* ===================================================================== */
-/* The assistant's avatar is a small 3D block (theme.bedrock_html), laid
-   exactly over Streamlit's avatar box (16px in, 32px square), which is
-   emptied. States: is-spin turns steadily while thinking; is-finish spins
-   up, hops with six pixel sparks, lands and wobbles to the rest pose; is-rest
-   is still. Transform and opacity only, tiny element, so repeated prompts
-   cost nothing. The texture is an original 8x8 pixel pattern. */
+/* The assistant has no avatar: while it works the 3 by 3 pixel wait line
+   (section 29) is the only indicator. */
 [data-testid="stChatMessage"] { position: relative; }
-/* The block positions against the whole message: the Streamlit wrappers
-   around it would otherwise anchor it inside the text column. */
-[data-testid="stChatMessage"] *:has(.pan-cube-slot) { position: static !important; }
-/* When the block is alone in its element (no Demo badge), that element takes
-   no row, so the reply text starts at the top as before. */
-[data-testid="stChatMessage"] [data-testid="stElementContainer"]:has(.pan-cube-slot):not(:has(.pan-badge, .pan-thinking)),
-[data-testid="stChatMessage"] [data-testid="stElementContainer"]:has(.pan-cube-slot):not(:has(.pan-badge, .pan-thinking)) *:has(.pan-cube-slot) {
-  display: contents;
-}
-[data-testid="stChatMessage"]:has(.pan-cube-slot) [data-testid="stChatMessageAvatarAssistant"] {
-  background: transparent !important;
-}
-[data-testid="stChatMessage"]:has(.pan-cube-slot) [data-testid="stChatMessageAvatarAssistant"] > * {
-  visibility: hidden;
-}
-/* The user's avatar keeps its icon, in gold. */
 [data-testid="stChatMessageAvatarUser"] {
   background: var(--pan-gold) !important;
   color: var(--pan-on-gold) !important;
-}
-.pan-cube-slot {
-  position: absolute;
-  left: var(--pan-space-4);
-  top: var(--pan-space-4);
-  inline-size: var(--pan-space-6);
-  block-size: var(--pan-space-6);
-  display: grid;
-  place-items: center;
-  perspective: 140px;
-  pointer-events: none;
-}
-.pan-cube {
-  position: relative;
-  inline-size: var(--pan-cube-size);
-  block-size: var(--pan-cube-size);
-  transform-style: preserve-3d;
-  transform: rotateX(-26deg) rotateY(45deg);
-}
-.pan-cube > i {
-  position: absolute;
-  inset: 0;
-  background-color: var(--pan-cube-base);
-  background-image: linear-gradient(var(--pan-cube-shade, transparent), var(--pan-cube-shade, transparent)), var(--pan-cube-tex);
-  background-size: 100% 100%, 100% 100%;
-  image-rendering: pixelated;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, black 30%, transparent);
-  backface-visibility: hidden;
-}
-.pan-cube-front  { transform: translateZ(calc(var(--pan-cube-size) / 2)); --pan-cube-shade: color-mix(in srgb, black 12%, transparent); }
-.pan-cube-back   { transform: rotateY(180deg) translateZ(calc(var(--pan-cube-size) / 2)); --pan-cube-shade: color-mix(in srgb, black 12%, transparent); }
-.pan-cube-right  { transform: rotateY(90deg) translateZ(calc(var(--pan-cube-size) / 2)); --pan-cube-shade: color-mix(in srgb, black 30%, transparent); }
-.pan-cube-left   { transform: rotateY(-90deg) translateZ(calc(var(--pan-cube-size) / 2)); --pan-cube-shade: color-mix(in srgb, black 30%, transparent); }
-.pan-cube-top    { transform: rotateX(90deg) translateZ(calc(var(--pan-cube-size) / 2)); --pan-cube-shade: color-mix(in srgb, white 14%, transparent); }
-.pan-cube-bottom { transform: rotateX(-90deg) translateZ(calc(var(--pan-cube-size) / 2)); --pan-cube-shade: color-mix(in srgb, black 45%, transparent); }
-
-/* Thinking: one steady turn after another. */
-.pan-cube-slot.is-spin .pan-cube {
-  animation: pan-cube-spin var(--pan-dur-cube-spin) var(--pan-ease-constant) infinite;
-}
-@keyframes pan-cube-spin {
-  from { transform: rotateX(-26deg) rotateY(45deg); }
-  to   { transform: rotateX(-26deg) rotateY(405deg); }
-}
-/* Ready: spin up fast, hop, land, wobble, rest (1125deg = the rest pose). */
-.pan-cube-slot.is-finish .pan-cube {
-  animation: pan-cube-finish var(--pan-dur-cube-finish) both;
-}
-@keyframes pan-cube-finish {
-  0%   { transform: translateY(0) rotateZ(0deg) rotateX(-26deg) rotateY(45deg); animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  30%  { transform: translateY(0) rotateZ(0deg) rotateX(-26deg) rotateY(1125deg); animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1); }
-  48%  { transform: translateY(-15px) rotateZ(0deg) rotateX(-26deg) rotateY(1125deg); animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  62%  { transform: translateY(0) rotateZ(0deg) rotateX(-26deg) rotateY(1125deg); animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1); }
-  72%  { transform: translateY(0) rotateZ(10deg) rotateX(-26deg) rotateY(1125deg); }
-  82%  { transform: translateY(0) rotateZ(-6deg) rotateX(-26deg) rotateY(1125deg); }
-  91%  { transform: translateY(0) rotateZ(3deg) rotateX(-26deg) rotateY(1125deg); }
-  100% { transform: translateY(0) rotateZ(0deg) rotateX(-26deg) rotateY(1125deg); }
-}
-/* Six pixel sparks at the top of the hop. */
-.pan-cube-spark {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  inline-size: 3px;
-  block-size: 3px;
-  margin: -1.5px 0 0 -1.5px;
-  background: var(--pan-gold);
-  opacity: 0;
-  animation: pan-cube-spark calc(var(--pan-dur-cube-finish) * 0.32) var(--pan-ease) both;
-  animation-delay: calc(var(--pan-dur-cube-finish) * 0.42);
-}
-.pan-cube-spark:nth-child(3n) { background: var(--pan-primary); }
-.pan-cube-spark:nth-child(3n+1) { background: var(--pan-cube-base); }
-@keyframes pan-cube-spark {
-  0%   { opacity: 1; transform: translate(0, -8px) scale(1); }
-  100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) - 8px)) scale(0.6); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .pan-cube-slot.is-spin .pan-cube { animation: pan-cube-breathe var(--pan-dur-think-calm) var(--pan-ease-breath) infinite alternate; }
-  .pan-cube-slot.is-finish .pan-cube { animation: none; }
-  .pan-cube-spark { display: none; }
-  @keyframes pan-cube-breathe { from { opacity: 0.55; } to { opacity: 1; } }
 }
 
 /* ===================================================================== */
@@ -3400,10 +3347,11 @@ body:has(.pan-loading.is-finishing) .pan-loading:not(.is-finishing) { visibility
   padding: 0;
   gap: 0;
 }
+/* Owner request: the ? button sits at the bottom right of the window. */
 .st-key-pan_help {
   position: fixed;
-  top: var(--pan-help-top);
-  right: var(--pan-help-right);
+  bottom: var(--pan-space-5);
+  right: var(--pan-space-5);
   z-index: var(--pan-z-help);
   inline-size: auto !important;
   gap: 0;
@@ -3417,18 +3365,8 @@ body:has(.pan-loading.is-finishing) .pan-loading:not(.is-finishing) { visibility
   font-family: var(--pan-font-heading);
   font-weight: var(--pan-weight-bold);
 }
-@media (max-width: 900px) {
-  .st-key-pan_help { transition: opacity var(--pan-dur) var(--pan-ease), transform var(--pan-dur) var(--pan-ease); }
-  html.p9-menu-away .st-key-pan_help {
-    opacity: 0;
-    transform: translateY(-8px);
-    pointer-events: none;
-  }
-}
-@media (max-width: 900px) and (prefers-reduced-motion: reduce) {
-  .st-key-pan_help { transition: opacity var(--pan-dur) var(--pan-ease); }
-  html.p9-menu-away .st-key-pan_help { transform: none; }
-}
+/* Toasts share the bottom-right corner: they sit above the ? button. */
+:root:has(.st-key-pan_help) .p8-toasts { bottom: calc(var(--pan-space-5) + var(--pan-control-h) + var(--pan-space-3)); }
 
 /* Button labels: room on both sides, centred, and a long label wraps
    instead of being cut (Requirement 26). */
@@ -3624,6 +3562,9 @@ html[data-p9-scheme="light"] { color-scheme: light; }
 /* Spec part9-layout-fixes, Requirements 32 to 36 and 39. Tokens only. */
 :root { --pan-bedrock-icon: url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22black%22%20fill-rule=%22evenodd%22%3E%3Cpath%20d=%22M13.05%2015.513h3.08c.214%200%20.389.177.389.394v1.82a1.704%201.704%200%20011.296%201.661c0%20.943-.755%201.708-1.685%201.708-.931%200-1.686-.765-1.686-1.708%200-.807.554-1.484%201.297-1.662v-1.425h-2.69v4.663a.395.395%200%2001-.188.338l-2.69%201.641a.385.385%200%2001-.405-.002l-4.926-3.086a.395.395%200%2001-.185-.336V16.3L2.196%2014.87A.395.395%200%20012%2014.555L2%2014.528V9.406c0-.14.073-.27.192-.34l2.465-1.462V4.448c0-.129.062-.249.165-.322l.021-.014L9.77%201.058a.385.385%200%2001.407%200l2.69%201.675a.395.395%200%2001.185.336V7.6h3.856V5.683a1.704%201.704%200%2001-1.296-1.662c0-.943.755-1.708%201.685-1.708.931%200%201.685.765%201.685%201.708%200%20.807-.553%201.484-1.296%201.662v2.311a.391.391%200%2001-.389.394h-4.245v1.806h6.624a1.69%201.69%200%20011.64-1.313c.93%200%201.685.764%201.685%201.707%200%20.943-.754%201.708-1.685%201.708a1.69%201.69%200%2001-1.64-1.314H13.05v1.937h4.953l.915%201.18a1.66%201.66%200%2001.84-.227c.931%200%201.685.764%201.685%201.707%200%20.943-.754%201.708-1.685%201.708-.93%200-1.685-.765-1.685-1.708%200-.346.102-.668.276-.937l-.724-.935H13.05v1.806zM9.973%201.856L7.93%203.122V6.09h-.778V3.604L5.435%204.669v2.945l2.11%201.36L9.712%207.61V5.334h.778V7.83c0%20.136-.07.263-.184.335L7.963%209.638v2.081l1.422%201.009-.446.646-1.406-.998-1.53%201.005-.423-.66%201.605-1.055v-1.99L5.038%208.29l-2.26%201.34v1.676l1.972-1.189.398.677-2.37%201.429V14.3l2.166%201.258%202.27-1.368.397.677-2.176%201.311V19.3l1.876%201.175%202.365-1.426.398.678-2.017%201.216%201.918%201.201%202.298-1.403v-5.78l-4.758%202.893-.4-.675%205.158-3.136V3.289L9.972%201.856zM16.13%2018.47a.913.913%200%2000-.908.92c0%20.507.406.918.908.918a.913.913%200%2000.907-.919.913.913%200%2000-.907-.92zm3.63-3.81a.913.913%200%2000-.908.92c0%20.508.406.92.907.92a.913.913%200%2000.908-.92.913.913%200%2000-.908-.92zm1.555-4.99a.913.913%200%2000-.908.92c0%20.507.407.918.908.918a.913.913%200%2000.907-.919.913.913%200%2000-.907-.92zM17.296%203.1a.913.913%200%2000-.907.92c0%20.508.406.92.907.92a.913.913%200%2000.908-.92.913.913%200%2000-.908-.92z%22/%3E%3C/svg%3E"); }
 
+/* The Claude mark (supplied by the owner), in its own colour. */
+:root { --pan-claude-logo: url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%3E%3Cpath%20clip-rule=%22evenodd%22%20fill-rule=%22evenodd%22%20fill=%22%23D97757%22%20d=%22M20.998%2010.949H24v3.102h-3v3.028h-1.487V20H18v-2.921h-1.487V20H15v-2.921H9V20H7.488v-2.921H6V20H4.487v-2.921H3V14.05H0V10.95h3V5h17.998v5.949zM6%2010.949h1.488V8.102H6v2.847zm10.51%200H18V8.102h-1.49v2.847z%22/%3E%3C/svg%3E"); }
+
 /* Notice: one per section, caption size, note surface, never dismissible. */
 .pan-ai-notice {
   display: grid;
@@ -3641,6 +3582,10 @@ html[data-p9-scheme="light"] { color-scheme: light; }
 .pan-ai-notice-text { font-weight: var(--pan-weight-demi); }
 .pan-ai-notice-does { color: var(--pan-text-muted); }
 .pan-ai-notice.is-bedrock .pan-ai-notice-does { color: inherit; opacity: 0.85; }
+.pan-ai-notice .pan-ai-chip.is-bedrock {
+  background: color-mix(in srgb, var(--pan-focus) 16%, transparent);
+  font-weight: var(--pan-weight-demi);
+}
 .pan-ai-notice-chips { display: flex; flex-wrap: wrap; gap: var(--pan-space-2); margin-top: var(--pan-space-1); }
 
 /* Chips and tags. */
@@ -3662,6 +3607,22 @@ html[data-p9-scheme="light"] { color-scheme: light; }
 .pan-ai-chip.is-bedrock { color: var(--pan-focus); border-color: var(--pan-focus); }
 .pan-ai-tag { color: var(--pan-focus); border-color: var(--pan-focus); font-weight: var(--pan-weight-demi); }
 .pan-ai-tag.is-builtin { color: var(--pan-text-muted); border-color: var(--pan-border); font-weight: var(--pan-weight-regular); }
+/* The model chip: neutral and dark (like the old model chip), beside the
+   blue "Powered by" chip. */
+.pan-ai-chip.is-model {
+  background: light-dark(var(--pan-text), var(--pan-surface-2));
+  border-color: light-dark(var(--pan-text), var(--pan-border));
+  color: light-dark(var(--pan-surface), var(--pan-text));
+  font-weight: var(--pan-weight-medium);
+}
+/* Provider marks keep their own colours (an image, not a mask). */
+.pan-ai-logo {
+  flex: none;
+  inline-size: 1em;
+  block-size: 1em;
+  background: center / contain no-repeat;
+}
+.pan-ai-logo.is-claude { background-image: var(--pan-claude-logo); }
 .pan-ai-chip.has-icon::before,
 [class*="st-key-bedrock_btn_"] button::before {
   content: "";
@@ -3704,7 +3665,19 @@ html[data-p9-scheme="light"] { color-scheme: light; }
   margin: var(--pan-space-2) 0;
   color: var(--pan-text-muted);
   font-size: var(--pan-type-caption-size);
+  line-height: var(--pan-wait-line);
+  --pan-wait-line: 1.25rem;
 }
+/* Every part of the line shares one size and one line box, so the grid, the
+   word, the timer, the bar and the estimate sit on one centre line. */
+.pan-wait > * {
+  display: inline-flex;
+  align-items: center;
+  block-size: var(--pan-wait-line);
+  font-size: inherit;
+  line-height: inherit;
+}
+.pan-wait > .pan-wait-grid { display: grid; block-size: auto; }
 .pan-wait-grid {
   display: grid;
   grid-template-columns: repeat(3, var(--pan-pixel-size));
@@ -3721,20 +3694,35 @@ html[data-p9-scheme="light"] { color-scheme: light; }
   animation-delay: calc(var(--d, 0) * var(--pan-pixel-step));
 }
 @keyframes pan-pixel-on { 0%, 100% { opacity: 0.15; } 35% { opacity: 1; } }
-.pan-wait-label {
+/* The two words share one cell, as wide as the longer; the one in view
+   slides up and out while the next slides up from below (opacity and
+   transform only), so "Mining" and "Crafting" trade places smoothly. */
+.pan-wait > .pan-wait-label {
+  display: inline-grid;
+  align-items: center;
+  overflow: hidden;
   font-weight: var(--pan-weight-medium);
+}
+.pan-wait-word {
+  grid-area: 1 / 1;
+  line-height: var(--pan-wait-line);
   color: transparent;
   background-image: linear-gradient(90deg, var(--pan-text-muted) 35%, var(--pan-text) 50%, var(--pan-text-muted) 65%);
   background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   animation: pan-shimmer-text var(--pan-dur-shimmer) var(--pan-ease-constant) infinite;
-  transition: opacity var(--pan-dur-fast) var(--pan-ease);
+  opacity: 0;
+  transform: translateY(100%);
+  transition: transform var(--pan-dur-slow) var(--pan-ease), opacity var(--pan-dur-slow) var(--pan-ease);
 }
-.pan-wait-label.is-swapping { opacity: 0; }
+.pan-wait-word.is-on { opacity: 1; transform: none; }
+.pan-wait-word.is-out { opacity: 0; transform: translateY(-100%); }
 @keyframes pan-shimmer-text { from { background-position: 100% 0; } to { background-position: -100% 0; } }
 .pan-wait-time {
-  font-family: var(--pan-font-number);
+  /* The body font with tabular digits: the number font drew the timer
+     bigger and higher than the words beside it. */
+  font-family: inherit;
   font-variant-numeric: tabular-nums;
   color: var(--pan-text-muted);
 }
@@ -3742,33 +3730,37 @@ html[data-p9-scheme="light"] { color-scheme: light; }
 .pan-wait-est { font-variant-numeric: tabular-nums; font-style: italic; }
 @media (prefers-reduced-motion: reduce) {
   .pan-wait-grid > i { animation: none; opacity: 0.15; }
-  .pan-wait-label { animation: none; color: var(--pan-text-muted); background: none; }
+  .pan-wait-word { animation: none; color: var(--pan-text-muted); background: none; transition: none; }
 }
 
-/* Assistant transcript: a marker column and the turn's text; no bubbles. */
+/* Assistant transcript, chat layout (owner request, modelled on an IDE
+   chat): your question is a bubble on the right; a reply starts with the
+   model's mark and name, with the answer below at full width. No dividers
+   between turns, just room. */
+[class*="st-key-pan_turn_"] { padding: var(--pan-space-2) 0; }
 [class*="st-key-pan_turn_"] > [data-testid="stVerticalBlock"],
-[class*="st-key-pan_turn_"][data-testid="stVerticalBlock"] {
-  display: grid;
-  grid-template-columns: var(--pan-turn-marker) minmax(0, 1fr);
-  column-gap: var(--pan-space-3);
-  row-gap: var(--pan-space-1);
-  align-items: start;
+[class*="st-key-pan_turn_"][data-testid="stVerticalBlock"] { gap: var(--pan-space-1); }
+.pan-chat-user { display: flex; justify-content: flex-end; }
+.pan-chat-bubble {
+  max-inline-size: min(75%, 60ch);
+  padding: var(--pan-space-2) var(--pan-space-3);
+  border: 1px solid var(--pan-border);
+  border-radius: var(--pan-radius-lg);
+  background: var(--pan-surface-2);
+  color: var(--pan-text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
-[class*="st-key-pan_turn_"] > [data-testid="stVerticalBlock"] > :nth-child(n+2),
-[class*="st-key-pan_turn_"][data-testid="stVerticalBlock"] > :nth-child(n+2) { grid-column: 2; }
-[class*="st-key-pan_turn_"] > [data-testid="stVerticalBlock"] > :first-child,
-[class*="st-key-pan_turn_"][data-testid="stVerticalBlock"] > :first-child { grid-column: 1; grid-row: 1 / span 6; }
-[class*="st-key-pan_turn_"] { padding: var(--pan-space-3) 0; border-bottom: 1px solid var(--pan-divider); }
-.pan-turn-mark { display: flex; justify-content: center; padding-top: var(--pan-space-1); }
-.pan-turn-dot {
-  display: inline-block;
-  inline-size: var(--pan-turn-dot);
-  block-size: var(--pan-turn-dot);
-  margin-top: var(--pan-space-2);
-  border-radius: 50%;
-  background: var(--pan-text);
+.pan-chat-who {
+  display: flex;
+  align-items: center;
+  gap: var(--pan-space-2);
+  font-weight: var(--pan-weight-demi);
+  color: var(--pan-text);
 }
-.pan-turn-user { color: var(--pan-text-muted); }
+.pan-chat-who .pan-ai-logo { inline-size: 1.25em; block-size: 1.25em; }
+[data-testid="stMarkdownContainer"]:has(> .pan-chat-who),
+[data-testid="stMarkdownContainer"]:has(> .pan-chat-user) { margin-bottom: 0; }
 [class*="st-key-pan_turn_a"] [data-testid="stMarkdownContainer"] { max-inline-size: 72ch; }
 [class*="st-key-pan_turn_a"] [data-testid="stMarkdownContainer"] ul { margin: var(--pan-space-2) 0; padding-left: var(--pan-space-5); }
 [class*="st-key-pan_turn_a"] [data-testid="stMarkdownContainer"] li { margin-bottom: var(--pan-space-1); }
@@ -3779,7 +3771,6 @@ html[data-p9-scheme="light"] { color-scheme: light; }
   background: var(--pan-surface-2);
   border-radius: 0 var(--pan-radius-sm) var(--pan-radius-sm) 0;
 }
-.pan-turn-mark .pan-cube-slot { position: relative; left: auto; top: auto; margin: 0; }
 /* The prompt line: a hairline above and a hint row. */
 .pan-prompt-hint {
   display: flex;
@@ -3787,6 +3778,8 @@ html[data-p9-scheme="light"] { color-scheme: light; }
   gap: var(--pan-space-3);
   margin-top: var(--pan-space-4);
   padding-top: var(--pan-space-2);
+  /* Room under the hint row, so it does not sit on the input below it. */
+  padding-bottom: var(--pan-space-3);
   border-top: 1px solid var(--pan-divider);
   font-size: var(--pan-type-caption-size);
   color: var(--pan-text-muted);
@@ -3846,6 +3839,21 @@ html[data-p9-scheme="light"] { color-scheme: light; }
   box-shadow: none;
   transform: none;
 }
+/* "Clear Conversation And Log" sits centred between the last turn's line and
+   its own line below. The block cancels Streamlit's 1rem gap above it, takes
+   equal space above and below the link, and its bottom line replaces the
+   prompt hint's top line, so the distance to both lines is the same. */
+.stApp .st-key-assistant_clear {
+  /* Full width, so its line runs the whole section (the button's own
+     wrapper is only as wide as the link). */
+  inline-size: 100% !important;
+  margin-top: -1rem;
+  padding-block: var(--pan-space-3);
+  border-bottom: 1px solid var(--pan-divider);
+  display: flex;
+  align-items: center;
+}
+:root:has(.st-key-assistant_clear) .pan-prompt-hint { border-top: 0; margin-top: 0; padding-top: 0; }
 .pan-review .pan-review-list { margin: 0 !important; padding: 0 !important; }
 .pan-review .pan-review-list li { margin: 0; }
 .pan-ai-status { display: flex; flex-wrap: wrap; gap: var(--pan-space-2); align-items: center; margin-bottom: var(--pan-space-2); }
@@ -3855,9 +3863,5 @@ html[data-p9-scheme="light"] { color-scheme: light; }
 /* 23. PART 9 BACKGROUND: plain                                           */
 /* ===================================================================== */
 /* The woven lattice was removed (Part 9): the page is the flat background
-   token only (charcoal in dark mode). What remains here is the Ask
-   Assistant stone block's 8x8 pixel texture (section 24). */
-.stApp {
-  --pan-cube-tex: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8' shape-rendering='crispEdges'%3E%3Crect x='0' y='0' width='1' height='1' fill='white' fill-opacity='0.3'/%3E%3Crect x='1' y='0' width='1' height='1' fill='black' fill-opacity='0.75'/%3E%3Crect x='2' y='0' width='1' height='1' fill='black' fill-opacity='0.75'/%3E%3Crect x='3' y='0' width='1' height='1' fill='white' fill-opacity='0.3'/%3E%3Crect x='5' y='0' width='1' height='1' fill='white' fill-opacity='0.42'/%3E%3Crect x='6' y='0' width='1' height='1' fill='white' fill-opacity='0.18'/%3E%3Crect x='2' y='1' width='1' height='1' fill='black' fill-opacity='0.55'/%3E%3Crect x='3' y='1' width='1' height='1' fill='black' fill-opacity='0.75'/%3E%3Crect x='4' y='1' width='1' height='1' fill='black' fill-opacity='0.75'/%3E%3Crect x='7' y='1' width='1' height='1' fill='black' fill-opacity='0.35'/%3E%3Crect x='1' y='2' width='1' height='1' fill='white' fill-opacity='0.42'/%3E%3Crect x='5' y='2' width='1' height='1' fill='white' fill-opacity='0.3'/%3E%3Crect x='6' y='2' width='1' height='1' fill='white' fill-opacity='0.42'/%3E%3Crect x='7' y='2' width='1' height='1' fill='black' fill-opacity='0.55'/%3E%3Crect x='0' y='3' width='1' height='1' fill='white' fill-opacity='0.3'/%3E%3Crect x='3' y='3' width='1' height='1' fill='black' fill-opacity='0.35'/%3E%3Crect x='4' y='3' width='1' height='1' fill='black' fill-opacity='0.75'/%3E%3Crect x='7' y='3' width='1' height='1' fill='white' fill-opacity='0.3'/%3E%3Crect x='1' y='4' width='1' height='1' fill='black' fill-opacity='0.55'/%3E%3Crect x='3' y='4' width='1' height='1' fill='white' fill-opacity='0.42'/%3E%3Crect x='4' y='4' width='1' height='1' fill='black' fill-opacity='0.35'/%3E%3Crect x='7' y='4' width='1' height='1' fill='white' fill-opacity='0.3'/%3E%3Crect x='0' y='5' width='1' height='1' fill='white' fill-opacity='0.18'/%3E%3Crect x='2' y='5' width='1' height='1' fill='black' fill-opacity='0.35'/%3E%3Crect x='4' y='5' width='1' height='1' fill='black' fill-opacity='0.55'/%3E%3Crect x='5' y='5' width='1' height='1' fill='black' fill-opacity='0.75'/%3E%3Crect x='7' y='5' width='1' height='1' fill='white' fill-opacity='0.18'/%3E%3Crect x='1' y='6' width='1' height='1' fill='white' fill-opacity='0.3'/%3E%3Crect x='2' y='6' width='1' height='1' fill='white' fill-opacity='0.18'/%3E%3Crect x='6' y='6' width='1' height='1' fill='black' fill-opacity='0.75'/%3E%3Crect x='7' y='6' width='1' height='1' fill='black' fill-opacity='0.55'/%3E%3Crect x='1' y='7' width='1' height='1' fill='black' fill-opacity='0.75'/%3E%3Crect x='2' y='7' width='1' height='1' fill='white' fill-opacity='0.18'/%3E%3Crect x='5' y='7' width='1' height='1' fill='white' fill-opacity='0.42'/%3E%3Crect x='7' y='7' width='1' height='1' fill='white' fill-opacity='0.42'/%3E%3C/svg%3E");
-}
+   token only (charcoal in dark mode). */
 /* <<< PART 9 MOTIFS (generated) <<< */
