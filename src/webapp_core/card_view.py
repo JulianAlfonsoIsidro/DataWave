@@ -24,7 +24,10 @@ NO_EXCLUSIONS_TEXT = "None"
 
 LIKELY_TOOLTIP = "Our best estimate of how many people in this group will join the promo."
 RANGE_TOOLTIP = "We are 90% sure the number who join will land between these two values."
-VALUE_TOOLTIP = "Estimated peso value of the joiners, after the cost of contacting them."
+# Part 9 round 2 (Requirement 22): names the value per joiner, read from Part 4.
+from part4_cards.config import VALUE_PER_JOIN_PHP as _VALUE_PER_JOIN  # noqa: E402
+
+VALUE_TOOLTIP = f"Joiners at ₱{_VALUE_PER_JOIN:,.0f} each, minus the cost of the messages."
 
 
 @dataclass(frozen=True)

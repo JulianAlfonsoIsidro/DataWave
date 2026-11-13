@@ -10,7 +10,7 @@ The product is built as four batch pipeline stages plus an interactive webapp an
 - **Part 2 — Network features**: derives customer features (e.g. outflows to other banks, inflow/spend shares) consumed by later stages.
 - **Part 3 — Segments**: assigns each client one of four segment labels from a 2x2 of score (propensity) vs capacity: Ready Toppers, Untapped Wealth, Willing but Stretched, Not Now.
 - **Part 4 — Cards**: builds one action card per segment cell (dominant channel, message angle, expected joiners, expected value) and writes per-segment sendable-lead CSVs, honoring do-not-contact and control-group rules.
-- **Part 5 — Webapp (Promo Audience Navigator)**: a Streamlit UI to design a promo, score and segment the audience, inspect decision cards, run What-If threshold analysis, explore personas, download sendable leads, and compare predicted vs actual join rates on past promos. The app never retrains — it only reloads the fitted Part 1 model.
+- **Part 5 — Webapp (Promo Audience Manager)**: a Streamlit UI to design a promo, score and segment the audience, inspect decision cards, run What-If threshold analysis, explore personas, download sendable leads, and compare predicted vs actual join rates on past promos. The app never retrains — it only reloads the fitted Part 1 model.
 
 ## Personas tab
 
@@ -35,7 +35,7 @@ The product is built as four batch pipeline stages plus an interactive webapp an
 - No numeric business logic in AI code. Every number comes from the run.
 - **Impact summary and Export_Workbook**: Baseline vs Recommended plan, and one .xlsx with Summary, Decision Cards, Personas and a Send List per non-Skip segment.
 
-## Part 9 round 2 (specified, not yet built)
+## Part 9 round 2 (built)
 
 The product is now called **Promo Audience Manager** (DataWave is the project name). Its users are CRM managers, so figures must be plain and explained.
 

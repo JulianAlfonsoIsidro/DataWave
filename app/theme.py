@@ -1,4 +1,4 @@
-"""Theme for the Promo Audience Navigator webapp.
+"""Theme for the Promo Audience Manager webapp.
 
 The visual identity takes influence from the BPI website and app (palette, type
 feel, spacing, tone) without using any BPI logo, wordmark or asset: a calm
@@ -75,6 +75,8 @@ FONT_STACKS = {
     "heading": ("Dax", "Bahnschrift", "Segoe UI", "sans-serif"),
     "body": ("Avenir Next", "Segoe UI", "Arial", "sans-serif"),
     "number": ("Manrope", "Avenir Next", "Segoe UI", "sans-serif"),
+    # Part 9 round 2: Help And FAQs equations (a system font; nothing bundled)
+    "math": ("Cambria Math", "Cambria", "STIX Two Math", "Times New Roman", "serif"),
 }
 
 FONT_WEIGHTS = {"regular": 400, "medium": 500, "demi": 600, "bold": 700}
@@ -134,7 +136,7 @@ def missing_font_files() -> list[str]:
 
 
 # The app title is text only -- no logo image.
-APP_TITLE = "Promo Audience Navigator"
+APP_TITLE = "Promo Audience Manager"
 
 # Tab labels in workflow order (Title Case). main.py builds its tabs from this.
 TAB_LABELS = [
@@ -683,6 +685,23 @@ def _kpi_number_html(number: str, prev: str | None) -> str:
     return number_html
 
 
+def joiners_pair_html(forecast: float, *, full: bool = True, main_html: str | None = None) -> str:
+    """Expected Joiners as a whole number with the forecast beside it.
+
+    Part 9 round 2, Requirement 20: ``87 (Forecasted: 87.3)``, or ``87 (87.3)``
+    with ``full=False`` for table cells. ``main_html`` replaces the plain
+    whole number (a count-up or roll of it); the bracket is plain text and
+    never adds digit columns.
+    """
+    from webapp_core.number_format import forecast_text, shown_joiners
+
+    main = main_html if main_html is not None else html.escape(f"{shown_joiners(forecast):,}")
+    return (
+        f'<span class="pan-jp"><span class="pan-jp-main">{main}</span> '
+        f'<span class="pan-jp-fc">({html.escape(forecast_text(forecast, short=not full))})</span></span>'
+    )
+
+
 def run_header_html(
     number: str,
     label: str,
@@ -690,26 +709,43 @@ def run_header_html(
     has_run: bool,
     prev: str | None = None,
     title: str = APP_TITLE,
+    forecast: float | None = None,
+    sendable_total: int | None = None,
 ) -> str:
     """The page header: the wordmark and, once a run exists, its one number.
 
     Replaces the hero (Part 9). The run's details (promo, product, threshold
     and so on) are not repeated here; before any run only the wordmark shows.
+    Round 2 (Requirements 20, 21): ``number`` is the rounded whole number
+    (owner follow-up: no forecast bracket in the header); with ``forecast``
+    and ``sendable_total`` a muted line ``out of 1,595 sendable leads
+    (12.8%)`` sits under it, with a plain hover text.
     """
+    from webapp_core import number_help
+
     wordmark = f'<h1 class="pan-wordmark">{html.escape(title)}</h1>'
     # Round 3: before a run the slot is kept (hidden), so the header does not
-    # grow when the number first appears.
+    # grow when the number first appears; it holds the sub-line too.
     kpi = (
         '<div class="pan-run-kpi is-empty" aria-hidden="true">'
         f'<div class="pan-run-kpi-label">{html.escape(label)}</div>'
-        '<div class="pan-run-kpi-number kpi-number">0</div></div>'
+        '<div class="pan-run-kpi-number kpi-number">0</div>'
+        '<div class="pan-run-kpi-sub">out of 0 sendable leads</div></div>'
     )
     if has_run:
+        sub = ""
+        if sendable_total is not None and forecast is not None:
+            text = number_help.joiners_of_sendable(forecast, sendable_total)
+            sub = (
+                '<div class="pan-run-kpi-sub">'
+                # Plain text: only the big number counts up (Requirement 20.10).
+                f"{tooltip_html(text, number_help.header_help(), html.escape(text))}</div>"
+            )
         kpi = (
             '<div class="pan-run-kpi">'
             f'<div class="pan-run-kpi-label">{html.escape(label)}</div>'
-            f'<div class="pan-run-kpi-number kpi-number">{_kpi_number_html(number, prev)}</div>'
-            "</div>"
+            f'<div class="pan-run-kpi-number"><span class="kpi-number">{_kpi_number_html(number, prev)}</span></div>'
+            f"{sub}</div>"
         )
     return f'<header class="pan-shell">{wordmark}{kpi}</header>'
 
@@ -729,24 +765,35 @@ def _delta_text(delta: float, digits: int = 0) -> str:
 def whatif_segments_html(rows) -> str:
     """What-If per-segment table (round 3): each segment as run and now.
 
-    ``rows`` are ``(segment, [(now, base_or_None, digits), ...])`` for the
-    Clients, Expected Joiners and Sendable columns. With no baseline a cell
-    shows only the current figure.
+    ``rows`` are ``(segment, [(now, base_or_None, kind), ...])`` for the
+    Clients, Expected Joiners and Sendable columns, ``kind`` being "count" or
+    "joiners". With no baseline a cell shows only the current figure.
+    Round 2 (Requirement 20.4): a joiners cell is the whole number with the
+    short bracket ``87 (87.3)`` under the heading "Expected Joiners
+    (Forecast)", and its change is the difference of the shown whole numbers.
+    Rows arrive in the display order (Requirement 24).
     """
+    from webapp_core.number_format import shown_joiners
+
     head = (
         '<tr><th class="pan-th">Segment</th>'
         '<th class="pan-th pan-num">Clients</th>'
-        '<th class="pan-th pan-num">Expected Joiners</th>'
+        '<th class="pan-th pan-num">Expected Joiners (Forecast)</th>'
         '<th class="pan-th pan-num">Sendable</th></tr>'
     )
     body = []
     for segment, cells in rows:
         marker, seg_class = segment_marker_html(segment)
         tds = []
-        for now, base, digits in cells:
-            v = f'<span class="pan-wis-now">{now:,.{digits}f}</span>'
-            if base is not None:
-                v += f'<span class="pan-wis-d">{_delta_text(now - base, digits)}</span>'
+        for now, base, kind in cells:
+            if kind == "joiners":
+                v = f'<span class="pan-wis-now">{joiners_pair_html(now, full=False)}</span>'
+                delta = None if base is None else shown_joiners(now) - shown_joiners(base)
+            else:
+                v = f'<span class="pan-wis-now">{int(now):,}</span>'
+                delta = None if base is None else int(now) - int(base)
+            if delta is not None:
+                v += f'<span class="pan-wis-d">{_delta_text(delta)}</span>'
             tds.append(f'<td class="pan-td pan-num">{v}</td>')
         body.append(
             f'<tr><td class="pan-td pan-strong"><span class="pan-wis-seg {seg_class}">'
@@ -758,6 +805,61 @@ def whatif_segments_html(rows) -> str:
     )
 
 
+def segment_flow_html(row, *, reveal: bool = False, title: str | None = None) -> str:
+    """Where one segment's clients go (Part 9 round 2, Requirement 27).
+
+    ``row`` is a ``webapp_core.segment_flow.FlowRow`` (one segment, or the
+    Total). One stacked bar: Not Contacted, Control Group and Sendable, each
+    part as wide as its count, with its count and its share of the clients
+    written inside when the part is wide enough. A legend under the bar
+    repeats every part's count and share, so colour is never the only cue and
+    a narrow part still has its figures. Nothing is recomputed: the counts
+    are read from the card; the shares are count / clients.
+    """
+    from webapp_core.number_format import share_pct
+    from webapp_core.segment_flow import reconciles
+
+    parts = (
+        ("excluded", "Not Contacted", row.not_contacted),
+        ("control", "Control Group", row.control),
+        ("sendable", "Sendable", row.sendable),
+    )
+    segs, legend = [], []
+    for key, name, n in parts:
+        pct = share_pct(n, row.clients) or "0.0%"
+        if n > 0:
+            segs.append(
+                f'<span class="pan-flow-part pan-flow--{key}" style="flex-grow:{int(n)}">'
+                f'<span class="pan-flow-n">{int(n):,}</span>'
+                f'<span class="pan-flow-p">{pct}</span></span>'
+            )
+        legend.append(
+            f'<span class="pan-flow-key"><i class="pan-flow-swatch pan-flow--{key}"></i>'
+            f'<span class="pan-flow-key-name">{html.escape(name)}</span>'
+            f'<span class="pan-flow-key-v">{int(n):,}</span>'
+            f'<span class="pan-flow-key-p">({pct})</span></span>'
+        )
+    name = title or row.segment
+    marker, seg_class = segment_marker_html(row.segment)
+    label = (
+        f"{name}: {row.not_contacted:,} not contacted, {row.control:,} control group, "
+        f"{row.sendable:,} sendable, of {row.clients:,} clients"
+    )
+    note = ""
+    if not reconciles(row):
+        note = '<div class="pan-flow-note">These figures do not add up for this run.</div>'
+    reveal_cls = " is-revealing" if reveal else ""
+    return (
+        f'<section class="pan-flow{reveal_cls}" aria-label="Where this segment\'s clients go">'
+        f'<div class="pan-flow-head"><span class="pan-flow-title {seg_class}">{marker}'
+        f"<span>{html.escape(name)}</span></span>"
+        f'<span class="pan-flow-total"><strong>{row.clients:,}</strong> clients</span></div>'
+        f'<div class="pan-flow-bar" role="img" aria-label="{html.escape(label, quote=True)}">'
+        f'{"".join(segs)}</div>'
+        f'<div class="pan-flow-legend">{"".join(legend)}</div>{note}</section>'
+    )
+
+
 def whatif_change_html(
     label: str,
     number: str,
@@ -766,18 +868,28 @@ def whatif_change_html(
     base_number: str | None = None,
     base_label: str | None = None,
     prev: str | None = None,
+    forecast: float | None = None,
+    base_forecast: float | None = None,
 ) -> str:
     """What-If headline (Part 9): the number as run, at this threshold, and
     the change, as plain figures. With no baseline, or at the run's own
-    threshold, only the current figure shows.
+    threshold, only the current figure shows. Round 2 (Requirement 20): the
+    figures are whole numbers with the forecast in brackets, and the change
+    is the difference of the two whole numbers shown.
     """
+    from webapp_core.number_format import forecast_text
+
+    def fc(value: float | None) -> str:
+        if value is None:
+            return ""
+        return f' <span class="pan-jp-fc">({html.escape(forecast_text(value))})</span>'
     def fig(k: str, v_html: str, cls: str = "") -> str:
         return (
             f'<div class="pan-wi-fig{cls}"><span class="pan-wi-k">{html.escape(k)}</span>'
             f'<span class="pan-wi-v">{v_html}</span></div>'
         )
 
-    now_html = _kpi_number_html(number, prev)
+    now_html = _kpi_number_html(number, prev) + fc(forecast)
     if base_number is None or base_label is None or base_label == now_label:
         suffix = " (as run)" if base_label == now_label and base_label is not None else ""
         figs = fig(f"At {now_label}{suffix}", now_html, " is-now")
@@ -787,7 +899,7 @@ def whatif_change_html(
             delta_text = _delta_text(delta)
         except ValueError:
             delta_text = ""
-        figs = fig(f"As Run, At {base_label}", html.escape(str(base_number)))
+        figs = fig(f"As Run, At {base_label}", html.escape(str(base_number)) + fc(base_forecast))
         figs += fig(f"At {now_label}", now_html, " is-now")
         if delta_text:
             figs += fig("Change", delta_text, " is-delta")

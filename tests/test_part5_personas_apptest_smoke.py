@@ -96,8 +96,21 @@ def _subheaders(at: AppTest) -> list[str]:
     return [s.value for s in at.subheader]
 
 
+_GROUP_HEAD = re.compile(r'<div class="pan-group-head"><strong>(.*?)</strong>')
+
+
 def _segment_markers(at: AppTest) -> list[str]:
-    return [m.value for m in at.markdown if str(m.value).startswith("**Segment: ")]
+    """Group names of the persona group headings on the page.
+
+    Part 9 round 2 (Requirement 22): the heading is now
+    "<group> · N of M leads" (pan-group-head) instead of "**Segment: <group>**".
+    """
+    names = []
+    for m in at.markdown:
+        hit = _GROUP_HEAD.search(str(m.value))
+        if hit:
+            names.append(html.unescape(hit.group(1)))
+    return names
 
 
 def test_default_attributes_all_leads_render_personas(app_test):
@@ -156,7 +169,7 @@ def test_group_dropdown_and_scoping_by_customer_segment(app_test):
     assert len(options) >= 3  # >= 2 segments + "All groups"
 
     # Default selection scopes to the first group only.
-    assert set(_segment_markers(at)) == {f"**Segment: {options[0]}**"}
+    assert set(_segment_markers(at)) == {options[0]}
 
     at.selectbox(key=GROUP_KEY).select(persona_page.ALL_GROUPS_LABEL)
     at.run()
@@ -169,7 +182,7 @@ def test_group_dropdown_and_scoping_by_customer_segment(app_test):
     assert not at.exception
     scoped = _segment_markers(at)
     assert scoped
-    assert set(scoped) == {f"**Segment: {target}**"}
+    assert set(scoped) == {target}
     assert len(scoped) < len(all_markers)
 
 

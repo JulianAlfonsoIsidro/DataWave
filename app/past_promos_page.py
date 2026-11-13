@@ -29,6 +29,7 @@ import streamlit as st
 
 import theme
 import upload_panel
+from webapp_core import number_help
 from webapp_core import past_campaigns as pc
 from webapp_core.similarity import (
     COMPONENT_KEYS,
@@ -97,9 +98,10 @@ def predicted_actual_html(rows: list[dict]) -> str:
     header = (
         "<tr>"
         '<th class="pan-th">Segment</th>'
-        '<th class="pan-th pan-num">Predicted</th>'
-        '<th class="pan-th pan-num">Actual</th>'
-        '<th class="pan-th pan-num">Gap</th>'
+        # Part 9 round 2 (Requirement 22): plain meanings as hover texts.
+        f'<th class="pan-th pan-num">{theme.tooltip_html("Predicted", number_help.predicted_actual_help())}</th>'
+        f'<th class="pan-th pan-num">{theme.tooltip_html("Actual", number_help.predicted_actual_help())}</th>'
+        f'<th class="pan-th pan-num">{theme.tooltip_html("Gap", number_help.gap_help())}</th>'
         "</tr>"
     )
     body = []
@@ -211,6 +213,7 @@ def _campaign_body_html(
             out.append(
                 theme.badge_html(f"Similarity Score: {pc.display_score(detail.similarity)}", "info")
             )
+            out.append(f'<div class="pan-help-line">{html.escape(number_help.similarity_help())}</div>')
             out.append(similarity_chart_html(detail.similarity))
     if prediction_rows:
         out.append(theme.section_label_html("Predicted Vs Actual Join Rate"))

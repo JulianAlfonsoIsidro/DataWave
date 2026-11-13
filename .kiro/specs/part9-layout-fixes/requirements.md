@@ -297,7 +297,7 @@ Guiding principles taken from the code:
 4. THE pure helpers added in Part 9 SHOULD have unit tests: `_action_rank`, `_threshold_context`, `_threshold_slug`, `_leads_file_name`, `_segment_figures`, `gap_text`, `_delta_text`, `whatif_change_html`, `whatif_segments_html`, `results_grid_html`, `run_header_html`, `bedrock_html` and `thinking_html`. This is a known gap in the code as written.
 5. `ui_interactions.js` has no Python test. Its behavior SHALL be checked in the browser.
 
-## Round 2 requirements (specified, not yet built)
+## Round 2 requirements (built 2026-11-13)
 
 These nine requirements come from the owner's second list of fixes. They are presentation only. They add no model, calculation or pipeline change, and they keep Requirement 1.
 
@@ -510,5 +510,5 @@ Users have asked why some figures differ. These definitions were checked on the 
 3. Download Recommended Leads = the sendable leads of the Act first segment(s) only. On the default run that is 282.
 4. Personas at the "All leads" level cluster all 2,000 clients. At the "By campaign" level with the audience "Current New Promo run", they cluster the sendable leads (1,595).
 5. With a region split, each region's persona sizes add up to that region's sendable count: NCR 719, Luzon 399, Visayas 287, Mindanao 190.
-6. Expected Joiners is shown at different precisions today. The Header number is whole (`{total:,.0f}`, so 204). A Results Grid tile shows one decimal (87.3). A Decision Card stat reads "About 87". They are the same figure. Requirement 20 settles this: every place shows the rounded whole number with the forecast in brackets, for example `87 (Forecasted: 87.3)`. Until task 16.1 is built, the code still shows the mixed precisions above.
+6. Expected Joiners is shown the same way everywhere (Requirement 20, built): the rounded whole number, halves up, with the forecast in brackets, for example `87 (Forecasted: 87.3)` (`87 (87.3)` in tables). The Decision Card stat "About 87" uses the same rounding. A total is rounded from the unrounded sum, so rounded rows can differ from it by 1.
 7. Percentage shares use the unrounded Forecast over the Sendable count: 204.4 / 1,595 = 12.8% for the whole run, and 87.3 / 282 = 31.0% for Ready Toppers (Requirements 21 and 22).

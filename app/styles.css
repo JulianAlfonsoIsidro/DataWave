@@ -1,4 +1,4 @@
-/* Promo Audience Navigator - BPI website style.
+/* Promo Audience Manager - BPI website style.
    Brand influence only: palette, type feel, spacing and tone. No logo, wordmark
    or asset is used or imitated.
 
@@ -86,6 +86,11 @@
   --pan-series-4:        light-dark(#2457C5, #7FA8FF);
   --pan-series-5:        light-dark(#B7791F, #F2C14E);
   --pan-series-6:        light-dark(#5B616B, #A7ADB8);
+  /* Part 9 round 2 (Requirement 27): Segment Flow parts, aliases of the series */
+  --pan-flow-sendable:   var(--pan-series-2);   /* teal */
+  --pan-flow-control:    var(--pan-series-3);   /* purple */
+  --pan-flow-excluded:   var(--pan-series-6);   /* slate */
+  --pan-flow-ink:        light-dark(#FFFFFF, #121316);   /* count text on a bar part */
 
   /* segment accents (each segment also has its own marker shape and label) */
   --pan-seg-ready:       var(--pan-series-1);
@@ -137,11 +142,19 @@
   /* Part 9: light/dark switch, the new theme rises like liquid filling a
      tray. Long on purpose (asked for, and a rare action). */
   --pan-dur-theme-fill: 1100ms;
-  --pan-ease-bubble: cubic-bezier(0.42, 0, 1, 1);
+  --pan-ease-bubble: cubic-bezier(0.42, 0, 1, 1);   /* Part 9: a bubble speeds up as it rises */
   /* Part 9 buttons: a quick press, a springy release, red fading back */
   --pan-dur-bounce: 420ms;
   --pan-ease-bounce: cubic-bezier(0.34, 1.8, 0.64, 1);   /* overshoots, then settles */
-  --pan-dur-press-out: 600ms;     /* the red fading out once the work is done */   /* Part 9: a bubble speeds up as it rises */
+  --pan-dur-press-out: 600ms;     /* the red fading out once the work is done */
+  /* Part 9 round 2: the ? button sits left of the Settings menu; the header
+     keeps clear of both (Requirement 28.3). Positions are approximate and
+     follow Streamlit 1.66.1's toolbar. */
+  --pan-help-top: 10px;          /* centred on the 28px Settings button at 16px */
+  --pan-help-right: 58px;
+  --pan-help-clearance: 108px;
+  --pan-flow-bar-h: 56px;      /* room for a count over its share */
+  --pan-flow-min: 4px;          /* a small part stays visible */
   /* Part 9: Ask Assistant waiting indicator (loops only while waiting) */
   --pan-on-gold: #1F2328;            /* ink on the gold user avatar, both modes */
   --pan-dur-think: 1200ms;          /* one pulse of the three dots */
@@ -278,6 +291,7 @@
   --pan-z-finish: 999992;   /* F3 finishing overlay, above a kept loader */
   --pan-z-ring: 999993;
   --pan-z-toast: 999994;    /* toasts read above everything, even the scrim */
+  --pan-z-help: 999990;     /* Part 9 round 2: the ? button, beside the Settings menu */
   /* Completion_Toast entry wait: it arrives as the button sparks fade. */
   --pan-dur-toast-delay: calc(var(--pan-dur-ring-fill) + var(--pan-dur-spark) / 2);
   --pan-breath-glow: light-dark(rgba(174, 19, 25, 0.35), rgba(216, 35, 42, 0.45));
@@ -3314,6 +3328,286 @@ body:has(.pan-loading.is-finishing) .pan-loading:not(.is-finishing) { visibility
   .stApp [class*="st-key-p8_btn_"] :is(.stButton, .stFormSubmitButton) button:active:not(:disabled) {
     transform: none;
   }
+}
+
+/* ===================================================================== */
+/* 28. PART 9 ROUND 2: rounded joiners, plain descriptions, flow, help   */
+/* ===================================================================== */
+/* Spec part9-layout-fixes, Requirements 20 to 28. Tokens only. */
+
+/* Expected Joiners: a whole number with the forecast beside it, smaller. */
+.pan-jp { white-space: nowrap; }
+.pan-jp-fc {
+  font-family: var(--pan-font-body);
+  font-size: var(--pan-type-caption-size);
+  line-height: var(--pan-type-caption-leading);
+  font-weight: var(--pan-weight-regular);
+  letter-spacing: normal;
+  color: var(--pan-text-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.pan-run-kpi-number { white-space: nowrap; }
+.pan-run-kpi-sub,
+.pan-tile-sub,
+.pan-help-line,
+.pan-group-count,
+.pan-flow-note {
+  font-size: var(--pan-type-caption-size);
+  line-height: var(--pan-type-caption-leading);
+  color: var(--pan-text-muted);
+  font-weight: var(--pan-weight-regular);
+}
+.pan-run-kpi:not(.is-empty) { display: flex; flex-direction: column; align-items: flex-end; gap: 0; }
+.pan-run-kpi-number { line-height: 1; margin: var(--pan-space-1) 0; }
+.pan-run-kpi-sub { margin-top: var(--pan-space-1); text-align: right; }
+.pan-run-kpi-sub .pan-tip-text { left: auto; right: 0; }
+.pan-tile-sub { margin-top: var(--pan-space-1); }
+.pan-help-line { margin: var(--pan-space-1) 0 var(--pan-space-2) 0; }
+.pan-group-head { margin: var(--pan-space-4) 0 var(--pan-space-2) 0; color: var(--pan-text); }
+
+/* The header keeps clear of the Settings menu and the ? button. */
+.pan-shell { padding-right: var(--pan-help-clearance); }
+/* Phone: the wordmark keeps its own line (clear of the two buttons) and the
+   number block sits under it, left aligned, free to wrap. */
+@media (max-width: 640px) {
+  .pan-shell { flex-direction: column; align-items: flex-start; gap: var(--pan-space-2); }
+  .pan-shell .pan-wordmark { max-inline-size: calc(100% - var(--pan-help-clearance)); line-height: 1.25; }
+  .pan-shell { padding-right: 0; }
+  .pan-run-kpi { text-align: left; }
+  .pan-run-kpi:not(.is-empty) { align-items: flex-start; }
+  .pan-run-kpi-sub { text-align: left; }
+  .pan-run-kpi-number { white-space: normal; }
+  .pan-run-kpi-sub .pan-tip-text { left: 0; right: auto; }
+}
+
+/* The ? button: fixed beside the Settings menu, outside the tab bar. Its
+   container takes no row in the page (like the effects container). */
+[data-testid="stLayoutWrapper"]:has(> .st-key-pan_help),
+[data-testid="stLayoutWrapper"]:has(> [data-testid="stVerticalBlock"] > .st-key-pan_help) {
+  position: absolute;
+  inline-size: 0;
+  block-size: 0;
+  margin: 0;
+  padding: 0;
+  gap: 0;
+}
+.st-key-pan_help {
+  position: fixed;
+  top: var(--pan-help-top);
+  right: var(--pan-help-right);
+  z-index: var(--pan-z-help);
+  inline-size: auto !important;
+  gap: 0;
+}
+.stApp .st-key-pan_help button {
+  inline-size: var(--pan-control-h);
+  block-size: var(--pan-control-h);
+  min-height: var(--pan-control-h);
+  padding: 0;
+  border-radius: var(--pan-radius-pill);
+  font-family: var(--pan-font-heading);
+  font-weight: var(--pan-weight-bold);
+}
+@media (max-width: 900px) {
+  .st-key-pan_help { transition: opacity var(--pan-dur) var(--pan-ease), transform var(--pan-dur) var(--pan-ease); }
+  html.p9-menu-away .st-key-pan_help {
+    opacity: 0;
+    transform: translateY(-8px);
+    pointer-events: none;
+  }
+}
+@media (max-width: 900px) and (prefers-reduced-motion: reduce) {
+  .st-key-pan_help { transition: opacity var(--pan-dur) var(--pan-ease); }
+  html.p9-menu-away .st-key-pan_help { transform: none; }
+}
+
+/* Button labels: room on both sides, centred, and a long label wraps
+   instead of being cut (Requirement 26). */
+.stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button:not(.st-key-pan_help button) {
+  padding-inline: var(--pan-space-4);
+  text-align: center;
+  justify-content: center;
+  white-space: normal;
+}
+.stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button :is(p, div) {
+  white-space: normal;
+  text-align: center;
+  overflow: visible;
+  text-overflow: clip;
+}
+.stApp .st-key-persona_suggest_row [data-testid="stBaseButton-tertiary"] {
+  padding-inline: var(--pan-space-4);
+}
+
+/* Download Leads dropdown: the disclosure look (chevron, quiet label), no box,
+   so the rows inside read as before (Requirement 25.4). */
+.st-key-pan_download_leads details,
+.st-key-pan_download_leads[data-testid="stExpander"] details {
+  border: 0;
+  background: transparent;
+}
+.st-key-pan_download_leads summary {
+  padding-inline: 0;
+  font-family: var(--pan-font-heading);
+  font-size: var(--pan-type-section-size);
+  font-weight: var(--pan-type-section-weight);
+  color: var(--pan-text);
+}
+.st-key-pan_download_leads summary [data-testid="stMarkdownContainer"] p { font: inherit; color: inherit; margin: 0; }
+.st-key-pan_download_leads summary:hover { background: transparent; color: var(--pan-text); }
+.st-key-pan_download_leads summary:focus-visible { outline: 2px solid var(--pan-focus); outline-offset: 2px; border-radius: var(--pan-radius-sm); }
+.st-key-pan_download_leads [data-testid="stExpanderDetails"] { padding-inline: 0; }
+
+/* Segment Flow (Requirement 27, owner follow-up): one segment at a time,
+   one stacked bar with each part's count and share inside it, and a legend
+   that repeats them (colour is never the only cue). */
+.pan-flow { margin: var(--pan-space-2) 0 var(--pan-space-5) 0; }
+.pan-flow-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--pan-space-3);
+  margin-bottom: var(--pan-space-2);
+}
+.pan-flow-title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pan-space-2);
+  font-weight: var(--pan-weight-demi);
+  color: var(--pan-text);
+}
+.pan-flow-total { color: var(--pan-text-muted); font-variant-numeric: tabular-nums; }
+.pan-flow-total strong { color: var(--pan-text); font-weight: var(--pan-weight-bold); }
+.pan-flow-bar {
+  display: flex;
+  block-size: var(--pan-flow-bar-h);
+  gap: 2px;
+  border-radius: var(--pan-radius-md);
+  overflow: hidden;
+  transform-origin: left center;
+}
+.pan-flow-part {
+  flex-basis: 0;
+  min-inline-size: var(--pan-flow-min);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  overflow: hidden;
+  container-type: inline-size;
+  color: var(--pan-flow-ink);
+}
+.pan-flow-n {
+  font-weight: var(--pan-weight-bold);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.pan-flow-p {
+  font-size: var(--pan-type-caption-size);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  opacity: 0.92;
+}
+@container (max-width: 3.25rem) { .pan-flow-n, .pan-flow-p { display: none; } }
+.pan-flow--excluded { background: var(--pan-flow-excluded); }
+.pan-flow--control { background: var(--pan-flow-control); }
+.pan-flow--sendable { background: var(--pan-flow-sendable); }
+.pan-flow-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pan-space-2) var(--pan-space-6);
+  margin-top: var(--pan-space-3);
+}
+.pan-flow-key { display: inline-flex; align-items: baseline; gap: var(--pan-space-2); color: var(--pan-text); }
+.pan-flow-swatch {
+  display: inline-block;
+  inline-size: var(--pan-space-3);
+  block-size: var(--pan-space-3);
+  border-radius: var(--pan-radius-sm);
+  align-self: center;
+}
+.pan-flow-key-name { color: var(--pan-text-muted); }
+.pan-flow-key-v { font-weight: var(--pan-weight-bold); font-variant-numeric: tabular-nums; }
+.pan-flow-key-p { color: var(--pan-text-muted); font-variant-numeric: tabular-nums; }
+.pan-flow-note {
+  margin-top: var(--pan-space-2);
+  font-size: var(--pan-type-caption-size);
+  color: var(--pan-text-muted);
+}
+.pan-flow.is-revealing .pan-flow-bar { animation: pan-flow-grow var(--pan-dur-reveal) var(--pan-ease) both; }
+@keyframes pan-flow-grow { from { transform: scaleX(0); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .pan-flow.is-revealing .pan-flow-bar { animation: none; }
+}
+
+/* Streamlit draws dialogs and popovers outside the app root, where its
+   colour scheme does not reach; ui_interactions.js copies the app's scheme
+   to html[data-p9-scheme] so they follow light and dark too. */
+html[data-p9-scheme="dark"] { color-scheme: dark; }
+html[data-p9-scheme="light"] { color-scheme: light; }
+
+/* Help And FAQs dialog (Requirement 28): the page's surface, type and radius. */
+[data-testid="stDialog"] [role="dialog"] {
+  background: var(--pan-surface);
+  color: var(--pan-text);
+  border: 1px solid var(--pan-border);
+  border-radius: var(--pan-radius-lg);
+}
+[data-testid="stDialog"] h2,
+[data-testid="stDialog"] h3 { font-family: var(--pan-font-heading); color: var(--pan-text); }
+/* Two columns, four rows (owner follow-up); one column on a phone. */
+.pan-formulas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pan-space-3) var(--pan-space-4);
+  margin-bottom: var(--pan-space-4);
+}
+@media (max-width: 640px) {
+  .pan-formulas { grid-template-columns: minmax(0, 1fr); }
+}
+/* One box per formula: the bold name, then the equation in its own inner box. */
+.pan-formula-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pan-space-2);
+  padding: var(--pan-space-3);
+  border: 1px solid var(--pan-border);
+  border-radius: var(--pan-radius-lg);
+  background: var(--pan-surface);
+}
+.pan-formula-name { font-weight: var(--pan-weight-bold); color: var(--pan-text); }
+.pan-formula-eq {
+  padding: var(--pan-space-2) var(--pan-space-3);
+  border: 1px solid var(--pan-border);
+  border-radius: var(--pan-radius-md);
+  background: var(--pan-surface-2);
+  font-family: var(--pan-font-math);
+  font-size: var(--pan-type-body-size);
+  font-weight: var(--pan-weight-regular);
+  line-height: 1.5;
+  color: var(--pan-text);
+}
+.pan-formula-note {
+  font-size: var(--pan-type-caption-size);
+  line-height: var(--pan-type-caption-leading);
+  color: var(--pan-text-muted);
+}
+.pan-help-answer + .pan-formula-eq { margin: var(--pan-space-2) 0; }
+.pan-help-answer { margin: 0 0 var(--pan-space-2) 0; color: var(--pan-text); }
+[data-testid="stDialog"] [data-testid="stExpanderDetails"] { padding-bottom: var(--pan-space-4); }
+/* Streamlit pulls the last markdown block up by its own margin; keep the
+   answer's "Where to see it" line clear of the dropdown's bottom edge. */
+[data-testid="stDialog"] [data-testid="stExpanderDetails"] [data-testid="stMarkdownContainer"] { margin-bottom: 0; }
+.pan-help-answer strong, .pan-help-where strong { font-weight: var(--pan-weight-bold); color: var(--pan-text); }
+.pan-help-where {
+  margin: var(--pan-space-2) 0 var(--pan-space-1) 0;
+  font-size: var(--pan-type-caption-size);
+  line-height: var(--pan-type-caption-leading);
+  color: var(--pan-text-muted);
 }
 
 /* >>> PART 9 MOTIFS (generated) >>> */

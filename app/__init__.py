@@ -1,1 +1,1 @@
-"""Promo Audience Navigator Streamlit webapp (Part 5)."""
+"""Promo Audience Manager Streamlit webapp (Part 5)."""

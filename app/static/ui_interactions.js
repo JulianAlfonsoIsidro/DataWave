@@ -18,6 +18,9 @@
  * 4. Pressed buttons stay red (data-p9-pressed) until the rerun or job they
  *    started has finished, then fade back (styles.css section 27).
  *
+ * 5. The app's colour scheme is copied to <html data-p9-scheme> so dialogs
+ *    drawn outside the app root follow light and dark (section 28).
+ *
  * Reads the DOM only; never talks to Streamlit and changes no widget value.
  */
 (function () {
@@ -246,5 +249,20 @@
     btn.setAttribute("data-p9-pressed", "");
     if (!pollTimer) pollTimer = setTimeout(poll, 100);
   }, true);
+
+  /* ---- 5. Colour scheme outside the app ------------------------------- */
+  // Streamlit sets the theme's colour scheme on its app root only. Dialogs
+  // (Help And FAQs) and popovers are drawn outside it, so the scheme is
+  // copied to <html data-p9-scheme> (styles.css section 28). A cheap check,
+  // twice a second; it writes only when the scheme changes.
+  function syncScheme() {
+    var s = scheme();
+    var v = /dark/.test(s) && !/light/.test(s) ? "dark" : (/light/.test(s) && !/dark/.test(s) ? "light" : "");
+    var root = document.documentElement;
+    if (v && root.getAttribute("data-p9-scheme") !== v) root.setAttribute("data-p9-scheme", v);
+    if (!v && root.hasAttribute("data-p9-scheme")) root.removeAttribute("data-p9-scheme");
+  }
+  syncScheme();
+  setInterval(syncScheme, 500);
 
 })();

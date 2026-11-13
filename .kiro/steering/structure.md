@@ -9,14 +9,15 @@ DataWave/
 │   ├── persona_page.py   # Personas tab: controls, persona cards, comparison table, downloads
 │   ├── upload_panel.py   # Part 7: Upload Campaign File panel on New Promo (second tab beside the form)
 │   ├── assistant_page.py # Part 7: Ask Assistant tab (chat, suggested questions, Demo badge)
+│   ├── help_page.py      # Part 9 round 2: Help And FAQs dialog (draws webapp_core/help_content.py)
 │   ├── past_promos_page.py # Part 7: Past Promos tab (sort, filter, paging, similarity chart)
 │   ├── theme.py          # palette, CSS injection, and page chrome helpers
 │   ├── ui_effects.py     # Part 8 motion: toasts, finishing overlay, page lock, number_prev, quiet_container
 │   ├── group_picker.py   # declare_component wrapper for the Group_Visual (ring / Toggle_Card / map)
-│   ├── styles.css        # all CSS; section 1 is the token source of truth (sections 20-27 are Part 9)
+│   ├── styles.css        # all CSS; section 1 is the token source of truth (sections 20-28 are Part 9)
 │   └── static/
 │       ├── page_lock.js        # page lock while a job loader is shown
-│       ├── ui_interactions.js  # Part 9: liquid theme switch, hover-text fades, menu hide, pressed buttons
+│       ├── ui_interactions.js  # Part 9: liquid theme switch, hover-text fades, menu hide, pressed buttons, dialog colour scheme
 │       └── group_picker/          # iframe component: index.html, picker.js, picker.css, SVG assets, licence
 ├── .kiro/specs/          # per-part specs; part9-layout-fixes is the latest (requirements, design, tasks)
 ├── plans/                # numbered UI fix plans (001-005) and a README
@@ -78,7 +79,7 @@ Output-producing steps (writing the model, scores, cards, leads) run **last**, a
 - Part 7 logic in `webapp_core`: `past_campaigns.py` (load, sort, filter, page), `similarity.py` (eight-component Similarity_Score), `impact.py` (Baseline vs Recommended plan), `export_workbook.py` (.xlsx), `card_view.py`, `persona_view.py`, `threshold.py`. All pure: no Streamlit, Bedrock or network.
 - `src/ai/` also has no Streamlit imports. Every AI call goes through `ai.bedrock.converse`, which never raises and falls back to a Mock (Demo Mode).
 - Keep Streamlit imports out of `webapp_core`; keep business logic out of `app/`.
-- Part 9 round 2, planned (spec tasks 16.1 to 16.9, not yet built):
+- Part 9 round 2 (spec tasks 16.1 to 16.9, built):
   - New pure modules in `webapp_core`: `number_format.py` (rounded joiners, forecast text, share), `segment_flow.py` (`SEGMENT_DISPLAY_ORDER`, flow rows), `number_help.py` (plain descriptions), `help_content.py` (FAQ entries and formulas).
   - New `app/help_page.py`: the `st.dialog` opened by the `help_open` button; it only draws `help_content`.
   - Segment tables that show a fixed order import `SEGMENT_DISPLAY_ORDER` and do not define their own.

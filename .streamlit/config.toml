@@ -1,4 +1,4 @@
-# Streamlit theme for the Promo Audience Navigator.
+# Streamlit theme for the Promo Audience Manager.
 #
 # Colours here only style Streamlit's NATIVE widgets (popups, dataframes,
 # alerts, sliders). The app's own look lives in app/styles.css, section 1

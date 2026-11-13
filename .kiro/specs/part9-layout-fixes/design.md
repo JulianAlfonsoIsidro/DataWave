@@ -228,9 +228,9 @@ Browser checks (not automatable here): liquid theme switch in both directions, t
 - `time.sleep` in the assistant finish blocks the script for about 0.9 s per answer.
 - Not verified: whether the 3D carousel still posts a value per step and can rerun on rapid input (the open item in `plans/README.md`). Check in the browser.
 
-## Round 2 design (specified, not yet built)
+## Round 2 design (built 2026-11-13)
 
-This section designs Requirements 20 to 28. Nothing here is in the code yet. It changes presentation only. It was checked against the current `app/main.py`, `app/theme.py`, `app/styles.css`, `src/webapp_core/card_view.py` and the installed Streamlit 1.66.1, where `st.dialog` and `st.expander` exist (checked by import, not in a browser).
+This section designs Requirements 20 to 28. It is built (see the build notes at the end of tasks.md). It changes presentation only. It was checked against the current `app/main.py`, `app/theme.py`, `app/styles.css`, `src/webapp_core/card_view.py` and the installed Streamlit 1.66.1, where `st.dialog` and `st.expander` exist (checked by import, not in a browser).
 
 ### New and changed modules
 

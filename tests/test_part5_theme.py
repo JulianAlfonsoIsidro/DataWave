@@ -11,7 +11,7 @@ These cover concrete behaviors of ``app.theme`` and its siblings
   exposes the type tokens (no external font import), and hides the default
   Streamlit chrome,
 - :func:`app.theme.nav_bar` / :func:`app.theme.header` render the
-  "Promo Audience Navigator" text title with no image tag, and
+  "Promo Audience Manager" text title with no image tag, and
 - the tab labels are Title Case (not uppercase) and in workflow order.
 
 These are concrete example tests, not Hypothesis properties. ``app`` is a
@@ -64,7 +64,7 @@ def test_single_stylesheet_exists_and_build_css_loads_it():
     assert css.strip().startswith("<style>")
     assert css.strip().endswith("</style>")
     # It is the styles.css content, not an inline block.
-    assert "Promo Audience Navigator - BPI website style" in css
+    assert "Promo Audience Manager - BPI website style" in css
 
 
 def test_build_css_contains_every_palette_color():
@@ -113,15 +113,15 @@ def _capture_single_markdown(monkeypatch, render, **kwargs) -> str:
 def test_nav_bar_renders_text_brand_with_no_image(monkeypatch):
     """``nav_bar`` renders the text title brand and emits no image tag."""
     html = _capture_single_markdown(monkeypatch, theme.nav_bar)
-    assert "Promo Audience Navigator" in html
-    assert theme.APP_TITLE == "Promo Audience Navigator"
+    assert "Promo Audience Manager" in html
+    assert theme.APP_TITLE == "Promo Audience Manager"
     assert "<img" not in html.lower()
 
 
 def test_header_alias_renders_text_title_with_no_image(monkeypatch):
     """The backwards-compatible ``header`` renders the title, no image."""
     html = _capture_single_markdown(monkeypatch, theme.header)
-    assert "Promo Audience Navigator" in html
+    assert "Promo Audience Manager" in html
     assert "<img" not in html.lower()
 
 

@@ -13,7 +13,7 @@ DataWave is an analytical CRM tool for bank campaign planners. The UI should fee
 
 - Take influence from the BPI mobile app and website: palette, type feel, spacing, tone.
 - NEVER use the BPI logo, wordmark, or any asset copied from BPI. Never reproduce a logo-derived shape or pattern.
-- The app name is "Promo Audience Manager" / DataWave. It was "Promo Audience Navigator" until Part 9 round 2 (spec Requirement 23). The code still says Navigator until task 16.4 is done; new text and new tests use Manager.
+- The app name is "Promo Audience Manager" / DataWave. It was "Promo Audience Navigator" until Part 9 round 2 (spec Requirement 23).
 
 ## Fonts
 
@@ -42,7 +42,7 @@ DataWave is an analytical CRM tool for bank campaign planners. The UI should fee
 - Success and warning flashes are wrapped in `quiet_container` (`p8_quiet_<level>_<n>`) because alerts do not expose their kind in the DOM.
 - Z-order and timing come from tokens (`--pan-z-loader/-finish/-ring/-toast`, `--pan-ease-breath`, `--pan-dur-toast-delay`). Do not hardcode them.
 - Ring and map animate only `transform` and `opacity`. Never animate blur or use `preserve-3d` with `backdrop-filter`.
-- Map credit "NAMRIA, PSA via OCHA" stays visible below the map. The Part 9 header wordmark is the only "Promo Audience Navigator" (it replaced the hero).
+- Map credit "NAMRIA, PSA via OCHA" stays visible below the map. The Part 9 header wordmark is the only "Promo Audience Manager" (it replaced the hero).
 - Every motion item must also work with Reduced_Motion on, in light and dark, and must not replay on an unrelated rerun.
 - Known gap: dimmed map areas are low contrast in dark mode. Raise `--pan-dim` or the dark lattice tones if needed.
 
@@ -50,7 +50,7 @@ DataWave is an analytical CRM tool for bank campaign planners. The UI should fee
 
 Governing spec: `.kiro/specs/part9-layout-fixes/` (requirements, design, tasks). Cite its requirement numbers in docstrings when editing Part 9 code.
 
-- CSS sections 20-27 in `app/styles.css` are Part 9 (hover texts, theme switch, assistant thinking, assistant avatars, round 3 fixes, buttons, plain background). Section 1 stays the only place with hex values.
+- CSS sections 20-28 in `app/styles.css` are Part 9 (hover texts, theme switch, assistant thinking, assistant avatars, round 3 fixes, buttons, plain background). Section 1 stays the only place with hex values.
 - Flat look: one flat page colour (no wash or dot grid), no 3px side bars on notes, no red slabs on tiles, no red dash above section labels. Red marks a risk, an error or a pressed button, so do not use it to stress an ordinary number; stress with weight.
 - One tight radius scale: `--pan-radius-sm` (tags, tabs, tooltips), `--pan-radius-md` (every control and note), `--pan-radius-lg` (cards). Pill only for chips and dots.
 - One control height (`--pan-control-h`, 40px) for tabs, inputs and buttons.
@@ -77,9 +77,9 @@ Governing spec: `.kiro/specs/part9-layout-fixes/` (requirements, design, tasks).
 - Known gaps: no Python tests for the Part 9 pure helpers or for `ui_interactions.js`; check them in the browser (spec task 13).
 - Static files are served from `app/static` (`enableStaticServing`). Script files are `page_lock.js` and `ui_interactions.js`.
 
-## Part 9 round 2 (specified in the spec, not yet built)
+## Part 9 round 2 (built)
 
-Spec Requirements 20 to 28 and tasks 16 to 18. Build to these rules.
+Spec Requirements 20 to 28 and tasks 16 to 18. Keep to these rules.
 
 - Expected Joiners is always a rounded whole number (halves up) with a smaller muted bracket beside it: `87 (Forecasted: 87.3)`. In tables the cell is `87 (87.3)` under the heading "Expected Joiners (Forecast)". Use `webapp_core/number_format.py`, not ad hoc formatting. The total is rounded from the unrounded sum, so rows may differ from it by 1.
 - The Header's right side shows the whole number, the bracket, then `out of 1,595 sendable leads (12.8%)`. The percentage is the unrounded forecast over sendable leads.
@@ -88,6 +88,7 @@ Spec Requirements 20 to 28 and tasks 16 to 18. Build to these rules.
 - Download Leads is a closed `st.expander` holding the existing rows. Keep every download key.
 - Every button label has at least `--pan-space-4` of horizontal padding, is centred, and wraps instead of being cut.
 - Segment Flow chart: HTML and CSS stacked bars, not a chart library. Parts are Not Contacted (`--pan-flow-excluded`, slate), Control Group (`--pan-flow-control`, purple) and Sendable (`--pan-flow-sendable`, teal), defined in section 1 as aliases of `--pan-series-6`, `-3` and `-2`. Colour is never the only cue: keep the legend, the counts and the table.
+- Dialogs are drawn outside the app root: `ui_interactions.js` part 5 copies the colour scheme to `html[data-p9-scheme]` so they follow light and dark.
 - Help And FAQs: a round "?" button (key `help_open`) at the top right, outside the tab bar, opens an `st.dialog`. Do not make it a tab or a separate page, because widgets that are not rendered lose their state. Content lives in `webapp_core/help_content.py`; `app/help_page.py` only draws it. Dialog CSS is section 28 and uses tokens only.
 
 ## Scope

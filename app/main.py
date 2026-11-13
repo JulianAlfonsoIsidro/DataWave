@@ -1,4 +1,4 @@
-"""Streamlit entry point for the Promo Audience Navigator (Part 5 webapp).
+"""Streamlit entry point for the Promo Audience Manager (Part 5 webapp).
 
 This file is the declarative composition layer: it sets the wide desktop
 layout, injects the single stylesheet once, renders the page chrome (a
@@ -36,7 +36,7 @@ import streamlit as st
 
 # Wide layout must be configured before any other Streamlit call.
 st.set_page_config(
-    page_title="Promo Audience Navigator",
+    page_title="Promo Audience Manager",
     layout="wide",
 )
 
@@ -59,6 +59,10 @@ from webapp_core.past_promos import (  # noqa: E402
 from webapp_core.audience import latest_adb  # noqa: E402
 from webapp_core.promo_id import next_promo_id  # noqa: E402
 from webapp_core import toast_queue  # noqa: E402  (Part 8 loader stage texts)
+from webapp_core import number_help  # noqa: E402  (Part 9 round 2 plain descriptions)
+from webapp_core.number_format import shown_joiners  # noqa: E402
+from webapp_core.segment_flow import display_rank, flow_rows, flow_total  # noqa: E402
+import help_page  # noqa: E402  (Part 9 round 2 Help And FAQs dialog)
 from webapp_core.run_promo import PromoSpec, run_promo  # noqa: E402
 from webapp_core.threshold import (  # noqa: E402
     THRESHOLD_SPECS,
@@ -197,13 +201,31 @@ def _segment_figures(result) -> dict[str, tuple[int, float, int]]:
     return out
 
 
+def _run_forecast(result=None) -> tuple[float, int]:
+    """(unrounded Expected Joiners, sendable leads) over the Run's segments.
+
+    Part 9 round 2 (Requirements 20, 21): the header shows the forecast
+    rounded, the forecast in brackets, and the share of sendable leads.
+    """
+    result = st.session_state.get(RUN_RESULT_KEY) if result is None else result
+    if result is None or not result.cards:
+        return 0.0, 0
+    forecast = sum(float(card.get("expected_joiners", 0.0) or 0.0) for card in result.cards)
+    sendable = sum(len(df) for df in (result.sendable_by_segment or {}).values())
+    return forecast, sendable
+
+
 def _metric_from_run() -> tuple[str, str]:
-    """The headline number + caption for the hero KPI panel."""
+    """The headline number + caption for the header.
+
+    Round 2 (Requirement 20): the whole number is the forecast rounded with
+    halves up (the cards' rule), not Python's round-half-even format.
+    """
     result = st.session_state.get(RUN_RESULT_KEY)
     if result is None or not result.cards:
         return "--", "Expected Joiners"
-    total = sum(float(card.get("expected_joiners", 0.0)) for card in result.cards)
-    return f"{total:,.0f}", "Expected Joiners"
+    forecast, _sendable = _run_forecast(result)
+    return f"{shown_joiners(forecast):,}", "Expected Joiners"
 
 
 def _run_context_items() -> list[str] | None:
@@ -239,7 +261,8 @@ def _go_to_now(label: str) -> None:
 
 
 FLASH_KEY = "flash_messages"
-# (expected joiners, threshold label, threshold type name, threshold value) as run
+# (expected joiners, threshold label, threshold type name, threshold value,
+# unrounded forecast) as run; the fifth element is Part 9 round 2
 WHATIF_BASELINE_KEY = "whatif_baseline"
 # {segment: (clients, expected joiners, sendable)} as run (round 3 table)
 WHATIF_SEGMENTS_KEY = "whatif_baseline_segments"
@@ -437,6 +460,7 @@ def _render_fill_in_details(*, segment_options: list[str], auto_promo_id: str) -
                 step=10_000.0,
                 format="%.2f",
                 key=upload_panel.MIN_ADB_KEY,
+                help=number_help.adb_help(),
             )
             upload_panel.field_tag("min_adb")
 
@@ -515,6 +539,7 @@ def _render_fill_in_details(*, segment_options: list[str], auto_promo_id: str) -
                         format_value(threshold_type, threshold_value),
                         threshold_type.name,
                         float(threshold_value),
+                        _run_forecast()[0],
                     )
                     st.session_state[WHATIF_SEGMENTS_KEY] = _segment_figures(
                         st.session_state.get(RUN_RESULT_KEY)
@@ -571,15 +596,21 @@ def _tile_body_html(card: dict | None, *, emphasis: bool) -> str:
     if card is None:
         n_clients = 0
         joiners = 0.0
+        sendable = 0
     else:
         n_clients = int(card.get("n_clients", 0) or 0)
         joiners = float(card.get("expected_joiners", 0.0) or 0.0)
+        sendable = int(card.get("sendable_count", 0) or 0)
     # Numbers count up from 0 after a run (theme.counting, Part 8 polish).
+    # Round 2 (Requirements 20, 22): the whole number counts up; the forecast
+    # bracket and the "out of N sendable leads" line are plain.
+    main = theme.count_text_html(f"{shown_joiners(joiners):,}")
     return (
         '<div class="pan-tile-k">Clients</div>'
         f'<div class="pan-tile-v">{theme.count_text_html(f"{n_clients:,}")}</div>'
         '<div class="pan-tile-k pan-tile-k--spaced">Expected Joiners</div>'
-        f'<div class="pan-tile-accent">{theme.count_text_html(f"{joiners:,.1f}")}</div>'
+        f'<div class="pan-tile-accent">{theme.joiners_pair_html(joiners, main_html=main)}</div>'
+        f'<div class="pan-tile-sub">{html.escape(number_help.joiners_of_sendable(joiners, sendable))}</div>'
     )
 
 
@@ -668,6 +699,7 @@ def _render_impact_summary(result) -> None:
         theme.stat_tile_html(f"Cost Saved (₱): {cost_value}", _TIP_COST_SAVED),
     ]
     st.markdown(theme.stat_tiles_html(tiles), unsafe_allow_html=True)
+    st.caption(number_help.impact_help())
 
 
 def _render_results_tab() -> None:
@@ -722,6 +754,9 @@ def _render_results_tab() -> None:
     # rolling digit columns at once made the reveal skip on slower machines.
     _render_impact_summary(result)
 
+    # --- where each segment's clients go (Part 9 round 2, Requirement 27) ---
+    _render_segment_flow(result, reveal=run_el[0] is not None)
+
     # --- decision cards, two per row on wide screens ---
     st.subheader("Decision Cards")
     has_personas = st.session_state.get(persona_page.PERSONA_RESULT_KEY) is not None
@@ -759,21 +794,28 @@ def _render_results_tab() -> None:
     # --- Download Leads: one row per segment, in action order (Part 9) ---
     # Each row reconciles the grid: clients = not contacted + control group +
     # sendable, so the CSV count never looks unexplained.
-    st.subheader("Download Leads")
+    # Round 2 (Requirement 25): one closed dropdown holding the same rows;
+    # every download key is unchanged.
     sendable = result.sendable_by_segment or {}
-    if not sendable:
-        st.caption("No sendable leads were produced for this run.")
-    else:
-        rows = [s for s in ordered_segments if s in sendable] + [
-            s for s in sendable if s not in ordered_segments
-        ]
-        for i, segment_label in enumerate(rows):
-            _render_download_row(
-                i, result, segment_label, sendable[segment_label],
-                cards_by_segment.get(segment_label, {}),
-                recommended=segment_label in recommended,
-            )
-        st.caption(DOWNLOAD_NOTE)
+    n_files = len(sendable)
+    with st.expander(
+        f"Download Leads ({n_files} {'file' if n_files == 1 else 'files'})",
+        expanded=False,
+        key="pan_download_leads",
+    ):
+        if not sendable:
+            st.caption("No sendable leads were produced for this run.")
+        else:
+            rows = [s for s in ordered_segments if s in sendable] + [
+                s for s in sendable if s not in ordered_segments
+            ]
+            for i, segment_label in enumerate(rows):
+                _render_download_row(
+                    i, result, segment_label, sendable[segment_label],
+                    cards_by_segment.get(segment_label, {}),
+                    recommended=segment_label in recommended,
+                )
+            st.caption(DOWNLOAD_NOTE)
 
     # --- where to go next: real actions instead of a "Next:" sentence ---
     with st.container(key="pan_next_actions", horizontal=True):
@@ -782,6 +824,36 @@ def _render_results_tab() -> None:
             "Personas", key="nav_results_personas", primary=not has_personas,
         )
         _nav_button("Try Another Threshold", "What-If", key="nav_results_whatif")
+
+
+FLOW_SEGMENT_KEY = "pan_flow_segment"
+FLOW_ALL = "All Segments"
+
+
+def _render_segment_flow(result, *, reveal: bool) -> None:
+    """Results: "Where Each Segment's Clients Go" (Part 9 round 2, Req 27).
+
+    Stacked bars and the table, read straight from the Run's cards.
+    """
+    rows = flow_rows(result.cards)
+    if not rows:
+        return
+    st.subheader("Where Each Segment's Clients Go")
+    st.caption(number_help.flow_help())
+    # Owner follow-up: one segment at a time, picked from a dropdown, in the
+    # display order, with "All Segments" (the Total) last. No separate table.
+    by_name = {r.segment: r for r in rows}
+    options = [r.segment for r in rows] + [FLOW_ALL]
+    if st.session_state.get(FLOW_SEGMENT_KEY) not in options:
+        st.session_state[FLOW_SEGMENT_KEY] = options[0]
+    col, _rest = st.columns([1, 1])
+    with col:
+        choice = st.selectbox("Segment", options, key=FLOW_SEGMENT_KEY)
+    row = flow_total(rows) if choice == FLOW_ALL else by_name[choice]
+    st.markdown(
+        theme.segment_flow_html(row, reveal=reveal, title=choice),
+        unsafe_allow_html=True,
+    )
 
 
 def _nav_button(label: str, section: str, *, key: str, primary: bool = False) -> None:
@@ -901,7 +973,10 @@ def _render_threshold_context(result) -> None:
             on_click=_request_threshold_reset,
         )
     else:
-        st.caption(f"Threshold {label}" + (", as run." if base_label else "."))
+        st.caption(
+            f"Threshold {label}" + (", as run. " if base_label else ". ")
+            + number_help.threshold_help()
+        )
 
 
 def _render_results_actions(result, recommended: set[str]) -> None:
@@ -927,12 +1002,22 @@ def _render_results_actions(result, recommended: set[str]) -> None:
                 ),
             )
         _render_export_summary(result)
+    if frames:
+        cards = _cards_by_segment()
+        forecast = sum(
+            float(cards.get(s, {}).get("expected_joiners", 0.0) or 0.0)
+            for s in recommended if s in sendable
+        )
+        st.caption(number_help.recommended_caption(forecast, len(leads)))
 
 
-def _download_cell(label: str, value: str, notes: tuple[str, ...] = ()) -> str:
+def _download_cell(label: str, value: str, notes: tuple[str, ...] = (), tip: str = "") -> str:
     note_html = "".join(f'<span class="pan-dl-note">{html.escape(n)}</span>' for n in notes)
+    # Round 2 (Requirement 22): the plain meaning is the label's hover text,
+    # so the closed dropdown stays clean.
+    key_html = theme.tooltip_html(label, tip) if tip else html.escape(label)
     return (
-        f'<div class="pan-dl-cell"><span class="pan-dl-k">{html.escape(label)}</span>'
+        f'<div class="pan-dl-cell"><span class="pan-dl-k">{key_html}</span>'
         f'<span class="pan-dl-v">{html.escape(value)}</span>{note_html}</div>'
     )
 
@@ -964,13 +1049,16 @@ def _render_download_row(i: int, result, segment_label: str, leads_df, card: dic
             st.markdown(_download_cell("Clients", f"{int(card.get('n_clients', 0) or 0):,}"),
                         unsafe_allow_html=True)
         with out_col:
-            st.markdown(_download_cell("Not Contacted", f"{n_excluded:,}", reasons),
+            st.markdown(_download_cell("Not Contacted", f"{n_excluded:,}", reasons,
+                                       number_help.not_contacted_help()),
                         unsafe_allow_html=True)
         with control_col:
-            st.markdown(_download_cell("Control Group", f"{control:,}"),
+            st.markdown(_download_cell("Control Group", f"{control:,}", (),
+                                       number_help.control_help()),
                         unsafe_allow_html=True)
         with send_col:
-            st.markdown(_download_cell("Sendable", f"{len(leads_df):,}"),
+            st.markdown(_download_cell("Sendable", f"{len(leads_df):,}", (),
+                                       number_help.sendable_help()),
                         unsafe_allow_html=True)
         with file_col:
             # The row already names the segment, so the label stays short
@@ -1116,6 +1204,8 @@ def _render_whatif_tab() -> None:
                 base_number=base[0] if base else None,
                 base_label=base[1] if base else None,
                 prev=ui_effects.number_prev("whatif", number),
+                forecast=_run_forecast(result)[0],
+                base_forecast=base[4] if base and len(base) > 4 else None,
             ),
             unsafe_allow_html=True,
         )
@@ -1148,21 +1238,19 @@ def _render_whatif_segments(result) -> None:
     # at the as-run threshold every one would read "No change".
     _label, _base_label, changed = _threshold_context(result)
     base = (st.session_state.get(WHATIF_SEGMENTS_KEY) or {}) if changed else {}
-    order = [s for _r, cols in RESULTS_GRID for _c, s in cols]
-    segments = sorted(
-        set(now) | set(base),
-        key=lambda s: order.index(s) if s in order else len(order),
-    )
+    # Round 2 (Requirement 24): best first, the one display order.
+    segments = sorted(set(now) | set(base), key=display_rank)
     rows = []
     for seg in segments:
         n = now.get(seg, (0, 0.0, 0))
         b = base.get(seg) if base else None
         rows.append((seg, [
-            (n[0], None if b is None else b[0], 0),
-            (n[1], None if b is None else b[1], 1),
-            (n[2], None if b is None else b[2], 0),
+            (n[0], None if b is None else b[0], "count"),
+            (n[1], None if b is None else b[1], "joiners"),
+            (n[2], None if b is None else b[2], "count"),
         ]))
     st.markdown(theme.whatif_segments_html(rows), unsafe_allow_html=True)
+    st.caption(number_help.whatif_table_help())
 
 
 def _run_rescore(result, t_type: ThresholdType, value: float, fields: dict,
@@ -1265,6 +1353,8 @@ def main() -> None:
                 number,
                 caption,
                 has_run=st.session_state.get(RUN_RESULT_KEY) is not None,
+                forecast=_run_forecast()[0],
+                sendable_total=_run_forecast()[1],
                 # Counts up once after a run; rolls from the last shown value
                 # on later changes (Part 8, F5).
                 prev=ui_effects.number_prev("hero", number),
@@ -1278,6 +1368,13 @@ def main() -> None:
         ),
         unsafe_allow_html=True,
     )
+
+    # Help And FAQs (Part 9 round 2, Requirement 28): a round "?" fixed at
+    # the top right, outside the tab bar; it opens a dialog over the page so
+    # no tab (and no widget state) is unmounted.
+    with st.container(key="pan_help"):
+        if st.button("?", key="help_open", help="Help And FAQs"):
+            help_page.open_help(_go_to_now)
 
     # A section asked for during the last render (after its tabs existed).
     pending = st.session_state.pop(NAV_PENDING_KEY, None)

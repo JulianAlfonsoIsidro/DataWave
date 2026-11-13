@@ -56,7 +56,7 @@ def test_region_svg_has_four_areas_licence_and_size_limit():
 def test_header_lines_removed_from_main_but_kept_in_theme():
     main = (ROOT / "app" / "main.py").read_text(encoding="utf-8")
     assert not re.search(r"^\s*theme\.(utility_bar|nav_bar)\(", main, re.M)  # no call lines
-    assert theme.APP_TITLE == "Promo Audience Navigator"
+    assert theme.APP_TITLE == "Promo Audience Manager"
     assert callable(theme.nav_bar) and callable(theme.header)
 
 

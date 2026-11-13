@@ -1,6 +1,6 @@
 """CRM-friendly Persona_Page composition and session wiring (Requirements 3, 4.5, 4.10, 5, 6, 8.8-8.10).
 
-The Streamlit ``Persona_Page`` for the Promo Audience Navigator. It is the
+The Streamlit ``Persona_Page`` for the Promo Audience Manager. It is the
 presentation-and-session-state layer only: it wires widgets, owns the
 ``st.cache_data`` caches, and delegates **all** clustering/profiling to
 :mod:`webapp_core.personas` (Persona_Core) / :mod:`part5_personas`
@@ -978,6 +978,9 @@ PERSONA_GROUP_COUNTS_KEY = "persona_group_counts"
 # The selection kind (numeric/categorical/mixed/none) of the run that produced the
 # displayed results, used for the clustering-kind caption (Requirement 6.12).
 PERSONA_KIND_KEY = "persona_clustering_kind"
+# Part 9 round 2: True when the last build clustered the run's sendable leads
+# (campaign level, current New Promo run), so group captions can say so.
+PERSONA_POOL_SENDABLE_KEY = "persona_pool_sendable"
 
 
 @dataclass(frozen=True)
@@ -1335,9 +1338,24 @@ def _render_summary_cards(
 
     item = 1 if (visual is not None and visual()) else 0
 
+    # Part 9 round 2 (Requirement 22): each group says how many of the run's
+    # leads it holds, e.g. "Luzon · 376 of 1,595 sendable leads".
+    from webapp_core import number_help
+
+    total = sum(p.profile.size for ps in result.persona_sets for p in ps.personas)
+    sendable_pool = bool(st.session_state.get(PERSONA_POOL_SENDABLE_KEY))
     for persona_set in result.persona_sets:
         if persona_set.group_key:
-            st.markdown(f"**Segment: {persona_set.group_key}**")
+            size = sum(p.profile.size for p in persona_set.personas)
+            caption = number_help.persona_group_caption(
+                str(persona_set.group_key), size, total, sendable=sendable_pool
+            )
+            group, _sep, rest = caption.partition(" · ")
+            st.markdown(
+                f'<div class="pan-group-head"><strong>{html.escape(group)}</strong>'
+                f'<span class="pan-group-count"> · {html.escape(rest)}</span></div>',
+                unsafe_allow_html=True,
+            )
 
         if persona_set.too_small:
             # The too-small group reports no personas; show the actionable count.
@@ -2002,8 +2020,9 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
     _exclusion = split_exclusion_caption(grouping_attributes)
     if _exclusion is not None:
         st.caption(_exclusion)
+    # Part 9: the section label already says what these are, so the extra
+    # "Attributes to build personas on" line was removed (owner request).
     theme.section_label("Attributes", "What the personas are built from.")
-    st.markdown("**Attributes to build personas on**")
     selected_attributes: list[str] = []
     picker_cols = st.columns(2)
     for i, (group, cols) in enumerate(grouped.items()):
@@ -2268,6 +2287,10 @@ def _handle_run(
         # run (Requirements 7.11, 7.12). No Streamlit call happens in between.
         st.session_state[PERSONA_RESULT_KEY] = result
         st.session_state[PERSONA_EXPORTS_KEY] = exports
+        st.session_state[PERSONA_POOL_SENDABLE_KEY] = (
+            getattr(spec, "level", None) == LEVEL_CAMPAIGN
+            and getattr(spec, "campaign_pool", None) == "live"
+        )
         st.session_state[PERSONA_KIND_KEY] = selection_kind(
             effective_clustering_attributes(level, attributes, business_segment_field),
             _joined_attribute_kinds(),
