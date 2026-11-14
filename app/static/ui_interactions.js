@@ -294,8 +294,8 @@
   // How long the page must stay quiet before the red fades. A job button
   // also waits out the loader's finish (story, hold, linger), which plays
   // over the page after the script stops, so the fade is seen.
-  function settleMs(key) {
-    if (!key || key.indexOf("st-key-p8_btn_") !== 0) return 300;
+  function settleMs(entry) {
+    if (!entry || !entry.job) return 300;
     return 300 + tokenMs("--pan-dur-finish", 800) + tokenMs("--pan-dur-hold", 150) +
       tokenMs("--pan-dur-finish-linger", 200);
   }
@@ -323,7 +323,7 @@
       else if (!entry.quietSince) entry.quietSince = now;
       // Done: the work ran and has been quiet a moment, or nothing ran
       // (a click that started no rerun); capped at 15 minutes.
-      var quiet = entry.quietSince && now - entry.quietSince > settleMs(entry.key);
+      var quiet = entry.quietSince && now - entry.quietSince > settleMs(entry);
       var done = (quiet && (entry.started || now - entry.t0 > 1500)) || now - entry.t0 > 900000;
       if (btn) {
         if (done) btn.removeAttribute("data-p9-pressed");
@@ -342,8 +342,21 @@
   // rejected form, an empty audience) the mark goes once the page is idle.
   var JOB_KEYS = ["st-key-p8_btn_", "st-key-persona_suggest"];
   var jobClickAt = 0, jobSeenBusy = false, jobTimer = null;
+  // Timing guards for the job scrim, not design tokens (they are not in the
+  // CSS token section): wait this long for a run to start, and never keep the
+  // scrim longer than the cap.
+  var JOB_NO_RUN_MS = 1500, JOB_SAFETY_CAP_MS = 15000;
   function isJobKey(key) {
     return !!key && JOB_KEYS.some(function (k) { return key.indexOf(k) === 0; });
+  }
+  // A job button is any button inside a p8_btn_ container (at any depth), or
+  // one whose own key starts with persona_suggest. persona_use_suggestion
+  // sits in the suggestion row but is a normal button.
+  function isJobButton(btn) {
+    if (btn.closest('[class*="st-key-p8_btn_"]')) return true;
+    var key = keyOf(btn);
+    if (!key || key === "st-key-persona_use_suggestion") return false;
+    return key.indexOf("st-key-persona_suggest") === 0;
   }
   function clearJobClick() {
     document.documentElement.removeAttribute("data-p9-job-click");
@@ -357,22 +370,28 @@
     var app = document.querySelector('[data-testid="stApp"]');
     var running = !!app && app.getAttribute("data-test-script-state") === "running";
     if (running) jobSeenBusy = true;
-    // Idle again after the rerun ran (or nothing ran at all): no loader coming.
-    if ((jobSeenBusy && !running && now - jobClickAt > 400) || now - jobClickAt > 3000) clearJobClick();
+    // Keep the scrim while the script runs. Clear when a run was seen and the
+    // app is idle again (short settle), when no run started within
+    // JOB_NO_RUN_MS, or at JOB_SAFETY_CAP_MS whatever happens (item 1.14).
+    var elapsed = now - jobClickAt;
+    if ((jobSeenBusy && !running && elapsed > 400) ||
+        (!jobSeenBusy && elapsed > JOB_NO_RUN_MS) ||
+        elapsed > JOB_SAFETY_CAP_MS) clearJobClick();
   }
   window.addEventListener("p9-job-handoff", clearJobClick);
 
   document.addEventListener("click", function (e) {
     var btn = e.target && e.target.closest && e.target.closest(BTN);
     if (!btn || btn.disabled) return;
-    if (isJobKey(keyOf(btn))) {
+    var job = isJobButton(btn);
+    if (job) {
       document.documentElement.setAttribute("data-p9-job-click", "");
       jobClickAt = performance.now(); jobSeenBusy = false;
       if (!jobTimer) jobTimer = setInterval(watchJobClick, 100);
     }
     var key = keyOf(btn);
     pressed = pressed.filter(function (p) { return p.el !== btn && (!key || p.key !== key); });
-    pressed.push({ key: key, el: btn, t0: performance.now(), started: false, quietSince: 0 });
+    pressed.push({ key: key, el: btn, t0: performance.now(), started: false, quietSince: 0, job: job });
     btn.setAttribute("data-p9-pressed", "");
     if (!pollTimer) pollTimer = setTimeout(poll, 100);
   }, true);

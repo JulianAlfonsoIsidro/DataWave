@@ -149,8 +149,6 @@
   --pan-dur-shimmer: 1400ms;       /* the label's light sweep */
   --pan-pixel-size: 4px;
   --pan-pixel-gap: 1.5px;
-  --pan-turn-marker: 1.75rem;      /* the transcript's marker column */
-  --pan-turn-dot: 0.5rem;          /* the user's dot */     /* the red fading out once the work is done */
   /* The ? button now sits at the bottom right (owner request), so the header
      only keeps clear of Streamlit 1.66.1's Settings menu. */
   --pan-help-clearance: 56px;
@@ -341,7 +339,8 @@ html, body, [class*="css"], .stApp, .stMarkdown, p, span, div, label, input, sel
   max-width: 1200px;
   margin: 0 auto;
   padding-top: 0.5rem;
-  padding-bottom: 3rem;
+  /* Audit 1.10: clear the fixed "?" button (space-5 gap + control-h + space-5 margin) */
+  padding-bottom: calc(var(--pan-space-5) + var(--pan-control-h) + var(--pan-space-5));
 }
 .stApp h1, .stApp h2, .stApp h3, .stApp h4 { color: var(--pan-text); }
 .stApp h1 {
@@ -527,7 +526,7 @@ div[data-testid="collapsedControl"],
   border: 1.5px solid var(--pan-primary-text);
 }
 .stDownloadButton > button:hover { background: var(--pan-primary-tint); color: var(--pan-primary-text); border-color: var(--pan-primary-text); }
-/* Part 9: the one primary download (Download Recommended Leads) is filled. */
+/* Part 9: the one primary download (the Download Leads button) is filled. */
 .stDownloadButton > button:is([kind="primary"], [data-testid="stBaseButton-primary"]) {
   background: linear-gradient(135deg, var(--pan-primary-from), var(--pan-primary-to));
   color: var(--pan-on-primary);
@@ -589,41 +588,16 @@ div[data-testid="collapsedControl"],
 .pan-wi-fig.is-delta .pan-wi-v { color: var(--pan-text); }
 [data-testid="stMarkdownContainer"]:has(> .pan-wi) { margin-bottom: 0; }
 
-/* ---- Results action bar and Download Leads rows (Part 9) ---- */
-.st-key-pan_results_actions { margin-bottom: var(--pan-space-2); }
-/* One hairline under each row (each row sits in its own wrapper, so a
-   top-and-last-child pair would draw two lines between rows). */
-[class*="st-key-pan_dl_row_"] {
-  border-bottom: 1px solid var(--pan-divider);
-  padding: var(--pan-space-3) 0;
-}
-.st-key-pan_dl_row_0 { border-top: 1px solid var(--pan-divider); }
-/* Streamlit pulls each markdown block up by 1rem; inside a row that let a
-   tall cell run past the row's divider. */
-[class*="st-key-pan_dl_row_"] [data-testid="stMarkdownContainer"] { margin-bottom: 0 !important; }
-.pan-dl-name {
-  display: flex;
+/* ---- Download Leads: the chosen segment's name in the check card ---- */
+.pan-review-seg {
+  display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--pan-space-2);
   font-family: var(--pan-font-heading);
   font-weight: var(--pan-weight-medium);
-  color: var(--pan-text);
 }
-.pan-dl-name > span:not(.pan-marker):not(.pan-act) { font-family: inherit; min-width: 0; }
-.pan-dl-action,
-.pan-dl-k,
-.pan-dl-note {
-  display: block;
-  font-size: var(--pan-type-caption-size);
-  line-height: var(--pan-type-caption-leading);
-  color: var(--pan-text-muted);
-}
-.pan-dl-v {
-  display: block;
-  font-weight: var(--pan-weight-demi);
-  color: var(--pan-text);
-  font-variant-numeric: tabular-nums;
-}
+.pan-review-seg > span:not(.pan-marker):not(.pan-act) { font-family: inherit; min-width: 0; }
 .stButton > button:disabled, .stDownloadButton > button:disabled, .stFormSubmitButton > button:disabled {
   background: var(--pan-disabled-bg);
   color: var(--pan-disabled-text);
@@ -3020,12 +2994,11 @@ html.p9-theme-wave::view-transition-new(root) {
 @keyframes p9-theme-hold { from { opacity: 1; } to { opacity: 1; } }
 
 /* ===================================================================== */
-/* 22. PART 9 ASSISTANT THINKING: a dot circles the avatar while waiting */
+/* 22. PART 9 ASSISTANT THINKING: three dots pulse while waiting      */
 /* ===================================================================== */
 /* Shown only while an answer is being fetched (the message is replaced by
    the answer on the next render), so the loop never outlives the wait. The
-   dots pulse on opacity and a 2px lift; the block turns beside them
-   (section 24). */
+   dots pulse on opacity and a 2px lift. */
 .pan-thinking {
   display: inline-flex;
   align-items: baseline;
@@ -3740,6 +3713,14 @@ html[data-p9-scheme="light"] { color-scheme: light; }
 [class*="st-key-pan_turn_"] { padding: var(--pan-space-2) 0; }
 [class*="st-key-pan_turn_"] > [data-testid="stVerticalBlock"],
 [class*="st-key-pan_turn_"][data-testid="stVerticalBlock"] { gap: var(--pan-space-1); }
+/* Hairline between the suggested questions and the conversation, the same
+   divider token as the prompt line below. */
+.pan-chat-divider {
+  border: 0;
+  border-top: 1px solid var(--pan-divider);
+  margin: var(--pan-space-3) 0 var(--pan-space-2) 0;
+}
+[data-testid="stMarkdownContainer"]:has(> .pan-chat-divider) { margin-bottom: 0; }
 .pan-chat-user { display: flex; justify-content: flex-end; }
 .pan-chat-bubble {
   max-inline-size: min(75%, 60ch);
@@ -3785,7 +3766,7 @@ html[data-p9-scheme="light"] { color-scheme: light; }
   color: var(--pan-text-muted);
   font-variant-numeric: tabular-nums;
 }
-/* Review card before Download Recommended Leads (Requirement 37.3). */
+/* Review card (Check Before You Download) shown before a leads download (Requirement 37.3). */
 .pan-review {
   margin: var(--pan-space-2) 0 var(--pan-space-2) 0;
   padding: var(--pan-space-3) var(--pan-space-4);
@@ -3794,21 +3775,44 @@ html[data-p9-scheme="light"] { color-scheme: light; }
   background: var(--pan-surface);
   max-inline-size: 40rem;
 }
-.pan-review-title { font-weight: var(--pan-weight-bold); margin-bottom: var(--pan-space-2); color: var(--pan-text); }
-.pan-review-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--pan-space-1); }
+.pan-review-title { font-weight: var(--pan-weight-bold); margin-bottom: var(--pan-space-3); color: var(--pan-text); }
+/* One shared label column for every row (subgrid), as wide as the longest
+   label ("Control group held back"), so every value starts at the same
+   edge. Each row gets room above and below and a hairline between rows. */
+.pan-review-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: var(--pan-space-5);
+}
 .pan-review-list li {
   display: grid;
-  grid-template-columns: minmax(10rem, auto) 1fr;
-  column-gap: var(--pan-space-3);
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  row-gap: var(--pan-space-1);
+  padding-block: var(--pan-space-2);
+  border-top: 1px solid var(--pan-divider);
   font-size: var(--pan-type-body-size);
+  align-items: baseline;
 }
-.pan-review-list li span { color: var(--pan-text-muted); }
-.pan-review-list li strong { color: var(--pan-text); font-variant-numeric: tabular-nums; }
-.pan-review-list li em {
+.pan-review-list li:first-child { border-top: 0; padding-top: 0; }
+.pan-review-list li:last-child { padding-bottom: 0; }
+/* Only the row label is muted: the segment name inside <strong> keeps ink. */
+.pan-review-list li > span { grid-column: 1; color: var(--pan-text-muted); }
+.pan-review-list li > strong { grid-column: 2; color: var(--pan-text); font-variant-numeric: tabular-nums; }
+.pan-review-list li > em {
   grid-column: 2;
   font-style: normal;
   font-size: var(--pan-type-caption-size);
+  line-height: var(--pan-type-caption-leading);
   color: var(--pan-text-muted);
+}
+/* Phone: the label sits above its value. */
+@media (max-width: 480px) {
+  .pan-review-list { grid-template-columns: minmax(0, 1fr); }
+  .pan-review-list li > :is(span, strong, em) { grid-column: 1; }
 }
 .pan-table tr.pan-flag .pan-td { background: var(--pan-warning-bg); }
 /* Inside a transcript turn: the meta row keeps clear of the next element
@@ -3856,7 +3860,6 @@ html[data-p9-scheme="light"] { color-scheme: light; }
 :root:has(.st-key-assistant_clear) .pan-prompt-hint { border-top: 0; margin-top: 0; padding-top: 0; }
 .pan-review .pan-review-list { margin: 0 !important; padding: 0 !important; }
 .pan-review .pan-review-list li { margin: 0; }
-.pan-ai-status { display: flex; flex-wrap: wrap; gap: var(--pan-space-2); align-items: center; margin-bottom: var(--pan-space-2); }
 
 /* >>> PART 9 MOTIFS (generated) >>> */
 /* ===================================================================== */

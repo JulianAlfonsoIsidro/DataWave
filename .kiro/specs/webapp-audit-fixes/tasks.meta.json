@@ -1,0 +1,318 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Write bug condition exploration tests": [
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794628933199
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794628966213
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794629114824
+      }
+    ],
+    "2. Write preservation property tests (BEFORE implementing the fixes)": [
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794628935831
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794629122991
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794629293466
+      }
+    ],
+    "3.1 Sign-off reset (item 1.1): add `src/webapp_core/review_signoff.py` and wire it into `app/main.py`": [
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794628939821
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794629320208
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794629697559
+      }
+    ],
+    "3.2 Help text and CSS comments (item 1.2)": [
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794628940820
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794629321600
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794629698791
+      }
+    ],
+    "3.3 Per-session finishing state (item 1.3)": [
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794628941732
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794629322399
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794629699900
+      }
+    ],
+    "3.4 Failed run does not rerun (item 1.5)": [
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794628942278
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794629713796
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794630014582
+      }
+    ],
+    "3.5 Lazy workbook with a stable cache key (item 1.9)": [
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794628942776
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794630543951
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794632904693
+      }
+    ],
+    "3.6 Bottom padding with tokens (item 1.10)": [
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794628943704
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794629714613
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794630016447
+      }
+    ],
+    "3.7 Dead code, comments and caption cleanup, with the test removals (items 1.6, 1.7, 1.8)": [
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794628944243
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794630050068
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794630535446
+      }
+    ],
+    "3.8 Validation doc (item 1.4)": [
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794628944683
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794629323453
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794629700946
+      }
+    ],
+    "3.9 Tests for required fields and model display (item 1.11)": [
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794628945506
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794629715719
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794630018602
+      }
+    ],
+    "3.10 Job-button detection with `isJobButton` (item 1.12)": [
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794628946014
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794629324249
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794629701921
+      }
+    ],
+    "3.11 Export Summary after the if/else (item 1.13)": [
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794628946556
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794632905909
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794632912318
+      }
+    ],
+    "3.12 Scrim timing in `watchJobClick` (item 1.14)": [
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794628946967
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794630545560
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794632903621
+      }
+    ],
+    "3.13 `required_message` action parameter and the Personas call (item 1.15)": [
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794628947911
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794630550969
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794632902273
+      }
+    ],
+    "3.14 Verify bug condition exploration tests now pass": [
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794628948529
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794632913534
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794632921506
+      }
+    ],
+    "3.15 Verify preservation tests still pass": [
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794628949008
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794632914854
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794632922733
+      }
+    ],
+    "4. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794628949472
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794632923874
+      },
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794632929882
+      }
+    ],
+    "3. Fix the webapp audit defects": [
+      {
+        "executionId": "078b9205-0bd2-4a41-a20d-c98f1a871bd4",
+        "chatSessionId": "sess_e9050374-2ab4-478b-a88b-4bc2e383ae85",
+        "timestamp": 1794632922829
+      }
+    ]
+  }
+}

@@ -51,17 +51,6 @@ def mode_label() -> str:
     return "Bedrock" if ok else "Demo Mode"
 
 
-def status_chips_html() -> str:
-    """The mode chip and the model id (never a key or secret)."""
-    mode = mode_label()
-    chips = theme.ai_chip_html(mode, icon=mode == "Bedrock",
-                               kind="bedrock" if mode == "Bedrock" else "demo")
-    model = bedrock.model_id()
-    if model:
-        chips += theme.ai_chip_html(f"Model: {model}")
-    return f'<div class="pan-ai-status">{chips}</div>'
-
-
 def notice(kind: str, does: str = "", *, chips: bool = False) -> None:
     """One section notice (Requirement 32); with ``chips`` it also names the model."""
     if chips:

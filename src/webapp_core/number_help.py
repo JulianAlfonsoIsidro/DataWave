@@ -119,14 +119,6 @@ def similarity_help() -> str:
     return "0 to 100. How alike this promo is to the one you are designing."
 
 
-def recommended_caption(forecast: float, sendable: int) -> str:
-    """``about 87 of the 282 sendable leads are expected to join``."""
-    from webapp_core.number_format import shown_joiners
-
-    noun = "lead is" if sendable == 1 else "leads are"
-    return f"about {shown_joiners(forecast):,} of the {sendable:,} sendable {noun} expected to join"
-
-
 def persona_group_caption(group: str, size: int, total: int, *, sendable: bool) -> str:
     """``Luzon · 376 of 1,595 sendable leads`` above a persona group."""
     kind = "sendable leads" if sendable else "leads"

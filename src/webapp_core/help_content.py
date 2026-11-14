@@ -134,12 +134,13 @@ ENTRIES: tuple[HelpEntry, ...] = (
     ),
     HelpEntry(
         "recommended",
-        "How many of the leads in [[Download Recommended Leads]] are expected to join?",
-        'The line under the button says it, for example "about 87 of the 282 '
-        'sendable leads are expected to join". The file holds the sendable leads '
-        "of the segment marked [[Act first]], and 87 is that segment's Expected Joiners.",
+        "How many of the leads in [[Download Leads]] are expected to join?",
+        "Open [[Download Leads]] and pick a segment in [[Choose Leads To Download]]. "
+        "[[Check Before You Download]] shows that segment's sendable leads and how "
+        "many of them are expected to join, for example 87 of 282. That number is the "
+        "segment's Expected Joiners. The segment marked [[Act first]] is the one to start with.",
         None,
-        "[[Results]] tab, under [[Download Recommended Leads]]",
+        "[[Results]] tab, in the [[Download Leads]] dropdown",
     ),
     HelpEntry(
         "control",
@@ -162,10 +163,11 @@ ENTRIES: tuple[HelpEntry, ...] = (
         "act_first",
         "What does the [[Act first]] tag on the [[Results Grid]] and [[Decision Cards]] mean?",
         "It marks the segment whose recommended action is Prioritize: the best "
-        "place to start. [[Download Recommended Leads]] gives you that segment's "
-        "sendable leads.",
+        "place to start. To get its leads, open [[Download Leads]], pick the "
+        "segment in [[Choose Leads To Download]], read [[Check Before You Download]], "
+        "tick [[I Checked These Figures]], then press Download Leads.",
         None,
-        "[[Results Grid]] and [[Decision Cards]]",
+        "[[Results Grid]], [[Decision Cards]] and the [[Download Leads]] dropdown",
     ),
     HelpEntry(
         "threshold",

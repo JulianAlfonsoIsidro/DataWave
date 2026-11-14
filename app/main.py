@@ -60,6 +60,7 @@ from webapp_core.audience import latest_adb  # noqa: E402
 from webapp_core.promo_id import next_promo_id  # noqa: E402
 from webapp_core import toast_queue  # noqa: E402  (Part 8 loader stage texts)
 from webapp_core import number_help  # noqa: E402  (Part 9 round 2 plain descriptions)
+from webapp_core import review_signoff  # noqa: E402  (audit item 1.1 sign-off reset)
 from webapp_core.number_format import shown_joiners  # noqa: E402
 from webapp_core.required_fields import missing_promo_fields, required_message  # noqa: E402
 from webapp_core.segment_flow import display_rank, flow_rows, flow_total  # noqa: E402
@@ -541,6 +542,8 @@ def _render_fill_in_details(*, segment_options: list[str], auto_promo_id: str) -
                 ok = any(level == "success" for level, _ in messages)
                 ui_effects.end_job("analysis", ok, signature)
                 if ok:
+                    # A new run means new figures: old sign-offs no longer apply.
+                    st.session_state["run_seq"] = int(st.session_state.get("run_seq", 0)) + 1
                     loader.status(toast_queue.DONE_TEXT["analysis"])
                     # The overlay stays through the rerun; the completion render
                     # fades it out (design section l). Errors clear it as before.
@@ -560,8 +563,14 @@ def _render_fill_in_details(*, segment_options: list[str], auto_promo_id: str) -
                         st.session_state.get(RUN_RESULT_KEY)
                     )
                     st.session_state.pop(WHATIF_RESET_KEY, None)
-            # Refresh once so the hero KPI at the top shows the new run's number.
-            st.rerun()
+            if ok:
+                # Refresh once so the hero KPI at the top shows the new run's number.
+                st.rerun()
+            # A failed run changes no header figure, so it does not rerun
+            # (webapp-audit-fixes 1.5): show the messages once here and drop
+            # the flash so the top of the tab does not repeat them.
+            _show_messages(messages)
+            st.session_state.pop(FLASH_KEY, None)
 
     # Back on the form after a run: one step to the answer (Part 9).
     if st.session_state.get(RUN_RESULT_KEY) is not None:
@@ -775,7 +784,7 @@ def _render_results_tab() -> None:
     # --- where each segment's clients go (Part 9 round 2, Requirement 27) ---
     _render_segment_flow(result, reveal=run_el[0] is not None)
 
-    # --- decision cards, two per row on wide screens ---
+    # --- decision cards, one column ---
     st.subheader("Decision Cards")
     has_personas = st.session_state.get(persona_page.PERSONA_RESULT_KEY) is not None
     if not has_personas:
@@ -823,17 +832,13 @@ def _render_results_tab() -> None:
             rows = [s for s in ordered_segments if s in sendable] + [
                 s for s in sendable if s not in ordered_segments
             ]
-            for i, segment_label in enumerate(rows):
-                _render_download_row(
-                    i, result, segment_label, sendable[segment_label],
-                    cards_by_segment.get(segment_label, {}),
-                    recommended=segment_label in recommended,
-                )
-            st.caption(DOWNLOAD_NOTE)
-            # The check, the file and Export Summary live together at the
-            # bottom of the dropdown: pick a segment (or all), tick, download.
+            # Owner request: one picker instead of a row per segment. The
+            # check card shows what the chosen segment contains, then the
+            # sign-off and the file.
             _render_download_picker(result, rows, sendable, recommended)
-            _render_export_summary(result)
+            st.caption(DOWNLOAD_NOTE)
+        # Export Summary shows with or without sendable leads (item 1.13).
+        _render_export_summary(result)
 
     # --- where to go next: real actions instead of a "Next:" sentence ---
     with st.container(key="pan_next_actions", horizontal=True):
@@ -886,19 +891,24 @@ def _nav_button(label: str, section: str, *, key: str, primary: bool = False) ->
 
 
 EXPORT_CACHE_KEY = "export_summary_cache"
+EXPORT_ERROR_TEXT = (
+    "The summary could not be built for this run. Run the analysis "
+    "again, then try the export once more."
+)
 EXPORT_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
 
-def _export_workbook_bytes(result) -> bytes:
-    """Build the Export_Workbook bytes, cached per run and persona result.
+def _export_inputs(result) -> dict:
+    """Everything the workbook depends on, read on the script thread.
 
-    The cache key uses object identity, so a new run or a new persona
-    generation rebuilds the workbook once and reruns reuse the bytes.
+    The download callable runs on another thread where ``st.session_state``
+    is unavailable, so the key, persona result and cache holder are captured
+    here. The key has no ``id()``: it uses the figures signature (promo,
+    threshold, run number), the persona signature, the persona build
+    generation (a rebuild always invalidates), the narration source and the
+    date (audit item 1.9).
     """
     from datetime import date
-
-    from webapp_core.export_workbook import build_workbook
-    from webapp_core.impact import compute_impact, load_channel_costs
 
     persona_result = st.session_state.get(persona_page.PERSONA_RESULT_KEY)
     source = (
@@ -906,13 +916,47 @@ def _export_workbook_bytes(result) -> bytes:
         if persona_result is not None
         else "Demo"
     )
-    key = (id(result), id(persona_result), source, date.today())
-    cached = st.session_state.get(EXPORT_CACHE_KEY)
-    if cached is not None and cached[0] == key:
+    t_type, t_value = _current_threshold(result)
+    today = date.today()
+    key = (
+        review_signoff.figures_signature(
+            result.promo_spec.promo_id, t_type.name, t_value,
+            st.session_state.get("run_seq", 0),
+        ),
+        review_signoff.persona_signature(persona_result),
+        ui_effects.generation("personas"),
+        source,
+        today,
+    )
+    holder = st.session_state.setdefault(EXPORT_CACHE_KEY, {})
+    if not isinstance(holder, dict):  # a stale tuple from an older build
+        holder = {}
+        st.session_state[EXPORT_CACHE_KEY] = holder
+    return {"key": key, "persona_result": persona_result, "source": source,
+            "today": today, "holder": holder}
+
+
+def _export_workbook_bytes(result, inputs: dict | None = None) -> bytes:
+    """Build the Export_Workbook bytes, cached by ``inputs["key"]``.
+
+    Reruns reuse the bytes; a new run, threshold, persona build or day
+    rebuilds once.
+    """
+    from webapp_core.export_workbook import build_workbook
+    from webapp_core.impact import compute_impact, load_channel_costs
+
+    if inputs is None:
+        inputs = _export_inputs(result)
+    holder = inputs["holder"]
+    cached = holder.get("cached")
+    if cached is not None and cached[0] == inputs["key"]:
         return cached[1]
     impact = compute_impact(result, load_channel_costs())
-    data = build_workbook(result, impact, persona_result, source, run_date=date.today())
-    st.session_state[EXPORT_CACHE_KEY] = (key, data)
+    data = build_workbook(
+        result, impact, inputs["persona_result"], inputs["source"],
+        run_date=inputs["today"],
+    )
+    holder["cached"] = (inputs["key"], data)
     return data
 
 
@@ -1018,7 +1062,16 @@ def _render_download_picker(result, rows: list[str], sendable: dict, recommended
     frames = [sendable[s] for s in segments if s in sendable]
     leads = pd.concat(frames, ignore_index=True) if len(frames) > 1 else frames[0]
     slug = re.sub(r"[^a-z0-9]+", "_", choice.lower()).strip("_")
-    reviewed = _render_review_card(result, segments, choice, slug)
+    t_type, t_value = _current_threshold(result)
+    review_signoff.clear_stale_signoffs(
+        st.session_state,
+        review_signoff.figures_signature(
+            result.promo_spec.promo_id, t_type.name, t_value,
+            st.session_state.get("run_seq", 0),
+        ),
+    )
+    reviewed = _render_review_card(result, segments, choice, slug,
+                                   sendable_n=len(leads), recommended=recommended)
     st.download_button(
         f"Download {len(leads):,} Leads",
         data=leads.to_csv(index=False).encode("utf-8"),
@@ -1029,32 +1082,56 @@ def _render_download_picker(result, rows: list[str], sendable: dict, recommended
     )
 
 
-def _render_review_card(result, segments: list[str], title: str, slug: str) -> bool:
-    """The sign-off before a lead file (Requirement 37.3)."""
+def _render_review_card(result, segments: list[str], title: str, slug: str,
+                        *, sendable_n: int, recommended: set[str]) -> bool:
+    """The chosen leads at a glance, then the sign-off (Requirement 37.3).
+
+    Owner request: this card replaces the per-segment rows, so it carries
+    their figures too (action, clients, not contacted with reasons, control
+    group, sendable). Clients = Not Contacted + Control Group + Sendable.
+    """
     cards = _cards_by_segment()
     label, _base, _changed = _threshold_context(result)
-    left_out = 0
+    clients = left_out = control = 0
     reasons: dict[str, int] = {}
-    control = 0
     for seg in segments:
         card = cards.get(seg, {})
+        clients += int(card.get("n_clients", 0) or 0)
         for code, n in (card.get("excluded_by_reason") or {}).items():
             left_out += int(n or 0)
             reasons[code] = reasons.get(code, 0) + int(n or 0)
         control += int(card.get("control_count", 0) or 0)
-    reason_text = "; ".join(
-        f"{line}" for line in build_card_view({"excluded_by_reason": reasons}).exclusions
-    ) if reasons else "nobody"
+    # One reason per line ("Contacted Too Often: 26"), so a long list never
+    # runs on as one wrapped sentence.
+    reason_lines = (
+        build_card_view({"excluded_by_reason": reasons}).exclusions if reasons else ["Nobody"]
+    )
+    reason_html = "".join(f"<em>{html.escape(line)}</em>" for line in reason_lines)
+    # One segment: its marker, the Act first tag and its action under the
+    # name. All Segments: just the name.
+    seg_html = html.escape(title)
+    action_html = ""
+    if len(segments) == 1:
+        seg = segments[0]
+        marker, seg_class = theme.segment_marker_html(seg)
+        tag = theme.act_first_tag_html() if seg in recommended else ""
+        seg_html = (f'<span class="pan-review-seg {seg_class}">{marker}'
+                    f"<span>{html.escape(seg)}</span>{tag}</span>")
+        action = str(cards.get(seg, {}).get("action", "")) or "Not set"
+        action_html = f"<em>{html.escape(action)}</em>"
     theme.st_markdown(
         '<div class="pan-review" role="group" aria-label="Check before you download">'
         '<div class="pan-review-title">Check Before You Download</div>'
         '<ul class="pan-review-list">'
-        f"<li><span>Segment</span><strong>{html.escape(title)}</strong></li>"
+        f"<li><span>Segment</span><strong>{seg_html}</strong>{action_html}</li>"
         f"<li><span>Threshold used</span><strong>{html.escape(label)}</strong></li>"
-        f"<li><span>Left out</span><strong>{left_out:,}</strong>"
-        f'<em>{html.escape(reason_text)}</em></li>'
+        f"<li><span>Clients</span><strong>{clients:,}</strong></li>"
+        f"<li><span>{theme.tooltip_html('Not contacted', number_help.not_contacted_help())}</span>"
+        f"<strong>{left_out:,}</strong>{reason_html}</li>"
         f"<li><span>Control group held back</span><strong>{control:,}</strong>"
         f'<em>{html.escape(number_help.control_reason_help())}</em></li>'
+        f"<li><span>{theme.tooltip_html('Sendable', number_help.sendable_help())}</span>"
+        f"<strong>{sendable_n:,}</strong><em>The leads in this file.</em></li>"
         "</ul></div>"
     )
     return st.checkbox("I Checked These Figures", key=f"review_ok_{slug}")
@@ -1076,57 +1153,6 @@ def _historical_join_rate() -> float | None:
         return None
 
 
-def _download_cell(label: str, value: str, notes: tuple[str, ...] = (), tip: str = "") -> str:
-    note_html = "".join(f'<span class="pan-dl-note">{html.escape(n)}</span>' for n in notes)
-    # Round 2 (Requirement 22): the plain meaning is the label's hover text,
-    # so the closed dropdown stays clean.
-    key_html = theme.tooltip_html(label, tip) if tip else html.escape(label)
-    return (
-        f'<div class="pan-dl-cell"><span class="pan-dl-k">{key_html}</span>'
-        f'<span class="pan-dl-v">{html.escape(value)}</span>{note_html}</div>'
-    )
-
-
-def _render_download_row(i: int, result, segment_label: str, leads_df, card: dict,
-                         *, recommended: bool) -> None:
-    """One Download Leads row: who is in the file, who is left out, the file."""
-    excluded = {str(k): int(v) for k, v in (card.get("excluded_by_reason") or {}).items()}
-    n_excluded = sum(excluded.values())
-    # Same plain reason labels as the decision card ("Contacted Too Often: 26"),
-    # one per line.
-    reasons = tuple(build_card_view(card).exclusions) if card else ()
-    control = int(card.get("control_count", 0) or 0)
-    marker, seg_class = theme.segment_marker_html(segment_label)
-    tag = theme.act_first_tag_html() if recommended else ""
-    action = str(card.get("action", "")) or "Not set"
-    with st.container(key=f"pan_dl_row_{i}"):
-        name_col, clients_col, out_col, control_col, send_col = st.columns(
-            [2.6, 1, 2.6, 1.2, 1], vertical_alignment="center"
-        )
-        with name_col:
-            st.markdown(
-                f'<div class="pan-dl-name {seg_class}">{marker}'
-                f"<span>{html.escape(segment_label)}</span>{tag}</div>"
-                f'<div class="pan-dl-action">{html.escape(action)}</div>',
-                unsafe_allow_html=True,
-            )
-        with clients_col:
-            st.markdown(_download_cell("Clients", f"{int(card.get('n_clients', 0) or 0):,}"),
-                        unsafe_allow_html=True)
-        with out_col:
-            st.markdown(_download_cell("Not Contacted", f"{n_excluded:,}", reasons,
-                                       number_help.not_contacted_help()),
-                        unsafe_allow_html=True)
-        with control_col:
-            st.markdown(_download_cell("Control Group", f"{control:,}", (),
-                                       number_help.control_help()),
-                        unsafe_allow_html=True)
-        with send_col:
-            st.markdown(_download_cell("Sendable", f"{len(leads_df):,}", (),
-                                       number_help.sendable_help()),
-                        unsafe_allow_html=True)
-
-
 def _render_export_summary(result) -> None:
     """Export Summary download for the current run (Requirements 9.1, 9.2, 9.12).
 
@@ -1144,16 +1170,25 @@ def _render_export_summary(result) -> None:
         )
         return
     try:
-        data = _export_workbook_bytes(result)
+        inputs = _export_inputs(result)
     except Exception:
-        st.error(
-            "The summary could not be built for this run. Run the analysis "
-            "again, then try the export once more."
-        )
+        st.error(EXPORT_ERROR_TEXT)
         return
+    holder = inputs["holder"]
+    if holder.pop("error", False):
+        st.error(EXPORT_ERROR_TEXT)
+
+    def _build_workbook_lazily() -> bytes:
+        # Runs on click, on another thread: no Streamlit calls in here.
+        try:
+            return _export_workbook_bytes(result, inputs)
+        except Exception:
+            holder["error"] = True
+            return b""
+
     st.download_button(
         "Export Summary",
-        data=data,
+        data=_build_workbook_lazily,
         file_name=workbook_filename(result.promo_spec.promo_id),
         mime=EXPORT_MIME,
         key="export_summary",

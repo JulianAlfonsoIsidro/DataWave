@@ -10,6 +10,9 @@ naming what is missing, before any loader or computation starts.
 * Personas: when "Split into groups first" is ticked, at least one "Split by"
   attribute is required, otherwise the run quietly builds without a split.
   (At least one attribute is already checked by ``persona_page.validation_error``.)
+
+``required_message(missing, action="running")`` takes the verb phrase so each page
+words the sentence for its own job (audit item 1.15).
 """
 
 from __future__ import annotations
@@ -36,10 +39,14 @@ def missing_persona_split(split_ticked: bool, grouping_attributes: Iterable[str]
     return bool(split_ticked) and not list(grouping_attributes or [])
 
 
-def required_message(missing: Iterable[str]) -> str:
-    """One plain sentence naming the empty required fields."""
+def required_message(missing: Iterable[str], action: str = "running") -> str:
+    """One plain sentence naming the empty required fields.
+
+    ``action`` finishes "before ..." and defaults to "running" (New Promo, so
+    that message is unchanged). Personas passes "building personas".
+    """
     names = list(missing)
     if not names:
         return ""
     joined = names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
-    return f"Fill in {joined} before running. Fields marked * are required."
+    return f"Fill in {joined} before {action}. Fields marked * are required."

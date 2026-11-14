@@ -56,9 +56,9 @@ Each check says what is measured, how, the pass mark, and where the automated pa
 1. Every lead file already holds back a control group (about 10% of each segment's contactable leads, `CONTROL_FRACTION`).
 2. After the promo ends, compare the join rate of the messaged leads with the control group, per segment: the uplift is the promo's real effect.
 3. Compare the forecast (Expected Joiners over sendable leads) with the actual join rate of messaged leads. Past Promos already shows predicted and actual by segment, with the gap in points.
-4. Review the "Who Is Being Targeted" view for each campaign: any group flagged for a 10 point or larger shift is checked with the campaign owner.
+4. For each campaign, read the forecast caution on Results and compare it with the past predicted vs actual join rates on Past Promos. If past forecasts were often off by a wide margin, the caution should say so, and the campaign owner reviews the forecast before sending.
 
-**Pass mark:** a positive uplift over the control group in the Act first segment; forecast within the Likely Range for most segments; every flagged group explained.
+**Pass mark:** a positive uplift over the control group in the Act first segment; forecast within the Likely Range for most segments; the forecast caution agrees with the past predicted vs actual join rates.
 
 ## Ownership and cadence
 

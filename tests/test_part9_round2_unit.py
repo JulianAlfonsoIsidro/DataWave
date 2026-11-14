@@ -219,9 +219,6 @@ def test_descriptions_are_short_plain_and_read_the_config():
         assert "p_join" not in text and "excluded_by_reason" not in text
     assert f"{CONTROL_FRACTION * 100:.0f}%" in number_help.control_help()
     assert f"₱{VALUE_PER_JOIN_PHP:,.0f}" in number_help.value_help()
-    assert number_help.recommended_caption(87.3, 282) == (
-        "about 87 of the 282 sendable leads are expected to join"
-    )
     assert number_help.persona_group_caption("Luzon", 376, 1595, sendable=True) == (
         "Luzon · 376 of 1,595 sendable leads"
     )

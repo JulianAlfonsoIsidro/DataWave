@@ -18,16 +18,15 @@ the Clustering_Level / k / Run controls, the grouped Attribute_Picker, the
 optional two-step control, the campaign-pool selector, validation, the
 per-persona summary cards, and the two download controls. Task 14.2 adds, after
 a successful run, Streamlit **built-in** renders (no new chart dependency,
-Requirement 9.9): the "How the Personas Differ" comparison table
-(``st.dataframe`` of plain-language trait tags, Requirement 6.4), and, over the current New Promo run, the Part 4 cards rendered read-only
+Requirement 9.9): the plain-language trait tags (Requirement 6.4), and, over the current New Promo run, the decision cards rendered read-only
 with expected joiners split by persona (task 14.16, Requirements 7.1-7.5). The Elbow_Plot is intentionally not shown on the page (revised
 Requirement 6.5); the backend still computes it (Requirement 2.12).
 
-Comparison-table pure helpers (importable without Streamlit, unit-tested in task
-14.3) also live at module level:
+Trait-tag pure helper (importable without Streamlit, unit-tested in task
+14.3) also lives at module level:
 
-- :func:`persona_trait_tags` / :func:`persona_comparison_frame` -- the plain-language
-  trait tags and the one-row-per-persona comparison table frame (Requirement 6.4).
+- :func:`persona_trait_tags` -- the plain-language trait tags for one persona
+  (Requirement 6.4). The "How the Personas Differ" table was removed in Part 9.
 
 Pure helpers (importable without a running Streamlit server, unit-tested in task
 14.3) live at module level:
@@ -623,11 +622,10 @@ def distinguishing_sentences(
 
 
 # --------------------------------------------------------------------------- #
-# Persona comparison table pure helpers (Requirement 6.4) -- no Streamlit      #
+# Persona trait-tag pure helpers (Requirement 6.4) -- no Streamlit             #
 # --------------------------------------------------------------------------- #
 _NO_CONTRAST_TAG = "Broadly average"
 _MAX_TRAIT_TAGS = 3
-COMPARISON_COLUMNS: list[str] = ["Persona", "Size", "Share", "What makes them stand out"]
 
 
 def persona_trait_tags(profile: PersonaProfile) -> list[str]:
@@ -662,32 +660,6 @@ def persona_trait_tags(profile: PersonaProfile) -> list[str]:
                 tags.append(f"{direction.capitalize()} {label}")
         # "flat" / unknown: no contrast, skip.
     return tags or [_NO_CONTRAST_TAG]
-
-
-def persona_comparison_frame(persona_set: PersonaSet) -> pd.DataFrame:
-    """Side-by-side "How the Personas Differ" table for one set (Requirement 6.4).
-
-    One row per persona with columns ``Persona`` (name), ``Size`` (integer leads),
-    ``Share`` (one-decimal percentage text) and ``What makes them stand out``
-    (trait tags joined with " \u00b7 "). Shows no z-scores, standardized values or
-    clustering costs. A ``too_small`` or empty set yields an empty frame (with the
-    standard columns) so the caller can skip it.
-    """
-    rows: list[dict[str, object]] = []
-    if not persona_set.too_small:
-        for persona in persona_set.personas:
-            profile = persona.profile
-            rows.append(
-                {
-                    "Persona": persona.name,
-                    "Size": int(profile.size),
-                    "Share": f"{profile.pct_of_leads:.1f}%",
-                    "What makes them stand out": " \u00b7 ".join(
-                        persona_trait_tags(profile)
-                    ),
-                }
-            )
-    return pd.DataFrame(rows, columns=COMPARISON_COLUMNS)
 
 
 # --------------------------------------------------------------------------- #
@@ -1338,7 +1310,7 @@ def _render_summary_cards(
     the actionable too-small instruction (Requirement 6.10) instead of cards. For a
     clustered set, each persona gets a card (name, description, integer size,
     one-decimal percentage, plain distinguishing sentence, campaign-guidance
-    actions). Cards are laid out two per row to match the Results tab.
+    actions). Cards are laid out in one column.
 
     Part 8: ``visual`` draws the Group_Visual after the "Demo Mode" notice and
     before the cards (Requirement 12.9) and returns True when it drew one.
@@ -1448,45 +1420,6 @@ def _group_lead_count(result: PersonaRunResult, group_key: str) -> int | None:
             return count
 
     return None
-
-
-# --------------------------------------------------------------------------- #
-# How the Personas Differ comparison table (Requirement 6.4)                   #
-# --------------------------------------------------------------------------- #
-def _render_persona_comparison(result: PersonaRunResult) -> None:
-    """Render the "How the Personas Differ" table, one per clustered set (Req 6.4).
-
-    Uses only Streamlit built-ins (``st.dataframe``), so no new dependency is added
-    (Requirement 9.9). ``too_small`` and empty sets are skipped.
-    """
-    import streamlit as st
-
-    rendered_any = False
-    for persona_set in result.persona_sets:
-        frame = persona_comparison_frame(persona_set)
-        if frame.empty:
-            continue
-        if not rendered_any:
-            st.subheader("How the Personas Differ")
-            st.caption(
-                "Each row is one persona. The tags show what sets it apart from "
-                "the others."
-            )
-            rendered_any = True
-        if persona_set.group_key:
-            st.markdown(f"**Segment: {persona_set.group_key}**")
-        st.dataframe(
-            frame,
-            hide_index=True,
-            use_container_width=True,
-            # Size stays a number (it still sorts) but sits on the left like the
-            # other columns; separators match the "1,021 leads" on the cards.
-            column_config={
-                "Size": st.column_config.NumberColumn(
-                    "Size", alignment="left", format="localized"
-                ),
-            },
-        )
 
 
 # --------------------------------------------------------------------------- #
@@ -1672,7 +1605,7 @@ def _render_expected_joiners_by_persona(result: PersonaRunResult, run_result_key
         mode = "group"
 
     st.caption(
-        "Each card keeps its Part 4 guidance unchanged, with expected joiners "
+        "Each card keeps its usual guidance, with expected joiners "
         "split by persona."
     )
     if mode == "all":
@@ -2047,8 +1980,7 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
        cached backend, and stashes the result + exports in session state;
     5. one **summary card** per persona (Requirement 6.3) with the too-small
        instruction for flagged groups (Requirement 6.10);
-    6. after a successful run, the **"How the Personas Differ" table**
-       (``st.dataframe`` of plain trait tags, Requirement 6.4), and the **Expected Joiners By Persona**
+    6. after a successful run, the **Expected Joiners By Persona**
        section over the current New Promo run (Requirements 7.1-7.5); the Elbow_Plot is not shown on the page
        (revised Requirement 6.5); and
     7. the two **download** controls, default Campaign_Leads_Export + optional full
@@ -2056,7 +1988,7 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
 
     All clustering/profiling is delegated to the cached
     :func:`webapp_core.personas.run_personas`; this function only wires widgets and
-    session state (Requirement 6.9). The task-14.2 comparison table and expected-joiners tables
+    session state (Requirement 6.9). The task-14.2 expected-joiners tables
     use Streamlit built-ins only, adding no dependency (Requirement 9.9).
 
     Args:
@@ -2232,7 +2164,7 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
     if run_clicked:
         error = validation_error(len(selected_attributes), k, level)
         if error is None and missing_persona_split(two_step, grouping_attributes):
-            error = required_message(["Split by"])
+            error = required_message(["Split by"], action="building personas")
         if error is not None:
             # Reject the run, RETAIN config + displayed results (Requirement 6.2):
             # we simply show the error and fall through to re-render whatever run
@@ -2308,8 +2240,7 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
             reveal_el=reveal_el,
         )
         # The "How the Personas Differ" table was removed in Part 9 (the
-        # persona cards already say what sets each one apart);
-        # _render_persona_comparison stays available.
+        # persona cards already say what sets each one apart).
         # Expected joiners by persona over the current New Promo run; uses the
         # full (not group-scoped) persona run (Requirements 7.1-7.5).
         _render_expected_joiners_by_persona(result, run_result_key)

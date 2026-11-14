@@ -378,12 +378,13 @@ def fx_container() -> Any:
     if finishing is not None:
         import theme
 
+        fin_headline, fin_uid = _get_finish()
         with container:
             st.markdown(
                 theme.finishing_overlay_html(
                     finishing, phase=job_phase(finishing), elapsed=job_elapsed(finishing),
-                    headline=_FINISH_HEADLINE[0],
-                    uid=_FINISH_UID[0],
+                    headline=fin_headline,
+                    uid=fin_uid,
                 ),
                 unsafe_allow_html=True,
             )
@@ -485,15 +486,24 @@ def _pick_up_completions() -> str | None:
             # No Completion_Toast for these flows: the loader's status line
             # already said it; the finishing overlay closes the loader.
             finishing = job
-            _FINISH_HEADLINE[0] = record.get("headline")
             seq = int(_state().get("p8_fin_seq", 0)) + 1
             _state()["p8_fin_seq"] = seq
-            _FINISH_UID[0] = seq           # alternates the ending's element type
+            # uid alternates the ending's element type
+            _set_finish(record.get("headline"), seq)
     return finishing
 
 
-_FINISH_HEADLINE: list = [None]
-_FINISH_UID: list = [0]
+def _set_finish(headline: str | None, uid: int) -> None:
+    """Store the finishing overlay's headline and uid in this session."""
+    state = _state()
+    state["p8_fin_headline"] = headline
+    state["p8_fin_uid"] = uid
+
+
+def _get_finish() -> tuple[str | None, int]:
+    """Return this session's ``(headline, uid)`` for the finishing overlay."""
+    state = _state()
+    return state.get("p8_fin_headline"), int(state.get("p8_fin_uid", 0))
 
 
 def start_toast(job: str, text: str) -> None:

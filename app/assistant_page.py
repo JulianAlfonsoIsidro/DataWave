@@ -340,6 +340,9 @@ def render_assistant_page() -> None:
                          help=ai_usage.TOKEN_HINTS["suggested"]):
                 pending = label
 
+    # Owner request: a hairline between the suggested questions and the chat.
+    theme.st_markdown('<hr class="pan-chat-divider" aria-hidden="true">')
+
     # The conversation is one container drawn before the input, and a new
     # question and its reply are added into it, so they stay above the box.
     thread = st.container()

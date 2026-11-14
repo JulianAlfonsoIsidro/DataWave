@@ -1994,11 +1994,6 @@ def wait_line_html(estimate_text: str = "", *, start_ms: int | None = None, labe
     )
 
 
-def user_marker_html() -> str:
-    """The user's turn marker in the assistant transcript: a small solid dot."""
-    return '<span class="pan-turn-dot" aria-label="You"></span>'
-
-
 def user_bubble_html(text: str) -> str:
     """A question in the transcript: a bubble on the right (chat layout)."""
     return (

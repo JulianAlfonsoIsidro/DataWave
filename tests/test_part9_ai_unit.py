@@ -257,16 +257,6 @@ def test_naming_source_is_accurate():
 
 # --- fairness and forecast caution (Requirement 38) ---------------------------
 
-def test_group_shares_add_to_100_and_flag_large_moves():
-    dna = pd.DataFrame({"client_id": [f"c{i}" for i in range(10)],
-                        "region": ["NCR"] * 5 + ["Luzon"] * 5})
-    shares = fairness.group_shares(dna, dna["client_id"], ["c0", "c1", "c2", "c3", "c5"], "region")
-    assert round(sum(s.eligible_pct for s in shares)) == 100
-    assert round(sum(s.sendable_pct for s in shares)) == 100
-    ncr = next(s for s in shares if s.group == "NCR")
-    assert ncr.flagged and round(ncr.gap_pts) == 30
-
-
 def test_forecast_caution_only_when_far_above_history():
     assert fairness.forecast_caution(204.4, 1595, 0.0783) is None          # 12.8% vs 7.8%
     note = fairness.forecast_caution(400, 1595, 0.0783)
