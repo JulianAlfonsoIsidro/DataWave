@@ -1,0 +1,1099 @@
+{
+  "pbtResults": {
+    "13.2 Write the persona-mix sum property test in `tests/test_part5_personas_mix_sum_property.py`": {
+      "status": "passed",
+      "lastRunTimestamp": 1793887140733
+    }
+  },
+  "executionHistory": {
+    "1. Add the `kmodes` dependency": [
+      {
+        "executionId": "5dc5a1cc-dad5-4605-87c5-2f987fad2df1",
+        "chatSessionId": "sess_6539e09b-8236-4ae8-a084-d18c622647f7",
+        "timestamp": 1793868830321
+      },
+      {
+        "executionId": "5dc5a1cc-dad5-4605-87c5-2f987fad2df1",
+        "chatSessionId": "sess_6539e09b-8236-4ae8-a084-d18c622647f7",
+        "timestamp": 1793869652275
+      }
+    ],
+    "2.1 Create `src/part5_personas/__init__.py` and `src/part5_personas/config.py`": [
+      {
+        "executionId": "19ade2ef-7414-4ebc-8c08-a929d1d68f2f",
+        "chatSessionId": "sess_6539e09b-8236-4ae8-a084-d18c622647f7",
+        "timestamp": 1793869702614
+      },
+      {
+        "executionId": "19ade2ef-7414-4ebc-8c08-a929d1d68f2f",
+        "chatSessionId": "sess_6539e09b-8236-4ae8-a084-d18c622647f7",
+        "timestamp": 1793870021357
+      }
+    ],
+    "2. Create the `src/part5_personas` package and frozen Config": [
+      {
+        "executionId": "19ade2ef-7414-4ebc-8c08-a929d1d68f2f",
+        "chatSessionId": "sess_6539e09b-8236-4ae8-a084-d18c622647f7",
+        "timestamp": 1793870021842
+      }
+    ],
+    "3.1 Implement `join.py` to assemble the clustering input": [
+      {
+        "executionId": "10c068c9-91de-4bb6-82da-8778f14074a8",
+        "chatSessionId": "sess_6539e09b-8236-4ae8-a084-d18c622647f7",
+        "timestamp": 1793870196321
+      },
+      {
+        "executionId": "10c068c9-91de-4bb6-82da-8778f14074a8",
+        "chatSessionId": "sess_6539e09b-8236-4ae8-a084-d18c622647f7",
+        "timestamp": 1793870498193
+      }
+    ],
+    "4.1 Implement type detection, scaling, imputation, and categorical indices": [
+      {
+        "executionId": "10c068c9-91de-4bb6-82da-8778f14074a8",
+        "chatSessionId": "sess_6539e09b-8236-4ae8-a084-d18c622647f7",
+        "timestamp": 1793870197711
+      },
+      {
+        "executionId": "10c068c9-91de-4bb6-82da-8778f14074a8",
+        "chatSessionId": "sess_6539e09b-8236-4ae8-a084-d18c622647f7",
+        "timestamp": 1793870499017
+      }
+    ],
+    "3.2 Write join unit tests in `tests/test_part5_personas_join_unit.py`": [
+      {
+        "executionId": "c7918647-fded-4fb7-ad5a-ba3c970db2b3",
+        "chatSessionId": "sess_6539e09b-8236-4ae8-a084-d18c622647f7",
+        "timestamp": 1793870543287
+      },
+      {
+        "executionId": "c7918647-fded-4fb7-ad5a-ba3c970db2b3",
+        "chatSessionId": "sess_6539e09b-8236-4ae8-a084-d18c622647f7",
+        "timestamp": 1793870811478
+      }
+    ],
+    "4.2 Write the scaling property test in `tests/test_part5_personas_scaling_property.py`": [
+      {
+        "executionId": "c7918647-fded-4fb7-ad5a-ba3c970db2b3",
+        "chatSessionId": "sess_6539e09b-8236-4ae8-a084-d18c622647f7",
+        "timestamp": 1793870544711
+      },
+      {
+        "executionId": "c7918647-fded-4fb7-ad5a-ba3c970db2b3",
+        "chatSessionId": "sess_6539e09b-8236-4ae8-a084-d18c622647f7",
+        "timestamp": 1793870808934
+      }
+    ],
+    "4.3 Write the imputation property test in `tests/test_part5_personas_imputation_property.py`": [
+      {
+        "executionId": "c7918647-fded-4fb7-ad5a-ba3c970db2b3",
+        "chatSessionId": "sess_6539e09b-8236-4ae8-a084-d18c622647f7",
+        "timestamp": 1793870546142
+      },
+      {
+        "executionId": "c7918647-fded-4fb7-ad5a-ba3c970db2b3",
+        "chatSessionId": "sess_6539e09b-8236-4ae8-a084-d18c622647f7",
+        "timestamp": 1793870810332
+      },
+      {
+        "executionId": "58e090a2-464b-43d2-8cc8-7aa3d4c25910",
+        "chatSessionId": "sess_6539e09b-8236-4ae8-a084-d18c622647f7",
+        "timestamp": 1793872028543
+      },
+      {
+        "executionId": "58e090a2-464b-43d2-8cc8-7aa3d4c25910",
+        "chatSessionId": "sess_6539e09b-8236-4ae8-a084-d18c622647f7",
+        "timestamp": 1793872126977
+      }
+    ],
+    "5.1 Implement seeded k-prototypes fit, k validation, sampling cap, assignment, and elbow sweep": [
+      {
+        "executionId": "c7918647-fded-4fb7-ad5a-ba3c970db2b3",
+        "chatSessionId": "sess_6539e09b-8236-4ae8-a084-d18c622647f7",
+        "timestamp": 1793870547325
+      },
+      {
+        "executionId": "c7918647-fded-4fb7-ad5a-ba3c970db2b3",
+        "chatSessionId": "sess_6539e09b-8236-4ae8-a084-d18c622647f7",
+        "timestamp": 1793870807537
+      }
+    ],
+    "4. Implement preprocessing (`preprocess.py`)": [
+      {
+        "executionId": "c7918647-fded-4fb7-ad5a-ba3c970db2b3",
+        "chatSessionId": "sess_6539e09b-8236-4ae8-a084-d18c622647f7",
+        "timestamp": 1793870810448
+      }
+    ],
+    "3. Build the Joined_Attribute_Set (`join.py`)": [
+      {
+        "executionId": "c7918647-fded-4fb7-ad5a-ba3c970db2b3",
+        "chatSessionId": "sess_6539e09b-8236-4ae8-a084-d18c622647f7",
+        "timestamp": 1793870811574
+      }
+    ],
+    "5.2 Write cluster unit tests in `tests/test_part5_personas_cluster_unit.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872533327
+      },
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872547785
+      },
+      {
+        "executionId": "79cf00b8-3d6e-4582-9a19-4ac878715b85",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793873298875
+      }
+    ],
+    "5.3 Write the cluster-count property test in `tests/test_part5_personas_cluster_count_property.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872533638
+      },
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872549222
+      },
+      {
+        "executionId": "79cf00b8-3d6e-4582-9a19-4ac878715b85",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793873300242
+      }
+    ],
+    "5.4 Write the assignment/coverage property test in `tests/test_part5_personas_assignment_property.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872533756
+      },
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872550582
+      },
+      {
+        "executionId": "79cf00b8-3d6e-4582-9a19-4ac878715b85",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793873308010
+      },
+      {
+        "executionId": "79cf00b8-3d6e-4582-9a19-4ac878715b85",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793873687351
+      }
+    ],
+    "6. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872533871
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874000889
+      },
+      {
+        "executionId": "8f8becdb-0799-451d-914d-993c11d39201",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793985211027
+      }
+    ],
+    "7.1 Implement `PersonaProfile` stats and distinguishing attributes": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872533973
+      },
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872551866
+      },
+      {
+        "executionId": "79cf00b8-3d6e-4582-9a19-4ac878715b85",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793873301438
+      }
+    ],
+    "7.2 Write the distinguishing-metric determinism property test in `tests/test_part5_personas_determinism_property.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872534101
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874000960
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874009211
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793875328917
+      }
+    ],
+    "7.3 Write the profile-bounds property test in `tests/test_part5_personas_profile_bounds_property.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872534239
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874001052
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874010594
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793875330788
+      }
+    ],
+    "8.1 Implement the `PersonaNamer` interface and `RuleBasedNamer`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872534339
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874001120
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874012003
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793875331433
+      }
+    ],
+    "8.2 Write naming unit tests in `tests/test_part5_personas_naming_unit.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872534438
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874001192
+      },
+      {
+        "executionId": "3eec97ba-1066-42b1-912f-4175fa4b5c8a",
+        "chatSessionId": "sess_d517f565-0ddc-475f-87cc-98734bc6d823",
+        "timestamp": 1793879362985
+      },
+      {
+        "executionId": "3eec97ba-1066-42b1-912f-4175fa4b5c8a",
+        "chatSessionId": "sess_d517f565-0ddc-475f-87cc-98734bc6d823",
+        "timestamp": 1793881625105
+      }
+    ],
+    "8.3 Write the unique-names property test in `tests/test_part5_personas_naming_unique_property.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872534533
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874001271
+      },
+      {
+        "executionId": "3eec97ba-1066-42b1-912f-4175fa4b5c8a",
+        "chatSessionId": "sess_d517f565-0ddc-475f-87cc-98734bc6d823",
+        "timestamp": 1793879364091
+      },
+      {
+        "executionId": "3eec97ba-1066-42b1-912f-4175fa4b5c8a",
+        "chatSessionId": "sess_d517f565-0ddc-475f-87cc-98734bc6d823",
+        "timestamp": 1793881626467
+      }
+    ],
+    "9.1 Implement clustering levels, two-step grouping, and group-size handling": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872534627
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874001345
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874013051
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793875335434
+      }
+    ],
+    "9.2 Write grouping edge tests in `tests/test_part5_personas_grouping_edge.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872534753
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874001414
+      },
+      {
+        "executionId": "3eec97ba-1066-42b1-912f-4175fa4b5c8a",
+        "chatSessionId": "sess_d517f565-0ddc-475f-87cc-98734bc6d823",
+        "timestamp": 1793879365520
+      },
+      {
+        "executionId": "3eec97ba-1066-42b1-912f-4175fa4b5c8a",
+        "chatSessionId": "sess_d517f565-0ddc-475f-87cc-98734bc6d823",
+        "timestamp": 1793881627894
+      }
+    ],
+    "10.1 Implement `Persona_Labeled_Leads` construction": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872534852
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874001486
+      }
+    ],
+    "10.2 Write the export-rows property test in `tests/test_part5_personas_export_rows_property.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872534963
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874001567
+      },
+      {
+        "executionId": "28d65b7a-3e56-48d6-88b5-83d392908e45",
+        "chatSessionId": "sess_5780e688-2837-4234-b44f-081ff42b3512",
+        "timestamp": 1793883742971
+      },
+      {
+        "executionId": "28d65b7a-3e56-48d6-88b5-83d392908e45",
+        "chatSessionId": "sess_5780e688-2837-4234-b44f-081ff42b3512",
+        "timestamp": 1793884225106
+      }
+    ],
+    "11.1 Implement `main(argv: list[str] | None = None) -> int`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872535063
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874001681
+      },
+      {
+        "executionId": "28d65b7a-3e56-48d6-88b5-83d392908e45",
+        "chatSessionId": "sess_5780e688-2837-4234-b44f-081ff42b3512",
+        "timestamp": 1793883743962
+      },
+      {
+        "executionId": "28d65b7a-3e56-48d6-88b5-83d392908e45",
+        "chatSessionId": "sess_5780e688-2837-4234-b44f-081ff42b3512",
+        "timestamp": 1793884225967
+      }
+    ],
+    "11.2 Write main unit tests in `tests/test_part5_personas_main_unit.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872535155
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874001794
+      }
+    ],
+    "12. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872535255
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874001902
+      },
+      {
+        "executionId": "8f8becdb-0799-451d-914d-993c11d39201",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793985211376
+      }
+    ],
+    "13.1 Implement `run_personas` and `persona_mix_by_cell` with no Streamlit imports": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872535352
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874001988
+      }
+    ],
+    "13.2 Write the persona-mix sum property test in `tests/test_part5_personas_mix_sum_property.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872535444
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874002061
+      },
+      {
+        "executionId": "ef321165-e068-49c5-bc13-bf49bc1dc1d9",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793886975786
+      },
+      {
+        "executionId": "ef321165-e068-49c5-bc13-bf49bc1dc1d9",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793887576650
+      }
+    ],
+    "13.3 Write cards-mix unit tests in `tests/test_part5_personas_cards_mix_unit.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872535548
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874002142
+      },
+      {
+        "executionId": "ef321165-e068-49c5-bc13-bf49bc1dc1d9",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793886980890
+      },
+      {
+        "executionId": "ef321165-e068-49c5-bc13-bf49bc1dc1d9",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793887578038
+      }
+    ],
+    "14.1 Build the page composition and session-state wiring": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872535646
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874002232
+      }
+    ],
+    "14.2 Render the charts and the persona mix on cards using Streamlit built-ins only": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872535745
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874002329
+      },
+      {
+        "executionId": "28d65b7a-3e56-48d6-88b5-83d392908e45",
+        "chatSessionId": "sess_5780e688-2837-4234-b44f-081ff42b3512",
+        "timestamp": 1793883730708
+      },
+      {
+        "executionId": "7626965a-6ff1-4b19-85ec-dadb05b9c46c",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793896877839
+      },
+      {
+        "executionId": "7626965a-6ff1-4b19-85ec-dadb05b9c46c",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793897538809
+      }
+    ],
+    "15.1 Add shared hypothesis strategies in `tests/strategies_part5_personas.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872535858
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874002428
+      },
+      {
+        "executionId": "7626965a-6ff1-4b19-85ec-dadb05b9c46c",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793896883936
+      },
+      {
+        "executionId": "7626965a-6ff1-4b19-85ec-dadb05b9c46c",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793897539585
+      }
+    ],
+    "15.2 Write the integration test in `tests/test_part5_personas_integration.py`": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872535952
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874002549
+      },
+      {
+        "executionId": "d131258f-448b-44f9-999a-2896e0d6f6b3",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793944604442
+      },
+      {
+        "executionId": "d131258f-448b-44f9-999a-2896e0d6f6b3",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793946025583
+      }
+    ],
+    "15.3 Run `pytest` and confirm the existing pipeline is unchanged": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872536054
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874002642
+      },
+      {
+        "executionId": "566cb8e8-9c54-4cf5-adaa-45f638054087",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793957287975
+      },
+      {
+        "executionId": "566cb8e8-9c54-4cf5-adaa-45f638054087",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793961184732
+      }
+    ],
+    "16. Final checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "c6f9e429-948f-4a44-8447-40582845155f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793872536217
+      },
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793874002724
+      },
+      {
+        "executionId": "ff05b694-8233-4b7d-8d0c-cb05647c780b",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793981629959
+      }
+    ],
+    "5. Implement clustering (`cluster.py`)": [
+      {
+        "executionId": "79cf00b8-3d6e-4582-9a19-4ac878715b85",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793873687496
+      }
+    ],
+    "7. Implement persona profiling (`profile.py`)": [
+      {
+        "executionId": "9e6de603-4491-4d71-b470-3aeb0f6c9d9e",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793875331093
+      }
+    ],
+    "8.1b Revise `RuleBasedNamer` (`naming.py`) so recommended actions read as campaign guidance": [
+      {
+        "executionId": "72bb217a-0463-441f-a35e-1a56db686d2f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793878055862
+      },
+      {
+        "executionId": "72bb217a-0463-441f-a35e-1a56db686d2f",
+        "chatSessionId": "sess_54fc9069-f8e5-454d-8807-8a55a0222aff",
+        "timestamp": 1793878647620
+      }
+    ],
+    "10.1 Implement `Persona_Labeled_Leads` construction and the default `Campaign_Leads_Export`": [
+      {
+        "executionId": "3eec97ba-1066-42b1-912f-4175fa4b5c8a",
+        "chatSessionId": "sess_d517f565-0ddc-475f-87cc-98734bc6d823",
+        "timestamp": 1793879367366
+      },
+      {
+        "executionId": "3eec97ba-1066-42b1-912f-4175fa4b5c8a",
+        "chatSessionId": "sess_d517f565-0ddc-475f-87cc-98734bc6d823",
+        "timestamp": 1793881629482
+      }
+    ],
+    "9. Implement levels and the two-step flow (`grouping.py`)": [
+      {
+        "executionId": "3eec97ba-1066-42b1-912f-4175fa4b5c8a",
+        "chatSessionId": "sess_d517f565-0ddc-475f-87cc-98734bc6d823",
+        "timestamp": 1793881628258
+      }
+    ],
+    "8. Implement persona naming (`naming.py`)": [
+      {
+        "executionId": "28d65b7a-3e56-48d6-88b5-83d392908e45",
+        "chatSessionId": "sess_5780e688-2837-4234-b44f-081ff42b3512",
+        "timestamp": 1793883730000
+      },
+      {
+        "executionId": "ff05b694-8233-4b7d-8d0c-cb05647c780b",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793981629890
+      }
+    ],
+    "14.1 Build the CRM-friendly page composition and session-state wiring": [
+      {
+        "executionId": "28d65b7a-3e56-48d6-88b5-83d392908e45",
+        "chatSessionId": "sess_5780e688-2837-4234-b44f-081ff42b3512",
+        "timestamp": 1793883730382
+      },
+      {
+        "executionId": "ef321165-e068-49c5-bc13-bf49bc1dc1d9",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793886981720
+      },
+      {
+        "executionId": "ef321165-e068-49c5-bc13-bf49bc1dc1d9",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793887582650
+      }
+    ],
+    "14.3 Write Persona_Page helper unit tests in `tests/test_part5_personas_page_unit.py`": [
+      {
+        "executionId": "28d65b7a-3e56-48d6-88b5-83d392908e45",
+        "chatSessionId": "sess_5780e688-2837-4234-b44f-081ff42b3512",
+        "timestamp": 1793883731473
+      }
+    ],
+    "14.4 (Optional) Add a downloadable one-page Persona_Brief": [
+      {
+        "executionId": "28d65b7a-3e56-48d6-88b5-83d392908e45",
+        "chatSessionId": "sess_5780e688-2837-4234-b44f-081ff42b3512",
+        "timestamp": 1793883731805
+      }
+    ],
+    "10. Implement the leads export (`export.py`)": [
+      {
+        "executionId": "28d65b7a-3e56-48d6-88b5-83d392908e45",
+        "chatSessionId": "sess_5780e688-2837-4234-b44f-081ff42b3512",
+        "timestamp": 1793884225238
+      }
+    ],
+    "13. Implement the `Persona_Core` orchestration (`src/webapp_core/personas.py`)": [
+      {
+        "executionId": "ef321165-e068-49c5-bc13-bf49bc1dc1d9",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793887580089
+      }
+    ],
+    "8.1c Revise persona naming to be direction-aware and readable (`naming.py`, `profile.py`)": [
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793901804870
+      },
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793939767519
+      }
+    ],
+    "8.1d Update naming tests for the direction-aware format": [
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793939773801
+      },
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793940582417
+      }
+    ],
+    "14.5 Remove the Elbow_Plot from the Persona_Page (`app/persona_page.py`)": [
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793939774508
+      },
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793940583601
+      }
+    ],
+    "14.6 Replace the standardized comparison chart with a CRM-friendly comparison table (`app/persona_page.py`)": [
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793940588353
+      },
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793941165482
+      }
+    ],
+    "14.7 Add a group selector that filters the whole page to one group (`app/persona_page.py`)": [
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793941165973
+      },
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793942354292
+      }
+    ],
+    "14.8 Write group-filter unit tests in `tests/test_part5_personas_group_filter_unit.py`": [
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793942360083
+      },
+      {
+        "executionId": "e0893dbb-46ff-40dc-8c1a-d9857fb7de43",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793942533166
+      }
+    ],
+    "5.5 Add a seeded single-type fallback for numeric-only and categorical-only selections (`cluster.py`)": [
+      {
+        "executionId": "3ab24c84-1f06-4155-823c-aaca1c13830b",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793948186958
+      },
+      {
+        "executionId": "3ab24c84-1f06-4155-823c-aaca1c13830b",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793953171920
+      }
+    ],
+    "14.9 Warn on single-type attribute selections and caption the clustering kind (`app/persona_page.py`)": [
+      {
+        "executionId": "3ab24c84-1f06-4155-823c-aaca1c13830b",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793953172125
+      },
+      {
+        "executionId": "566cb8e8-9c54-4cf5-adaa-45f638054087",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793954083224
+      },
+      {
+        "executionId": "566cb8e8-9c54-4cf5-adaa-45f638054087",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793956474252
+      },
+      {
+        "executionId": "566cb8e8-9c54-4cf5-adaa-45f638054087",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793956999341
+      }
+    ],
+    "4.4 Classify binary flag columns as categorical (`preprocess.py`)": [
+      {
+        "executionId": "566cb8e8-9c54-4cf5-adaa-45f638054087",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793954184673
+      },
+      {
+        "executionId": "566cb8e8-9c54-4cf5-adaa-45f638054087",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793956473880
+      }
+    ],
+    "15. Shared test strategies and end-to-end verification": [
+      {
+        "executionId": "566cb8e8-9c54-4cf5-adaa-45f638054087",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793961184817
+      }
+    ],
+    "4.5 Restrict the binary-flag rule to integer/boolean dtypes and known flag names (`preprocess.py`, `profile.py`)": [
+      {
+        "executionId": "49ed6d74-3ff0-4387-94ac-63c7d1c6fba7",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793961800706
+      },
+      {
+        "executionId": "49ed6d74-3ff0-4387-94ac-63c7d1c6fba7",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793974196658
+      }
+    ],
+    "4.6 Fix the direction of binary flags (compare the share of \"yes\", not of the dominant category) (`profile.py`, `app/persona_page.py`)": [
+      {
+        "executionId": "8ae926c7-9c18-4467-867e-9242b654bfff",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793976346567
+      },
+      {
+        "executionId": "8ae926c7-9c18-4467-867e-9242b654bfff",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793977209870
+      }
+    ],
+    "8.1e Data-driven channel suggestion from persona-vs-group channel reach (`profile.py`, `grouping.py`, `naming.py`)": [
+      {
+        "executionId": "8ae926c7-9c18-4467-867e-9242b654bfff",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793977209411
+      },
+      {
+        "executionId": "8ae926c7-9c18-4467-867e-9242b654bfff",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793978897514
+      },
+      {
+        "executionId": "ff05b694-8233-4b7d-8d0c-cb05647c780b",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793980294611
+      }
+    ],
+    "8.1f Reword the channel fallback sentence (`naming.py`)": [
+      {
+        "executionId": "fa8380fa-403f-435f-be97-85c9dca2c144",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793979376771
+      },
+      {
+        "executionId": "fa8380fa-403f-435f-be97-85c9dca2c144",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793979870028
+      }
+    ],
+    "14.10 Name the dominant category in sentences for non-flag categorical attributes (`app/persona_page.py`)": [
+      {
+        "executionId": "fa8380fa-403f-435f-be97-85c9dca2c144",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793979377474
+      },
+      {
+        "executionId": "fa8380fa-403f-435f-be97-85c9dca2c144",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793979869910
+      }
+    ],
+    "14.11 Say \"less likely\" instead of \"fewer likely\" in persona sentences (`app/persona_page.py`)": [
+      {
+        "executionId": "ff05b694-8233-4b7d-8d0c-cb05647c780b",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793980294683
+      },
+      {
+        "executionId": "ff05b694-8233-4b7d-8d0c-cb05647c780b",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793981017170
+      }
+    ],
+    "9.3 Restrict the business-segment grouping field to `customer_dna.segment` (`grouping.py`, `app/persona_page.py`)": [
+      {
+        "executionId": "ad6e1177-adb2-4857-9bf0-351c646d8072",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793982777755
+      },
+      {
+        "executionId": "ad6e1177-adb2-4857-9bf0-351c646d8072",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793983222059
+      }
+    ],
+    "14.12 Fix the numeric-only warning example (`app/persona_page.py`)": [
+      {
+        "executionId": "8f8becdb-0799-451d-914d-993c11d39201",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793985210933
+      }
+    ],
+    "4.7 Choose the focus category of a text attribute by lift (`profile.py`)": [
+      {
+        "executionId": "bf96c183-c7dd-4533-ac1a-197a51e2ac3f",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793985631635
+      },
+      {
+        "executionId": "bf96c183-c7dd-4533-ac1a-197a51e2ac3f",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793986775867
+      }
+    ],
+    "8.1g Name the focus category in persona names (`naming.py`, `labels.py`)": [
+      {
+        "executionId": "bf96c183-c7dd-4533-ac1a-197a51e2ac3f",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793986778986
+      },
+      {
+        "executionId": "bf96c183-c7dd-4533-ac1a-197a51e2ac3f",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793987989784
+      }
+    ],
+    "14.13 Name the focus category in trait tags and sentences (`app/persona_page.py`)": [
+      {
+        "executionId": "bf96c183-c7dd-4533-ac1a-197a51e2ac3f",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793987990335
+      },
+      {
+        "executionId": "bf96c183-c7dd-4533-ac1a-197a51e2ac3f",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793988826318
+      }
+    ],
+    "14.14 Hide constant columns from the attribute picker and default set (`app/persona_page.py`)": [
+      {
+        "executionId": "bf96c183-c7dd-4533-ac1a-197a51e2ac3f",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793988826431
+      },
+      {
+        "executionId": "bf96c183-c7dd-4533-ac1a-197a51e2ac3f",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793989314587
+      }
+    ],
+    "14.15 Add a Streamlit AppTest smoke test of the Personas tab (`tests/test_part5_personas_apptest_smoke.py`)": [
+      {
+        "executionId": "bf96c183-c7dd-4533-ac1a-197a51e2ac3f",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793989315987
+      },
+      {
+        "executionId": "bf96c183-c7dd-4533-ac1a-197a51e2ac3f",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1793989628227
+      }
+    ],
+    "8.1h Use business labels in every persona name, description and action (`naming.py`, `labels.py`)": [
+      {
+        "executionId": "2781cea7-3d1c-4c7d-a0ed-728f20d642b8",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794034925542
+      },
+      {
+        "executionId": "2781cea7-3d1c-4c7d-a0ed-728f20d642b8",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794036545847
+      }
+    ],
+    "13.4 Compute expected joiners by persona for the New Promo cards (`src/webapp_core/personas.py`)": [
+      {
+        "executionId": "2781cea7-3d1c-4c7d-a0ed-728f20d642b8",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794034926736
+      },
+      {
+        "executionId": "2781cea7-3d1c-4c7d-a0ed-728f20d642b8",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794036544787
+      }
+    ],
+    "14.16 Show the breakdown on the New Promo cards and remove the past-promo mix (`app/persona_page.py`)": [
+      {
+        "executionId": "2781cea7-3d1c-4c7d-a0ed-728f20d642b8",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794036551480
+      },
+      {
+        "executionId": "2781cea7-3d1c-4c7d-a0ed-728f20d642b8",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794037442295
+      }
+    ],
+    "13.5 Scope the breakdown to one group and add the per-group summary (`src/webapp_core/personas.py`)": [
+      {
+        "executionId": "53f38ff7-3151-4503-a592-2d752ba38049",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794042957469
+      },
+      {
+        "executionId": "53f38ff7-3151-4503-a592-2d752ba38049",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794043492523
+      }
+    ],
+    "14.17 Offer one way to group: two levels plus the split control (`app/persona_page.py`)": [
+      {
+        "executionId": "53f38ff7-3151-4503-a592-2d752ba38049",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794042958424
+      },
+      {
+        "executionId": "53f38ff7-3151-4503-a592-2d752ba38049",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794043494484
+      }
+    ],
+    "14.18 Render the group-scoped, compact breakdown (`app/persona_page.py`)": [
+      {
+        "executionId": "53f38ff7-3151-4503-a592-2d752ba38049",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794043501670
+      },
+      {
+        "executionId": "53f38ff7-3151-4503-a592-2d752ba38049",
+        "chatSessionId": "sess_dd9398a4-d4d1-482e-a939-8e93f8f127b0",
+        "timestamp": 1794046178762
+      }
+    ]
+  }
+}

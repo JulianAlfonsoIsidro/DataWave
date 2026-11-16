@@ -1,0 +1,180 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+<!--
+  Part 8 Group_Illustrations (Requirement 16). Original flat drawings made for
+  this project; nothing copied or traced. Colours come only from CSS custom
+  properties set by picker.js from the design tokens: currentColor = ink,
+  --a = the one accent, --p = paper, --m = muted neutral. No hex, no
+  gradients, no shadows, no raster. Money uses the peso sign.
+-->
+
+<!-- segment: coin stacks (account tier, not a person) -->
+<symbol id="segment-mass" viewBox="0 0 64 64">
+  <rect x="14" y="44" width="36" height="9" rx="4.5" style="fill:var(--p)" stroke="currentColor" stroke-width="2.5"/>
+  <text x="32" y="34" text-anchor="middle" font-size="18" font-weight="700" fill="currentColor">₱</text>
+</symbol>
+<symbol id="segment-mid" viewBox="0 0 64 64">
+  <rect x="14" y="44" width="36" height="9" rx="4.5" style="fill:var(--p)" stroke="currentColor" stroke-width="2.5"/>
+  <rect x="14" y="35" width="36" height="9" rx="4.5" style="fill:var(--p)" stroke="currentColor" stroke-width="2.5"/>
+  <text x="32" y="27" text-anchor="middle" font-size="16" font-weight="700" fill="currentColor">₱</text>
+</symbol>
+<symbol id="segment-pref" viewBox="0 0 64 64">
+  <rect x="14" y="44" width="36" height="9" rx="4.5" style="fill:var(--p)" stroke="currentColor" stroke-width="2.5"/>
+  <rect x="14" y="35" width="36" height="9" rx="4.5" style="fill:var(--p)" stroke="currentColor" stroke-width="2.5"/>
+  <rect x="14" y="26" width="36" height="9" rx="4.5" style="fill:var(--p)" stroke="currentColor" stroke-width="2.5"/>
+  <text x="32" y="19" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">₱</text>
+</symbol>
+<symbol id="segment-gold" viewBox="0 0 64 64">
+  <rect x="14" y="46" width="36" height="9" rx="4.5" style="fill:var(--p)" stroke="currentColor" stroke-width="2.5"/>
+  <rect x="14" y="37" width="36" height="9" rx="4.5" style="fill:var(--p)" stroke="currentColor" stroke-width="2.5"/>
+  <rect x="14" y="28" width="36" height="9" rx="4.5" style="fill:var(--p)" stroke="currentColor" stroke-width="2.5"/>
+  <rect x="14" y="19" width="36" height="9" rx="4.5" style="fill:var(--a)" stroke="currentColor" stroke-width="2.5"/>
+  <text x="32" y="14" text-anchor="middle" font-size="13" font-weight="700" fill="currentColor">₱</text>
+</symbol>
+
+<!-- age_band: one neutral figure, one light life-stage prop each; no frailty cue -->
+<symbol id="age-18-24" viewBox="0 0 64 64">
+  <circle cx="32" cy="22" r="7" fill="currentColor"/>
+  <path d="M20 56v-12a12 12 0 0 1 24 0v12z" fill="currentColor"/>
+  <path d="M18 14l14-6 14 6-14 6z" style="fill:var(--a)"/>
+  <path d="M44 15v8" style="stroke:var(--a)" stroke-width="2" stroke-linecap="round"/>
+</symbol>
+<symbol id="age-25-34" viewBox="0 0 64 64">
+  <circle cx="32" cy="16" r="7" fill="currentColor"/>
+  <path d="M20 50v-12a12 12 0 0 1 24 0v12z" fill="currentColor"/>
+  <rect x="18" y="36" width="28" height="15" rx="2" style="fill:var(--a)"/>
+  <rect x="13" y="51" width="38" height="4" rx="2" style="fill:var(--a)"/>
+</symbol>
+<symbol id="age-35-44" viewBox="0 0 64 64">
+  <circle cx="25" cy="16" r="7" fill="currentColor"/>
+  <path d="M13 56v-14a12 12 0 0 1 24 0v14z" fill="currentColor"/>
+  <circle cx="46" cy="34" r="5" style="fill:var(--a)"/>
+  <path d="M38 56v-8a8 8 0 0 1 16 0v8z" style="fill:var(--a)"/>
+</symbol>
+<symbol id="age-45-54" viewBox="0 0 64 64">
+  <circle cx="28" cy="16" r="7" fill="currentColor"/>
+  <path d="M16 56v-14a12 12 0 0 1 24 0v14z" fill="currentColor"/>
+  <circle cx="48" cy="38" r="5" fill="none" style="stroke:var(--a)" stroke-width="3"/>
+  <path d="M48 43v10m0-4h4m-4 3h3" fill="none" style="stroke:var(--a)" stroke-width="3" stroke-linecap="round"/>
+</symbol>
+<symbol id="age-55-plus" viewBox="0 0 64 64">
+  <circle cx="32" cy="16" r="7" fill="currentColor"/>
+  <path d="M24.5 14a7.5 7.5 0 0 1 15 0z" style="fill:var(--m)"/>
+  <path d="M27 17h4m2 0h4" stroke="currentColor" stroke-width="1.5"/>
+  <circle cx="29" cy="17" r="2" fill="none" style="stroke:var(--p)" stroke-width="1.2"/>
+  <circle cx="35" cy="17" r="2" fill="none" style="stroke:var(--p)" stroke-width="1.2"/>
+  <path d="M20 56v-14a12 12 0 0 1 24 0v14z" fill="currentColor"/>
+  <rect x="17" y="36" width="30" height="18" rx="1.5" style="fill:var(--a)"/>
+  <path d="M21 41h10m-10 4h22m-22 4h22" style="stroke:var(--p)" stroke-width="2" stroke-linecap="round"/>
+</symbol>
+
+<!-- sec_class: six-step ladder, the active step filled (A top, D bottom) -->
+<symbol id="sec-ladder" viewBox="0 0 64 64">
+  <path d="M22 6v52M42 6v52" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  <path d="M22 11h20M22 19.5h20M22 28h20M22 36.5h20M22 45h20M22 53.5h20" stroke="currentColor" stroke-width="2" opacity="0.55"/>
+</symbol>
+<symbol id="sec-a" viewBox="0 0 64 64"><use href="#sec-ladder"/><rect x="20" y="8" width="24" height="6" rx="2" style="fill:var(--a)"/></symbol>
+<symbol id="sec-b1" viewBox="0 0 64 64"><use href="#sec-ladder"/><rect x="20" y="16.5" width="24" height="6" rx="2" style="fill:var(--a)"/></symbol>
+<symbol id="sec-b2" viewBox="0 0 64 64"><use href="#sec-ladder"/><rect x="20" y="25" width="24" height="6" rx="2" style="fill:var(--a)"/></symbol>
+<symbol id="sec-c1" viewBox="0 0 64 64"><use href="#sec-ladder"/><rect x="20" y="33.5" width="24" height="6" rx="2" style="fill:var(--a)"/></symbol>
+<symbol id="sec-c2" viewBox="0 0 64 64"><use href="#sec-ladder"/><rect x="20" y="42" width="24" height="6" rx="2" style="fill:var(--a)"/></symbol>
+<symbol id="sec-d" viewBox="0 0 64 64"><use href="#sec-ladder"/><rect x="20" y="50.5" width="24" height="6" rx="2" style="fill:var(--a)"/></symbol>
+
+<!-- inflow_type -->
+<symbol id="inflow-business" viewBox="0 0 64 64">
+  <rect x="14" y="28" width="36" height="26" rx="2" fill="none" stroke="currentColor" stroke-width="3"/>
+  <path d="M11 28l5-12h32l5 12z" style="fill:var(--a)"/>
+  <path d="M22 16l-2 12m12-12v12m10-12l2 12" style="stroke:var(--p)" stroke-width="2"/>
+  <rect x="28" y="38" width="8" height="16" fill="currentColor"/>
+</symbol>
+<symbol id="inflow-mixed" viewBox="0 0 64 64">
+  <path d="M10 18c14 0 16 14 28 14M10 46c14 0 16-14 28-14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  <path d="M10 18h0M10 46h0" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+  <path d="M38 32h14m-6-7l7 7-7 7" fill="none" style="stroke:var(--a)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</symbol>
+<symbol id="inflow-remittance" viewBox="0 0 64 64">
+  <rect x="18" y="26" width="38" height="26" rx="3" style="fill:var(--p)" stroke="currentColor" stroke-width="2.5"/>
+  <path d="M18 28l19 13 19-13" fill="none" stroke="currentColor" stroke-width="2.5"/>
+  <text x="37" y="50" text-anchor="middle" font-size="11" font-weight="700" style="fill:var(--a)">₱</text>
+  <circle cx="13" cy="15" r="7" fill="none" stroke="currentColor" stroke-width="2"/>
+  <path d="M6 15h14M13 8c-3 4-3 10 0 14m0-14c3 4 3 10 0 14" fill="none" stroke="currentColor" stroke-width="1.4"/>
+  <path d="M21 15c6 0 9 4 10 9m-4-1l4 2 2-4" fill="none" style="stroke:var(--a)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</symbol>
+<symbol id="inflow-salary" viewBox="0 0 64 64">
+  <path d="M16 8h26l8 8v40H16z" style="fill:var(--p)" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M22 18h14m-14 6h20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <text x="27" y="44" text-anchor="middle" font-size="14" font-weight="700" fill="currentColor">₱</text>
+  <path d="M35 42l4 4 8-9" fill="none" style="stroke:var(--a)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+</symbol>
+
+<!-- online_shopper: one cart carrying 1 to 5 parcels -->
+<symbol id="shop-cart" viewBox="0 0 64 64">
+  <path d="M6 12h8l6 30h30l5-22H17" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="24" cy="50" r="4" fill="currentColor"/>
+  <circle cx="46" cy="50" r="4" fill="currentColor"/>
+</symbol>
+<symbol id="shop-1" viewBox="0 0 64 64"><use href="#shop-cart"/><rect x="31" y="29" width="9" height="9" rx="1.5" style="fill:var(--a)"/></symbol>
+<symbol id="shop-2" viewBox="0 0 64 64"><use href="#shop-cart"/><rect x="26" y="29" width="9" height="9" rx="1.5" style="fill:var(--a)"/><rect x="37" y="29" width="9" height="9" rx="1.5" style="fill:var(--a)"/></symbol>
+<symbol id="shop-3" viewBox="0 0 64 64"><use href="#shop-cart"/><rect x="22" y="29" width="9" height="9" rx="1.5" style="fill:var(--a)"/><rect x="32.5" y="29" width="9" height="9" rx="1.5" style="fill:var(--a)"/><rect x="43" y="29" width="9" height="9" rx="1.5" style="fill:var(--a)"/></symbol>
+<symbol id="shop-4" viewBox="0 0 64 64"><use href="#shop-cart"/><rect x="22" y="29" width="9" height="9" rx="1.5" style="fill:var(--a)"/><rect x="32.5" y="29" width="9" height="9" rx="1.5" style="fill:var(--a)"/><rect x="43" y="29" width="9" height="9" rx="1.5" style="fill:var(--a)"/><rect x="27" y="18.5" width="9" height="9" rx="1.5" style="fill:var(--a)"/></symbol>
+<symbol id="shop-5" viewBox="0 0 64 64"><use href="#shop-cart"/><rect x="22" y="29" width="9" height="9" rx="1.5" style="fill:var(--a)"/><rect x="32.5" y="29" width="9" height="9" rx="1.5" style="fill:var(--a)"/><rect x="43" y="29" width="9" height="9" rx="1.5" style="fill:var(--a)"/><rect x="27" y="18.5" width="9" height="9" rx="1.5" style="fill:var(--a)"/><rect x="37.5" y="18.5" width="9" height="9" rx="1.5" style="fill:var(--a)"/></symbol>
+
+<!-- yes/no columns: eight distinct icons -->
+<symbol id="yn-app" viewBox="0 0 64 64">
+  <rect x="19" y="6" width="26" height="52" rx="5" fill="none" stroke="currentColor" stroke-width="3"/>
+  <rect x="24" y="14" width="7" height="7" rx="2" style="fill:var(--a)"/><rect x="33" y="14" width="7" height="7" rx="2" style="fill:var(--a)"/>
+  <rect x="24" y="23" width="7" height="7" rx="2" style="fill:var(--a)"/><rect x="33" y="23" width="7" height="7" rx="2" style="fill:var(--a)"/>
+  <rect x="24" y="32" width="7" height="7" rx="2" style="fill:var(--a)"/><rect x="33" y="32" width="7" height="7" rx="2" style="fill:var(--a)"/>
+  <path d="M29 51h6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+</symbol>
+<symbol id="yn-frugal" viewBox="0 0 64 64">
+  <ellipse cx="31" cy="40" rx="19" ry="13" fill="none" stroke="currentColor" stroke-width="3"/>
+  <path d="M18 30l-2-8 8 4M50 38h4v6h-4M22 52v5m16-5v5M26 30h10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="31" cy="15" r="6" style="fill:var(--a)"/>
+</symbol>
+<symbol id="yn-email" viewBox="0 0 64 64">
+  <path d="M10 30l22-18 22 18" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="17" y="18" width="30" height="24" rx="2" style="fill:var(--p)" stroke="currentColor" stroke-width="2"/>
+  <text x="32" y="36" text-anchor="middle" font-size="15" font-weight="700" style="fill:var(--a)">@</text>
+  <path d="M10 30v24h44V30L32 44z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+</symbol>
+<symbol id="yn-mobile" viewBox="0 0 64 64">
+  <path d="M14 14l9-3 5 11-6 5c3 7 7 11 14 14l5-6 11 5-3 9c-20 3-38-15-35-35z" fill="currentColor"/>
+  <path d="M38 8a18 18 0 0 1 18 18M38 16a10 10 0 0 1 10 10M38 23a3 3 0 0 1 3 3" fill="none" style="stroke:var(--a)" stroke-width="3" stroke-linecap="round"/>
+</symbol>
+<symbol id="yn-card" viewBox="0 0 64 64">
+  <rect x="7" y="15" width="50" height="34" rx="4" fill="none" stroke="currentColor" stroke-width="3"/>
+  <rect x="7" y="22" width="50" height="6" fill="currentColor"/>
+  <rect x="13" y="34" width="11" height="8" rx="1.5" style="fill:var(--a)"/>
+</symbol>
+<symbol id="yn-insurance" viewBox="0 0 64 64">
+  <path d="M8 27a24 22 0 0 1 48 0z" style="fill:var(--a)"/>
+  <path d="M32 6v4" style="stroke:var(--a)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M22 32h20v9c0 8-10 14-10 14s-10-6-10-14z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+</symbol>
+<symbol id="yn-investment" viewBox="0 0 64 64">
+  <path d="M10 8v46h46" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  <path d="M16 46l10-12 8 6 10-14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="49" cy="20" r="7" style="fill:var(--a)"/>
+  <text x="49" y="24" text-anchor="middle" font-size="10" font-weight="700" style="fill:var(--p)">₱</text>
+</symbol>
+<symbol id="yn-loan" viewBox="0 0 64 64">
+  <rect x="6" y="20" width="44" height="26" rx="3" fill="none" stroke="currentColor" stroke-width="3"/>
+  <text x="28" y="39" text-anchor="middle" font-size="14" font-weight="700" fill="currentColor">₱</text>
+  <path d="M52 22a12 12 0 1 1-8-6" fill="none" style="stroke:var(--a)" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M42 11l3 5-5 3" fill="none" style="stroke:var(--a)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+</symbol>
+
+<!-- shared Toggle_Card glyphs and the neutral placeholder -->
+<symbol id="yn-check" viewBox="0 0 64 64">
+  <circle cx="32" cy="32" r="24" fill="none" stroke="currentColor" stroke-width="3"/>
+  <path d="M21 33l8 8 15-17" fill="none" style="stroke:var(--a)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</symbol>
+<symbol id="yn-cross" viewBox="0 0 64 64">
+  <circle cx="32" cy="32" r="24" fill="none" stroke="currentColor" stroke-width="3"/>
+  <path d="M23 23l18 18M41 23L23 41" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+</symbol>
+<symbol id="unknown" viewBox="0 0 64 64">
+  <circle cx="32" cy="32" r="22" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="5 5"/>
+  <text x="32" y="40" text-anchor="middle" font-size="22" font-weight="700" fill="currentColor">?</text>
+</symbol>
+</svg>

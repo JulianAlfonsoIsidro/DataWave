@@ -1,0 +1,299 @@
+/* Part 8 Group_Component styles (F6 map, F7 ring and Toggle_Card, F9).
+   Every colour, duration, easing, radius and glass value is a custom property
+   set by picker.js from the palette Python reads out of app/styles.css
+   section 1; nothing here is a literal colour or duration. Motion is
+   transform and opacity only; the glass blur is static (approved exception). */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--pan-text);
+  overflow: clip;            /* Part 9: same clipping, no scroll container */
+  -webkit-font-smoothing: antialiased;
+}
+* { box-sizing: border-box; }
+.sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+#root {
+  position: relative;
+  block-size: var(--h);
+  inline-size: 100%;
+}
+.view {
+  position: absolute;
+  inset: 0;
+  animation: pk-fade var(--pan-dur-xfade) var(--pan-ease) backwards;
+}
+@keyframes pk-fade { from { opacity: 0; } }
+button { font: inherit; color: inherit; }
+
+/* ------------------------------------------------------------------ ring */
+/* Part 9: a real 3D carousel. Each item sits on a circle at its own angle
+   (--a) and radius (--R) and turns back to face the viewer, so labels never
+   read mirrored. A turn changes only --a; the registered property makes it
+   one smooth CSS transition along the circle (no per-frame script). The
+   stage is pushed back by the radius so the front item stays at full size;
+   the perspective origin sits high, so farther items rise a little. */
+@property --a { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+.view.ring { perspective: var(--persp); perspective-origin: 50% 18%; }
+.stage { position: absolute; inset: 0; outline: none; transform-style: preserve-3d; transform: translateZ(calc(-1 * var(--R))); }
+.stage:focus-visible { outline: 2px solid var(--pan-focus); outline-offset: -2px; border-radius: var(--pan-radius-lg); }
+.item {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  inline-size: 150px;
+  block-size: 180px;
+  margin: -90px 0 0 -75px;
+  cursor: pointer;
+  transform: rotateY(var(--a)) translateZ(var(--R)) rotateY(calc(-1 * var(--a)));
+  transition: --a var(--pan-dur-carousel) var(--pan-ease-carousel);
+  will-change: transform;
+}
+.no-anim .item { transition: none; }
+.card {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--pan-space-2);
+  padding: var(--pan-space-3);
+  border-radius: var(--pan-radius-lg);
+  background: var(--pan-surface);
+  border: 1px solid var(--pan-border);
+  text-align: center;
+}
+.ill {
+  inline-size: 84px;
+  block-size: 84px;
+  color: var(--pan-text);
+  --a: var(--pan-primary);
+  --p: var(--pan-surface-2);
+  --m: var(--pan-text-muted);
+}
+/* One picture per item: a single <img>, contained, never tiled. The art is a
+   black figure on transparency; dark mode flips it to a light figure. */
+.ill-img {
+  display: block;
+  object-fit: contain;
+  object-position: center bottom;
+  background: none;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+:root[data-dark] .ill-img { filter: invert(1); }
+.card .ill-img { inline-size: 100%; block-size: 96px; }
+.lbl { font-weight: 600; font-size: 14px; line-height: 1.25; color: var(--pan-text); }
+.cnt { font-size: 12px; color: var(--pan-text-muted); font-variant-numeric: tabular-nums; }
+.item.is-selected .card {
+  border-color: var(--pan-primary);
+  outline: 2px solid var(--pan-primary);
+  outline-offset: -1px;
+}
+.item:focus-visible { outline: none; }
+.item:focus-visible .card { outline: 2px solid var(--pan-focus); outline-offset: 3px; }
+
+/* Liquid glass: two fixed-blur layers per item; only their opacity moves. */
+.glass {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--pan-dur-slow) var(--pan-ease);
+  will-change: opacity;
+  box-shadow: inset 1px 1px 0 var(--pan-glass-edge), var(--pan-glass-shadow);
+}
+/* No backdrop-filter: blurring the card's own picture from above mirrored it
+   at the edges (a doubled, stacked figure). The glass is a translucent tint
+   and edge highlight; the picture itself gets a light blur below. */
+.glass-1 { background: var(--pan-glass-tint-1); }
+.glass-2 { background: var(--pan-glass-tint-2); }
+/* Liquid glass on unselected items: the card fades back under the frosted
+   layer and its edge turns translucent; still one picture each. */
+.card { transition: opacity var(--pan-dur-slow) var(--pan-ease); }
+.item[data-level="1"] .card { opacity: var(--pan-glass-dim-1); border-color: var(--pan-glass-edge); }
+.item[data-level="2"] .card { opacity: var(--pan-glass-dim-2); border-color: var(--pan-glass-edge); }
+/* Same card, same picture, just farther away: the ring scales it down; a
+   light static blur sells the depth (never animated). */
+.item[data-level="1"] .ill-img { filter: blur(var(--pan-glass-blur-1)); }
+.item[data-level="2"] .ill-img { filter: blur(var(--pan-glass-blur-2)); }
+:root[data-dark] .item[data-level="1"] .ill-img { filter: invert(1) blur(var(--pan-glass-blur-1)); }
+:root[data-dark] .item[data-level="2"] .ill-img { filter: invert(1) blur(var(--pan-glass-blur-2)); }
+
+.rot {
+  position: absolute;
+  top: 46%;
+  z-index: 500;
+  inline-size: 40px;
+  block-size: 40px;
+  margin-top: -20px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--pan-radius-pill);
+  border: 1px solid var(--pan-border);
+  background: var(--pan-surface);
+  color: var(--pan-text);
+  cursor: pointer;
+  transition: transform var(--pan-dur-fast) var(--pan-ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .rot:hover { transform: scale(1.06); }
+  .opt:active { transform: scale(0.97); }
+  g[data-area]:hover:not(.is-muted) { transform: translateY(calc(var(--lift) * -1)); }
+}
+.rot:active { transform: scale(0.94); }
+.rot:focus-visible { outline: 2px solid var(--pan-focus); outline-offset: 2px; }
+.rot svg { inline-size: 18px; block-size: 18px; }
+.rot-left { left: var(--pan-space-2); }
+.rot-right { right: var(--pan-space-2); }
+
+/* ----------------------------------------------------------- Toggle_Card */
+.toggle {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--pan-space-3);
+}
+.toggle-head { display: flex; flex-direction: column; align-items: center; gap: var(--pan-space-1); }
+.toggle-head .ill { inline-size: 72px; block-size: 72px; }
+.toggle-head .lbl { font-size: 15px; }
+.options { display: flex; gap: var(--pan-space-4); justify-content: center; flex-wrap: wrap; }
+.opt {
+  inline-size: 180px;
+  min-block-size: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--pan-space-2);
+  padding: var(--pan-space-3);
+  border-radius: var(--pan-radius-lg);
+  border: 1px solid var(--pan-border);
+  background: var(--pan-surface);
+  cursor: pointer;
+  transition: transform var(--pan-dur) var(--pan-ease), opacity var(--pan-dur) var(--pan-ease);
+}
+.opt .ill { inline-size: 64px; block-size: 64px; }
+.opt .ill-img { inline-size: 100%; block-size: 88px; }
+.toggle.yes-no .opt { min-block-size: 120px; }
+.toggle.yes-no .opt .ill:not(.ill-img) { inline-size: 44px; block-size: 44px; }
+.opt[aria-checked="true"] {
+  background: var(--pan-primary-tint);
+  border-color: var(--pan-primary-text);
+  outline: 2px solid var(--pan-primary-text);
+  outline-offset: -1px;
+}
+.opt[aria-checked="true"] .lbl { color: var(--pan-primary-text); }
+.has-choice .opt[aria-checked="false"] { transform: scale(0.97); opacity: 0.85; }
+.opt:hover { transform: translateY(-2px); }
+.opt:focus-visible { outline: 2px solid var(--pan-focus); outline-offset: 3px; }
+
+/* ------------------------------------------------------------------- map */
+.map { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; }
+/* High-altitude camera (picker.js layoutMap/flyTo): the map fills the
+   section and crops at its edges; the far and near edges fade into haze. */
+.map-box {
+  position: relative;
+  flex: 1;
+  min-block-size: 0;
+  inline-size: 100%;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, black 22%, black 88%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, black 22%, black 88%, transparent 100%);
+}
+.map-box svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+.credit { font-size: 11px; color: var(--pan-text-muted); padding: var(--pan-space-1) 0 0; }
+.lat-a { fill: var(--pan-map-fill-a); }
+.lat-b { fill: var(--pan-map-fill-b); }
+.area-shape { fill: url(#pk-lattice); stroke: none; }
+g[data-area] {
+  cursor: pointer;
+  outline: none;
+  transition: transform var(--pan-dur) var(--pan-ease), opacity var(--pan-dur) var(--pan-ease);
+}
+g[data-area]:focus-visible:not(.is-muted),
+g[data-area].is-selected { transform: translateY(calc(var(--lift) * -1)); }
+g[data-area].is-selected .area-shape { fill: var(--pan-map-selected); }
+g[data-area].is-dimmed { opacity: var(--pan-dim); }
+g[data-area].is-muted { cursor: default; }
+g[data-area].is-muted .area-shape { fill: var(--pan-map-muted); }
+g[data-area]:focus-visible .area-shape,
+g[data-area]:focus-visible .bubble { stroke: var(--pan-focus); stroke-width: 2px; vector-effect: non-scaling-stroke; }
+.bubble { fill: var(--pan-surface); stroke: var(--pan-border); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.leader { stroke: var(--pan-text-muted); stroke-width: 1px; vector-effect: non-scaling-stroke; stroke-dasharray: 3 3; }
+.shadow {
+  fill: var(--pan-map-shadow);
+  opacity: 0;
+  transition: opacity var(--pan-dur) var(--pan-ease);
+  pointer-events: none;
+}
+.shadow.is-on { opacity: 1; }
+/* Fluid fill: while the red rises, the region keeps its previous look
+   underneath; the fill is exactly the selected red. */
+g[data-area].is-filling .area-shape { fill: url(#pk-lattice); }
+.fill-wave circle {
+  fill: var(--pan-map-selected);
+  transform-box: fill-box;
+  transform-origin: center;
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------- generation reveal */
+/* Played once per persona generation (picker.js playReveal). Carousel: each
+   item fades in by ring distance (--rd), front first, while JS grows the ring
+   radius 60% -> 100%. Map: bottom to top. Toggles: bottom to top, a beat
+   after the map. Opacity and transform only. */
+.is-revealing .view { animation: none; }
+.is-revealing .item {
+  animation: pk-fade var(--pan-dur-reveal) var(--pan-ease) backwards;
+  animation-delay: calc(var(--pk-start) + var(--rd, 0) * var(--pan-reveal-ring-step));
+}
+.is-revealing .map-box {
+  animation: pk-rise-up var(--pan-dur-reveal) var(--pan-ease) backwards;
+  animation-delay: var(--pk-start);
+}
+.is-revealing .toggle {
+  animation: pk-rise-up var(--pan-dur-reveal) var(--pan-ease) backwards;
+  animation-delay: calc(var(--pk-start) + var(--pan-reveal-toggle-lag));
+}
+@keyframes pk-rise-up { from { opacity: 0; transform: translateY(20px); } }
+
+/* Count-up: one 0-9 column per digit rolls from 0 to its digit. */
+.pk-num { display: inline-flex; block-size: 1lh; overflow: hidden; vertical-align: top; }
+.pk-d { display: inline-block; block-size: 1lh; overflow: hidden; }
+.pk-strip {
+  display: flex;
+  flex-direction: column;
+  transform: translateY(calc(var(--d) * -1lh));
+  animation: pk-count calc(var(--pan-dur-roll) * 2) var(--pan-ease) backwards;
+}
+.pk-strip > span { block-size: 1lh; }
+@keyframes pk-count { from { transform: translateY(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .view { animation: none; }
+  .glass, .opt, .rot, g[data-area], .shadow, .card, .item { transition: none; }
+  .opt:hover, .opt:active, .rot:hover, .rot:active { transform: none; }
+  /* Reveal: a short opacity fade, no movement, no stagger. */
+  .is-revealing-still .view { animation: pk-fade var(--pan-dur-xfade-short) var(--pan-ease) backwards; }
+}

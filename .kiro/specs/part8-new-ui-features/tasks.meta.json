@@ -1,0 +1,282 @@
+{
+  "pbtResults": {
+    "4.2 Write property test for `consume_flag`": {
+      "status": "passed",
+      "lastRunTimestamp": 1794306550843
+    },
+    "4.7 Write property tests for `ring_phase` and `is_duplicate_submit`": {
+      "status": "passed",
+      "lastRunTimestamp": 1794309653074
+    }
+  },
+  "executionHistory": {
+    "1.1 Add Part 8 tokens and PALETTE entries": [
+      {
+        "executionId": "b124c367-0cad-46e0-9b8a-5923ecb39762",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794302552358
+      },
+      {
+        "executionId": "b124c367-0cad-46e0-9b8a-5923ecb39762",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794302690056
+      }
+    ],
+    "1.2 Implement the token reader and iframe palette in `app/theme.py`": [
+      {
+        "executionId": "b124c367-0cad-46e0-9b8a-5923ecb39762",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794302702052
+      },
+      {
+        "executionId": "b124c367-0cad-46e0-9b8a-5923ecb39762",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794304037438
+      }
+    ],
+    "1.4 Add shared motion, stale override and tab fade to `app/styles.css`": [
+      {
+        "executionId": "b124c367-0cad-46e0-9b8a-5923ecb39762",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794302703216
+      },
+      {
+        "executionId": "b124c367-0cad-46e0-9b8a-5923ecb39762",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794304038148
+      }
+    ],
+    "2.1 Remove `theme.utility_bar()` and `theme.nav_bar()` calls from `main()`": [
+      {
+        "executionId": "b124c367-0cad-46e0-9b8a-5923ecb39762",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794304050713
+      },
+      {
+        "executionId": "b124c367-0cad-46e0-9b8a-5923ecb39762",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794304268910
+      }
+    ],
+    "1.6 Checkpoint - foundations": [
+      {
+        "executionId": "b124c367-0cad-46e0-9b8a-5923ecb39762",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794304270673
+      },
+      {
+        "executionId": "b124c367-0cad-46e0-9b8a-5923ecb39762",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794304494801
+      }
+    ],
+    "2.3 Checkpoint - F1": [
+      {
+        "executionId": "b124c367-0cad-46e0-9b8a-5923ecb39762",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794304271737
+      },
+      {
+        "executionId": "b124c367-0cad-46e0-9b8a-5923ecb39762",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794304496241
+      }
+    ],
+    "1. Shared foundations (tokens, token reader, shared motion)": [
+      {
+        "executionId": "b124c367-0cad-46e0-9b8a-5923ecb39762",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794304495368
+      }
+    ],
+    "2. F1 - Remove the two redundant header lines": [
+      {
+        "executionId": "b124c367-0cad-46e0-9b8a-5923ecb39762",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794304497151
+      }
+    ],
+    "3.1 Style `st.text_input` as an Input_Pill": [
+      {
+        "executionId": "1731ca79-dbed-4207-ac7e-9799bf6e015e",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794305365544
+      },
+      {
+        "executionId": "1731ca79-dbed-4207-ac7e-9799bf6e015e",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794305777630
+      }
+    ],
+    "3.2 Style `st.number_input` and `st.text_area`": [
+      {
+        "executionId": "1731ca79-dbed-4207-ac7e-9799bf6e015e",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794305778866
+      },
+      {
+        "executionId": "1731ca79-dbed-4207-ac7e-9799bf6e015e",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794306073582
+      }
+    ],
+    "3.3 Checkpoint - F4": [
+      {
+        "executionId": "1731ca79-dbed-4207-ac7e-9799bf6e015e",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794306073742
+      },
+      {
+        "executionId": "1731ca79-dbed-4207-ac7e-9799bf6e015e",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794306264280
+      }
+    ],
+    "3. F4 - Text input pill": [
+      {
+        "executionId": "1731ca79-dbed-4207-ac7e-9799bf6e015e",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794306264377
+      }
+    ],
+    "4.1 Create `consume_flag` and `app/p8_effects.py`": [
+      {
+        "executionId": "55547d2b-5e02-4da2-b65d-a0e7fee74281",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794306371316
+      },
+      {
+        "executionId": "55547d2b-5e02-4da2-b65d-a0e7fee74281",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794306511567
+      }
+    ],
+    "4.2 Write property test for `consume_flag`": [
+      {
+        "executionId": "55547d2b-5e02-4da2-b65d-a0e7fee74281",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794306511735
+      },
+      {
+        "executionId": "55547d2b-5e02-4da2-b65d-a0e7fee74281",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794307501301
+      }
+    ],
+    "4.3 Add running and settle style builders and CSS": [
+      {
+        "executionId": "55547d2b-5e02-4da2-b65d-a0e7fee74281",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794306511834
+      },
+      {
+        "executionId": "55547d2b-5e02-4da2-b65d-a0e7fee74281",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794307503112
+      }
+    ],
+    "4.4 Wire the running state into Run Analysis and Build Personas": [
+      {
+        "executionId": "55547d2b-5e02-4da2-b65d-a0e7fee74281",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794307504282
+      },
+      {
+        "executionId": "55547d2b-5e02-4da2-b65d-a0e7fee74281",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794307817787
+      }
+    ],
+    "4.5 Checkpoint - F2": [
+      {
+        "executionId": "55547d2b-5e02-4da2-b65d-a0e7fee74281",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794307819615
+      },
+      {
+        "executionId": "55547d2b-5e02-4da2-b65d-a0e7fee74281",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794308056336
+      }
+    ],
+    "4. F2 - Job button running state": [
+      {
+        "executionId": "55547d2b-5e02-4da2-b65d-a0e7fee74281",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794308057404
+      }
+    ],
+    "4.6 Add redesign tokens, `job_motion.py` and `theme.job_ring_html`": [
+      {
+        "executionId": "caeab41e-f7b1-4253-aa14-7b0082db3a21",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794309327150
+      },
+      {
+        "executionId": "caeab41e-f7b1-4253-aa14-7b0082db3a21",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794309523089
+      }
+    ],
+    "4.7 Write property tests for `ring_phase` and `is_duplicate_submit`": [
+      {
+        "executionId": "caeab41e-f7b1-4253-aa14-7b0082db3a21",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794309543626
+      },
+      {
+        "executionId": "caeab41e-f7b1-4253-aa14-7b0082db3a21",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794309962499
+      }
+    ],
+    "4.8 Replace `app/styles.css` section 12 with the redesign CSS": [
+      {
+        "executionId": "caeab41e-f7b1-4253-aa14-7b0082db3a21",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794309543908
+      },
+      {
+        "executionId": "caeab41e-f7b1-4253-aa14-7b0082db3a21",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794309962619
+      }
+    ],
+    "4.9 Wire the redesigned running state into the app": [
+      {
+        "executionId": "caeab41e-f7b1-4253-aa14-7b0082db3a21",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794309544791
+      },
+      {
+        "executionId": "caeab41e-f7b1-4253-aa14-7b0082db3a21",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794309963442
+      }
+    ],
+    "4.10 Checkpoint - F2 redesign": [
+      {
+        "executionId": "caeab41e-f7b1-4253-aa14-7b0082db3a21",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794309965042
+      },
+      {
+        "executionId": "caeab41e-f7b1-4253-aa14-7b0082db3a21",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794310111103
+      }
+    ],
+    "4.11 Make the Job_Button hover breath visible in both modes": [
+      {
+        "executionId": "7c2ad347-8033-487d-82d7-dd2f5da878f1",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794310666456
+      },
+      {
+        "executionId": "7c2ad347-8033-487d-82d7-dd2f5da878f1",
+        "chatSessionId": "sess_41a5e694-2967-47ea-ada5-6f2a6aba1752",
+        "timestamp": 1794310781421
+      }
+    ]
+  }
+}
