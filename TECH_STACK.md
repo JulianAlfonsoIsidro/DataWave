@@ -1,6 +1,6 @@
 # Promo Audience Manager: Tech Stack And Build Notes
 
-DataWave is the project name. The product is the **Promo Audience Manager**. This file lists what was used to build it, what each piece does, and the licence or credit that goes with it.
+The product is the **Promo Audience Manager**. This file lists what was used to build it, what each piece does, and the licence or credit that goes with it.
 
 ## Language and runtime
 
@@ -47,7 +47,7 @@ DataWave is the project name. The product is the **Promo Audience Manager**. Thi
 | --- | --- |
 | pytest (MIT) | Unit, integration and Streamlit `AppTest` smoke tests in `tests/`. The smoke tests load each tab without a browser. |
 | Hypothesis (MPL-2.0) | Property-based testing is the main style. Tests that fit real models set `deadline=None`. |
-| Headless Chrome over the DevTools Protocol | A small Python driver (`video/scripts/capture_app.py`) loaded the running app for screenshots and layout checks in light mode, dark mode and at phone width. It also checked smoothness under CPU throttling. |
+| Headless Chrome over the DevTools Protocol | A small Python driver (not included in this repository) loaded the running app for screenshots and layout checks in light mode, dark mode and at phone width. It also checked smoothness under CPU throttling. |
 
 ## Development tools
 
@@ -55,14 +55,14 @@ DataWave is the project name. The product is the **Promo Audience Manager**. Thi
 - **Claude Code:** did most of the UI work: the Part 9 redesign, animations, layout fixes and design critique rounds in VS Code. It also ran the tests and the headless-browser checks.
 - **Git and GitHub:** version control, with each part on its own branch and the UI work on `part9-layout-fixes`.
 
-- **HyperFrames:** used to make the app demo video. HyperFrames renders HTML to video. The screens it shows were captured from the running app with the headless Chrome driver in `video/scripts/capture_app.py`, in dark mode at 1920x1080.
+- **HyperFrames:** used to make the app demo video. HyperFrames renders HTML to video. The screens it shows were captured from the running app with a headless Chrome driver (not included in this repository), in dark mode at 1920x1080.
 
 ### Claude Code skills
 
 - **Impeccable:** a design critique skill that scores the UI against usability principles and runs a pattern detector. Across three saved rounds the score went from 22 to 24 to 27 out of 40.
 - **Hallmark:** a static check for generic, templated design patterns. The few remaining flags are deliberate and documented.
 - **HyperFrames skills** (hyperframes, hyperframes-cli, hyperframes-registry, media-use): guided building and rendering the demo video.
-- **Animation skills** (animate, review-animations, improve-animations and related): guided the stone block's spin and finish, the theme-switch fill, tooltip fades, and the fixes for jitter after Run Analysis. The audit plans are in `plans/`.
+- **Animation skills** (animate, review-animations, improve-animations and related): guided the stone block's spin and finish, the theme-switch fill, tooltip fades, and the fixes for jitter after Run Analysis.
 
 ## Animation and visual resources
 
