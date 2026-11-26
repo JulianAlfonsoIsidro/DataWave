@@ -17,3 +17,9 @@ scratch_*.txt
 # Sk-Modernist's license forbids redistribution: local use only, never commit.
 # Metropolis (SIL OFL) may be committed.
 app/static/fonts/Sk-Modernist/
+
+# Benchmark evaluation: credentials, proposals and generated results stay local.
+.env.eval
+evaluation/proposals/
+evaluation/proposals_pdf/
+evaluation/results/
