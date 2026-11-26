@@ -617,18 +617,16 @@ div[data-testid="collapsedControl"],
 .stTabs [role="tab"]:hover { color: var(--pan-text); }
 .stTabs [role="tab"][aria-selected="true"] { color: var(--pan-text); }
 
-/* Main navigation: a brand-red rail on the left, content on the right
-   (owner reference: a coloured sidebar, the current section a page-coloured
-   row that joins the content). It stays st.tabs, so every section stays
+/* Main navigation: a rail on the left, content on the right. The rail takes
+   the page's own colour in both themes (owner request: no red block) and only
+   the current section is red, a filled pill (owner reference). It stays st.tabs, so every section stays
    mounted and no widget state is lost when switching; only the tab list is
    restyled. Icons are alpha masks in app/static/nav/, painted with
    currentColor so they follow the row's text colour. */
 :root {
   --pan-rail-w: 248px;
-  --pan-rail-bg: light-dark(#AE1319, #6E1015);
-  --pan-rail-text: rgba(255, 255, 255, 0.9);   /* 6.0:1 on #AE1319, 9.9:1 on #6E1015 */
-  --pan-rail-hover: rgba(255, 255, 255, 0.12);
-  --pan-rail-line: rgba(255, 255, 255, 0.28);
+  --pan-rail-text: var(--pan-text-muted);   /* 8.3:1 light, 8.2:1 dark on --pan-bg */
+  --pan-rail-line: var(--pan-border);
   --pan-brand-h: 104px;   /* logo block at the top of the rail */
 }
 .st-key-main_nav > div > [role="tablist"] {
@@ -640,10 +638,11 @@ div[data-testid="collapsedControl"],
   flex-wrap: nowrap;
   align-items: stretch;
   gap: var(--pan-space-1);
-  padding: var(--pan-brand-h) 0 var(--pan-space-5) var(--pan-space-4);
+  padding: var(--pan-brand-h) var(--pan-space-4) var(--pan-space-5);
   margin: 0;
   overflow-y: auto;
-  background: var(--pan-rail-bg);
+  background: var(--pan-bg);
+  border-right: 1px solid var(--pan-rail-line);
 }
 :is(section.stMain, [data-testid="stMain"]):has(.st-key-main_nav) { padding-left: var(--pan-rail-w); }
 .st-key-main_nav > div > [role="tablist"] > .react-aria-SelectionIndicator,
@@ -661,7 +660,7 @@ div[data-testid="collapsedControl"],
   block-size: auto;
   padding: 0 var(--pan-space-4);
   gap: var(--pan-space-3);
-  border-radius: var(--pan-radius-lg) 0 0 var(--pan-radius-lg);
+  border-radius: 999px;
   cursor: pointer;
   /* No colour transition: switching sections is instant. A fade made the old
      and new rows both half-tinted for a moment, which read as a blink. */
@@ -685,15 +684,15 @@ div[data-testid="collapsedControl"],
 .st-key-main_nav > div > [role="tablist"] > [role="tab"]:nth-child(6) { --pan-nav-icon: url("app/static/nav/ask-assistant.png"); }
 /* Help and Support sits apart at the bottom of the rail. */
 .st-key-main_nav > div > [role="tablist"] > [role="tab"]:nth-child(7) { --pan-nav-icon: url("app/static/nav/help.png"); margin-top: auto; }
-.st-key-main_nav > div > [role="tablist"] > [role="tab"]:not([aria-selected="true"]):hover { background: var(--pan-rail-hover); }
-/* Current section: a page-coloured row that runs into the content, ink
-   label, red icon, heavier weight (shape and weight, not colour alone). */
+.st-key-main_nav > div > [role="tablist"] > [role="tab"]:not([aria-selected="true"]):hover { background: var(--pan-surface-2); color: var(--pan-text); }
+/* Current section: a filled red pill, white label and icon, heavier weight
+   (fill and weight, not colour alone). White on red: 6.6:1 light, 5.0:1 dark. */
 .st-key-main_nav > div > [role="tablist"] > [role="tab"][aria-selected="true"],
+.st-key-main_nav > div > [role="tablist"] > [role="tab"][aria-selected="true"]:hover,
 .st-key-main_nav > div > [role="tablist"] > [role="tab"][aria-selected="true"][data-focus-visible] {
-  background: var(--pan-bg);
-  color: var(--pan-text);
+  background: var(--pan-primary);
+  color: var(--pan-on-primary);
 }
-.st-key-main_nav > div > [role="tablist"] > [role="tab"][aria-selected="true"]::before { background: var(--pan-primary-text); }
 .st-key-main_nav > div > [role="tablist"] > [role="tab"][aria-selected="true"] p { font-weight: var(--pan-weight-demi); }
 /* Keyboard focus in the rail: a ring in the row's own text colour. Keyed on
    the browser's :focus-visible, not react-aria's data-focus-visible, which
@@ -733,7 +732,20 @@ div[data-testid="stElementContainer"][data-stale="true"]:has(.pan-brand) { opaci
   gap: var(--pan-space-3);
   padding: 0 var(--pan-space-5);
 }
-.pan-brand img { inline-size: 40px; block-size: 40px; flex: none; border-radius: 10px; }
+.pan-logo { position: relative; display: block; inline-size: 40px; block-size: 40px; flex: none; }
+.pan-logo > i {
+  position: absolute;
+  inset: 0;
+  background: var(--pan-logo-c);
+  -webkit-mask: var(--pan-logo-m) center / contain no-repeat;
+  mask: var(--pan-logo-m) center / contain no-repeat;
+}
+/* Light: the logo's own colours. Dark: a red p on a dark tile, so no bright
+   red block sits on the dark rail (p on tile 3.0:1, the graphics minimum). */
+.pan-logo-tile { --pan-logo-m: url("app/static/logo/tile.png"); --pan-logo-c: light-dark(#D8232A, #23262C); }
+.pan-logo-p    { --pan-logo-m: url("app/static/logo/p.png");    --pan-logo-c: light-dark(#FFFFFF, #D8232A); }
+.pan-logo-ring { --pan-logo-m: url("app/static/logo/ring.png"); --pan-logo-c: light-dark(#D8232A, #FFFFFF); }
+.pan-logo-dot  { --pan-logo-m: url("app/static/logo/dot.png");  --pan-logo-c: #F2C14E; }
 .stApp h1.pan-wordmark.pan-brand-name {
   margin: 0;
   padding: 0;
@@ -742,7 +754,7 @@ div[data-testid="stElementContainer"][data-stale="true"]:has(.pan-brand) { opaci
   font-weight: var(--pan-weight-bold);
   line-height: 1.2;
   letter-spacing: 0;
-  color: #FFFFFF;
+  color: var(--pan-text);
 }
 
 /* Phones: the rail would eat the screen, so the brand and the sections
@@ -757,15 +769,11 @@ div[data-testid="stElementContainer"][data-stale="true"]:has(.pan-brand) { opaci
     margin-bottom: var(--pan-space-4);
     overflow: visible;
     background: none;
+    border-right: 0;
     border-bottom: 1px solid var(--pan-divider);
   }
   :is(section.stMain, [data-testid="stMain"]):has(.st-key-main_nav) { padding-left: 0; }
-  .st-key-main_nav > div > [role="tablist"] > [role="tab"],
-  .st-key-main_nav > div > [role="tablist"] > [role="tab"]:hover,
-  .st-key-main_nav > div > [role="tablist"] > [role="tab"][data-focus-visible]:not([aria-selected="true"]) { color: var(--pan-text-muted); }
-  .st-key-main_nav > div > [role="tablist"] > [role="tab"] { border-radius: var(--pan-radius-md); min-block-size: 44px; padding: 0 var(--pan-space-3); }
-  .st-key-main_nav > div > [role="tablist"] > [role="tab"]:not([aria-selected="true"]):hover { background: var(--pan-surface-2); }
-  .st-key-main_nav > div > [role="tablist"] > [role="tab"][aria-selected="true"] { background: var(--pan-primary-tint); }
+  .st-key-main_nav > div > [role="tablist"] > [role="tab"] { min-block-size: 44px; padding: 0 var(--pan-space-3); }
   .st-key-main_nav > div > [role="tablist"] > [role="tab"]:nth-child(5),
   .st-key-main_nav > div > [role="tablist"] > [role="tab"]:nth-child(7) { margin-top: 0; }
   .st-key-main_nav > div > [role="tablist"] > [role="tab"]:nth-child(5)::after { display: none; }

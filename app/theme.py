@@ -712,10 +712,15 @@ def joiners_pair_html(forecast: float, *, full: bool = True, main_html: str | No
 
 
 def brand_html(title: str = APP_TITLE) -> str:
-    """The logo and app name, drawn at the top of the left rail."""
+    """The logo and app name, drawn at the top of the left rail.
+
+    The logo is four stacked masks (app/static/logo/) coloured from CSS, so it
+    swaps colours with the light/dark theme; app/static/logo.png is the source.
+    """
+    layers = "".join(f'<i class="pan-logo-{k}"></i>' for k in ("tile", "p", "ring", "dot"))
     return (
         '<div class="pan-brand">'
-        '<img src="app/static/logo.png" alt="" width="40" height="40">'
+        f'<span class="pan-logo" aria-hidden="true">{layers}</span>'
         f'<h1 class="pan-wordmark pan-brand-name">{html.escape(title)}</h1></div>'
     )
 

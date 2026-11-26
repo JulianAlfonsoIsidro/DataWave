@@ -20,6 +20,16 @@ enableStaticServing = true
 # telling Streamlit too makes the uploader say "10MB per file" and refuse
 # larger files before uploading them. Keep the two in sync.
 maxUploadSize = 10
+# Startup speed: Streamlit's file watcher re-checks every imported module
+# (about 1,900 with the model libraries) after each run, which made the first
+# page load about 13 s slower on Windows. Off: the app no longer reloads when
+# code is edited; restart it to pick up changes.
+fileWatcherType = "none"
+
+[browser]
+# Off: no anonymous usage statistics are sent to Streamlit, and Streamlit
+# skips the per-call bookkeeping that scanned every loaded module.
+gatherUsageStats = false
 
 [client]
 # "viewer" keeps the Settings menu (theme switch) but hides developer options.

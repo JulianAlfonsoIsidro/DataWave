@@ -189,3 +189,4 @@ docs/       AI token report and AI validation plan
 - [`TECH_STACK.md`](TECH_STACK.md) — libraries, technologies, assets, and credits.
 - [`docs/ai-validation-plan.md`](docs/ai-validation-plan.md) — proposed AI evaluation approach.
 - [`docs/ai-token-report.md`](docs/ai-token-report.md) — AI feature token measurements.
+- [`docs/PITCH_CHEATSHEET.md`](docs/PITCH_CHEATSHEET.md) — how every number is calculated, model results, feasibility, and pitch Q&A.

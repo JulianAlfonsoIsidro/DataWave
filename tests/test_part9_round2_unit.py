@@ -147,7 +147,7 @@ def test_run_kpi_sub_line_and_brand():
     zero = theme.run_kpi_html("0", "Expected Joiners", forecast=0.0, sendable_total=0)
     assert "out of 0 sendable leads" in zero and "%)" not in zero
     brand = theme.brand_html()
-    assert "Promo Audience Manager" in brand and 'src="app/static/logo.png"' in brand
+    assert "Promo Audience Manager" in brand and all(f"pan-logo-{k}" in brand for k in ("tile", "p", "ring", "dot"))
 
 
 def test_whatif_segments_cells_and_heading():
