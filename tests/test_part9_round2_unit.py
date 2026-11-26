@@ -137,20 +137,16 @@ def test_joiners_pair_full_and_short():
     assert '<span class="pan-jp-main">0</span>' in zero and "(Forecasted: 0.3)" in zero
 
 
-def test_run_header_sub_line_and_empty_slot():
-    out = theme.run_header_html("204", "Expected Joiners", has_run=True,
-                                forecast=204.4, sendable_total=1595)
-    # Owner follow-up: the header shows the whole number only, no bracket.
+def test_run_kpi_sub_line_and_brand():
+    out = theme.run_kpi_html("204", "Expected Joiners", forecast=204.4, sendable_total=1595)
+    # Owner follow-up: the number is the whole number only, no bracket.
     assert "Forecasted" not in out
     assert "out of 1,595 sendable leads (12.8%)" in out
     assert number_help.header_help() in out
-    zero = theme.run_header_html("0", "Expected Joiners", has_run=True,
-                                 forecast=0.0, sendable_total=0)
+    zero = theme.run_kpi_html("0", "Expected Joiners", forecast=0.0, sendable_total=0)
     assert "out of 0 sendable leads" in zero and "%)" not in zero
-    empty = theme.run_header_html("--", "Expected Joiners", has_run=False)
-    assert "is-empty" in empty and 'aria-hidden="true"' in empty
-    assert "pan-run-kpi-sub" in empty
-    assert "Promo Audience Manager" in empty
+    brand = theme.brand_html()
+    assert "Promo Audience Manager" in brand and 'src="app/static/logo.png"' in brand
 
 
 def test_whatif_segments_cells_and_heading():

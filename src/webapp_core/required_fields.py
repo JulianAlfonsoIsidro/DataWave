@@ -1,7 +1,7 @@
 """Which fields a user must fill in before a job can run (pure, no Streamlit).
 
-The pages mark these with an asterisk and stop the run with one plain message
-naming what is missing, before any loader or computation starts.
+The pages stop the run with one plain message naming what is missing, before
+any loader or computation starts. (Owner request: no asterisks on the labels.)
 
 * New Promo: Eligible Segments and Channels are required. With no segment the
   audience is empty; with no channel every lead has "no reachable channel" and
@@ -20,7 +20,6 @@ from __future__ import annotations
 from typing import Iterable, Sized
 
 PROMO_REQUIRED = ("Eligible Segments", "Channels")
-REQUIRED_MARK = " *"
 RECOMMENDED_NOTE = "Recommended"
 
 
@@ -49,4 +48,4 @@ def required_message(missing: Iterable[str], action: str = "running") -> str:
     if not names:
         return ""
     joined = names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
-    return f"Fill in {joined} before {action}. Fields marked * are required."
+    return f"Fill in {joined} before {action}."

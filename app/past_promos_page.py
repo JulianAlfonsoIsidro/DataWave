@@ -16,6 +16,10 @@ Presentation and session-state wiring only. The logic lives in
   chart, and the existing predicted-vs-actual table (11.12, 11.14, 11.15, 11.17).
 - A missing data file shows the error naming the file and nothing else (11.18).
 - Completed campaigns only (11.20).
+- Import Past Campaigns (owner request): attach one or more Excel files;
+  each adds a campaign with the next P### id to the same list. shortcut: the
+  files are not read and nothing is calculated (the entry shows only its
+  source file), and entries last for the session; build real import here.
 """
 
 from __future__ import annotations
@@ -31,6 +35,7 @@ import theme
 import upload_panel
 from webapp_core import number_help
 from webapp_core import past_campaigns as pc
+from webapp_core.promo_id import next_past_promo_ids
 from webapp_core.similarity import (
     COMPONENT_KEYS,
     NewPromoProfile,
@@ -49,6 +54,8 @@ PRODUCT_FILTER_KEY = "past_filter_product"
 AUDIENCE_FILTER_KEY = "past_filter_audience"
 VISIBLE_KEY = "past_visible"
 _SIGNATURE_KEY = "past_view_signature"
+IMPORTED_KEY = "past_imported"            # [{"promo_id", "file_name"}], this session only
+_IMPORT_ROUND_KEY = "past_import_round"   # bumped after an import to clear the file picker
 
 COMPONENT_LABELS: dict[str, str] = {
     "audience": "Audience",
@@ -261,6 +268,43 @@ def _cached_past_data(stamps: tuple):
     return history, leads, dna, pc.build_profiles(history, leads, dna)
 
 
+def _render_import(existing_ids) -> None:
+    """Import Past Campaigns: each attached Excel file adds a campaign (P###)."""
+    imported: list[dict] = st.session_state.setdefault(IMPORTED_KEY, [])
+    round_n = int(st.session_state.get(_IMPORT_ROUND_KEY, 0))
+    with st.popover("Import Past Campaigns", icon=":material/upload_file:", key="past_import"):
+        st.caption("Attach one or more Excel files of completed campaigns.")
+        files = st.file_uploader(
+            "Campaign Files (Excel)",
+            type=["xlsx", "xls"],
+            accept_multiple_files=True,
+            key=f"past_import_files_{round_n}",
+        )
+        if st.button("Add To Past Promos", key="past_import_add", type="primary",
+                     disabled=not files):
+            ids = next_past_promo_ids(
+                [*existing_ids, *(e["promo_id"] for e in imported)], len(files)
+            )
+            imported.extend({"promo_id": pid, "file_name": f.name} for pid, f in zip(ids, files))
+            st.session_state[_IMPORT_ROUND_KEY] = round_n + 1
+            st.rerun()
+
+
+def _with_imported(ordered: list, sort_mode: str, product: str, audience: str) -> list:
+    """The campaign list with imported campaigns placed by the current sort.
+
+    Newest: imported first (latest added first). Oldest and Most Similar:
+    imported last. They carry no product or audience, so a specific filter
+    leaves them out.
+    """
+    if product != pc.FILTER_ALL or audience != pc.FILTER_ALL:
+        return ordered
+    imported = list(st.session_state.get(IMPORTED_KEY, []))
+    if sort_mode == pc.SORT_NEWEST:
+        return list(reversed(imported)) + ordered
+    return ordered + imported
+
+
 def render_past_promos_tab() -> None:
     """Render the Past Promos tab."""
     try:
@@ -297,6 +341,8 @@ def render_past_promos_tab() -> None:
                 "so it changes when you rescore in What-If or run a new promo."
             )
 
+    _render_import(p.promo_id for p in profiles)
+
     product_opts, audience_opts = pc.filter_options(rows)
     sort_modes = list(pc.SORT_MODES) if has_similarity else [pc.SORT_NEWEST, pc.SORT_OLDEST]
     if st.session_state.get(SORT_KEY) not in sort_modes:
@@ -320,7 +366,10 @@ def render_past_promos_tab() -> None:
         st.session_state[_SIGNATURE_KEY] = signature
         st.session_state[VISIBLE_KEY] = pc.INITIAL_VISIBLE
 
-    ordered = pc.sort_campaigns(pc.filter_campaigns(rows, product, audience), sort_mode)
+    ordered = _with_imported(
+        pc.sort_campaigns(pc.filter_campaigns(rows, product, audience), sort_mode),
+        sort_mode, product, audience,
+    )
     if not ordered:
         theme.st_markdown(theme.banner_html("No past campaigns match these filters.", "info"))
         return
@@ -330,6 +379,12 @@ def render_past_promos_tab() -> None:
     cards = _load_cards()
 
     for row in shown:
+        if isinstance(row, dict):   # an imported campaign
+            with st.expander(f"{row['promo_id']}: {Path(row['file_name']).stem}"):
+                theme.st_markdown(theme.fields_row_html(
+                    [("Source File", html.escape(row["file_name"]))]
+                ))
+            continue
         detail = pc.campaign_detail(row, leads, dna)
         prediction = pc.prediction_comparison(
             row.profile.promo_id, cards, leads, OUTPUTS_DIR / "leads"

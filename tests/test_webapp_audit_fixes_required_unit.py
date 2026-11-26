@@ -70,16 +70,16 @@ def test_required_message_empty_is_blank():
                       min_size=1, max_size=3, unique=True))
 def test_required_message_names_every_missing_field(names):
     msg = required_message(names)
-    assert msg.startswith("Fill in ") and msg.endswith(" before running. Fields marked * are required.")
+    assert msg.startswith("Fill in ") and msg.endswith(" before running.")
     assert all(n in msg for n in names)
 
 
 def test_required_message_examples():
-    assert required_message(["Channels"]) == "Fill in Channels before running. Fields marked * are required."
+    assert required_message(["Channels"]) == "Fill in Channels before running."
     assert required_message(["Eligible Segments", "Channels"]) == (
-        "Fill in Eligible Segments and Channels before running. Fields marked * are required."
+        "Fill in Eligible Segments and Channels before running."
     )
-    assert required_message(["A", "B", "C"]) == "Fill in A, B and C before running. Fields marked * are required."
+    assert required_message(["A", "B", "C"]) == "Fill in A, B and C before running."
 
 
 # --- theme.model_display ------------------------------------------------------

@@ -32,3 +32,22 @@ def next_promo_id(existing: Iterable[str]) -> str:
 
     next_value = 1 if max_seen is None else max_seen + 1
     return f"NEW-{next_value:03d}"
+
+
+# Matches past-campaign ids of the form P### (P001, P002, ...).
+_PAST_ID_PATTERN = re.compile(r"^P(\d+)$")
+
+
+def next_past_promo_ids(existing: Iterable[str], count: int) -> list[str]:
+    """Return ``count`` new past-campaign ids after the highest ``P###`` seen.
+
+    Used by the Past Promos import placeholder: with P001-P003 on file, two
+    imported files become ``["P004", "P005"]``. Other ids are ignored.
+    """
+    numbers = [
+        int(m.group(1))
+        for m in (_PAST_ID_PATTERN.match(str(item)) for item in existing if item is not None)
+        if m is not None
+    ]
+    start = max(numbers, default=0) + 1
+    return [f"P{n:03d}" for n in range(start, start + max(count, 0))]

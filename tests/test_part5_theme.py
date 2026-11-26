@@ -134,6 +134,7 @@ def test_tab_labels_are_title_case_not_uppercase():
         "Personas",
         "Past Promos",
         "Ask Assistant",
+        "Help and Support",
     ]
     for item in theme.TAB_LABELS:
         assert item != item.upper(), f"{item!r} should be Title Case, not uppercase"
@@ -153,15 +154,16 @@ def test_type_tokens_have_fallback_stacks_for_missing_licensed_fonts():
     body = theme.font_stack("body")
     assert heading.startswith('"Dax"') and '"Bahnschrift"' in heading
     assert body.startswith('"Avenir Next"') and '"Segoe UI"' in body
-    assert theme.font_stack("number").startswith('"Manrope"')
     assert heading.endswith("sans-serif") and body.endswith("sans-serif")
     root = theme.type_tokens_css()
     assert f"--pan-font-heading: {heading};" in root
-    assert "--pan-type-kpi-hero-font: var(--pan-font-number);" in root
+    assert "--pan-type-kpi-hero-font: var(--pan-font-body);" in root
+    # Owner request: only two fonts, Dax and Avenir Next.
+    assert set(theme.FONT_STACKS) == {"heading", "body"}
 
 
-def test_config_font_faces_match_tokens_and_bundled_manrope_exists():
-    """config.toml font faces use the token families; Manrope files exist."""
+def test_config_font_faces_match_tokens():
+    """config.toml font faces use exactly the two token families."""
     parsed = tomllib.loads(CONFIG_PATH.read_text(encoding="utf-8"))
     assert parsed["server"]["enableStaticServing"] is True
     block = parsed["theme"]
@@ -169,9 +171,6 @@ def test_config_font_faces_match_tokens_and_bundled_manrope_exists():
     assert block["headingFont"].split(",")[0].strip() == theme.FONT_FAMILIES["heading"]
     faces = block["fontFaces"]
     assert {f["family"] for f in faces} == set(theme.FONT_FAMILIES.values())
-    for face in faces:
-        if face["family"] == theme.FONT_FAMILIES["number"]:
-            assert (REPO_ROOT / face["url"]).is_file(), face["url"]
 
 
 def test_missing_font_files_reports_only_commercial_files():

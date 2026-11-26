@@ -96,6 +96,11 @@ def _subheaders(at: AppTest) -> list[str]:
     return [s.value for s in at.subheader]
 
 
+def _sections(at: AppTest) -> list[str]:
+    """Section tab labels (owner request: each section is its own tab)."""
+    return [t.label for t in at.tabs]
+
+
 _GROUP_HEAD = re.compile(r'<div class="pan-group-head"><strong>(.*?)</strong>')
 
 
@@ -118,7 +123,7 @@ def test_default_attributes_all_leads_render_personas(app_test):
     _build(at)
     assert not at.exception
     assert not at.error
-    assert "Personas" in _subheaders(at)
+    assert "Personas" in _sections(at)
     # Part 9: the "How the Personas Differ" table was removed from the page.
     assert "How the Personas Differ" not in _subheaders(at)
     assert len(at.dataframe) == 0
@@ -202,7 +207,7 @@ def test_by_campaign_with_split_by_age_band_renders(app_test):
     _build(at)
     assert not at.exception
     assert not at.error
-    assert "Personas" in _subheaders(at)
+    assert "Personas" in _sections(at)
     assert at.selectbox(key=GROUP_KEY).options  # group dropdown present
     # The split column is not offered in the picker.
     assert "age_band" not in at.multiselect(key="persona_attr_Demographics").options
@@ -213,7 +218,7 @@ def test_no_new_promo_run_shows_info_and_no_old_mix_section(app_test):
     _build(at)
     assert not at.exception
     assert "Decision Cards With Persona Mix" not in _subheaders(at)
-    assert "Expected Joiners By Persona" in _subheaders(at)
+    assert "Expected Joiners By Persona" in _sections(at)
     assert persona_page.NO_NEW_PROMO_MESSAGE in [i.value for i in at.info]
 
 
@@ -264,7 +269,7 @@ def test_expected_joiners_by_persona_renders_for_new_promo_run(app_test, sample)
     _build(at)
     assert not at.exception
     assert not at.error
-    assert "Expected Joiners By Persona" in _subheaders(at)
+    assert "Expected Joiners By Persona" in _sections(at)
     assert persona_page.NO_NEW_PROMO_MESSAGE not in [i.value for i in at.info]
 
     result = at.session_state[persona_page.PERSONA_RESULT_KEY]

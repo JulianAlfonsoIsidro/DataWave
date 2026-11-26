@@ -52,7 +52,7 @@ FORMULAS: tuple[HelpFormula, ...] = (
         "p is each sendable lead's chance of joining, from the model.",
     ),
     HelpFormula(
-        "Top-Right Percentage",
+        "Share Of Sendable Leads",
         "Share = Expected Joiners \u00f7 Sendable Leads \u00d7 100%",
         "Uses the exact forecast, before rounding.",
     ),
@@ -99,12 +99,12 @@ ENTRIES: tuple[HelpEntry, ...] = (
     ),
     HelpEntry(
         "expected_joiners",
-        "What does the Expected Joiners number at the top right and on the [[Results Grid]] actually mean?",
+        "What does the Expected Joiners number at the top of [[Results]] and on the [[Results Grid]] actually mean?",
         "The model gives every sendable lead a chance of joining, for example 0.31. "
         "Expected Joiners adds those chances up, so it is the number we expect to "
         "join on average, not a head count. The real result will land near it.",
         _EJ_EQ,
-        "[[Results Grid]] and the top right of the page",
+        "[[Results Grid]] and the top of [[Results]] and [[Personas]]",
     ),
     HelpEntry(
         "forecasted",
@@ -125,12 +125,12 @@ ENTRIES: tuple[HelpEntry, ...] = (
     ),
     HelpEntry(
         "percentage",
-        "What does the percentage under Expected Joiners at the top right of the page mean?",
+        "What does the percentage under Expected Joiners at the top of [[Results]] mean?",
         "It is the share of the leads you can message that we expect to join: "
         "Expected Joiners divided by Sendable leads. It tells you how well the "
         "send list is likely to convert.",
         _SHARE_EQ,
-        "Top right of the page",
+        "Top of [[Results]] and [[Personas]]",
     ),
     HelpEntry(
         "recommended",

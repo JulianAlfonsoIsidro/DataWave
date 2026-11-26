@@ -1,4 +1,4 @@
-"""Export Summary placement in the Download Leads expander (item 1.13).
+"""Export Summary placement in the Download Leads section tab (item 1.13).
 
 **Validates: Requirements 2.13, 3.13, 3.14**
 """
@@ -29,10 +29,10 @@ def _is_export_call(node: ast.AST) -> bool:
 def _download_expander(fn: ast.FunctionDef) -> ast.With:
     for node in ast.walk(fn):
         if isinstance(node, ast.With) and any(
-            "pan_download_leads" in ast.dump(item.context_expr) for item in node.items
+            "download_tab" in ast.dump(item.context_expr) for item in node.items
         ):
             return node
-    raise AssertionError("Download Leads expander not found")
+    raise AssertionError("Download Leads section not found")
 
 
 def test_export_summary_called_once_in_function():

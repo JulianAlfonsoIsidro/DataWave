@@ -946,6 +946,10 @@ PERSONA_RESULT_KEY = "persona_run_result"
 PERSONA_EXPORTS_KEY = "persona_exports"
 # Flash messages (level, text) surviving the post-Run rerun.
 PERSONA_FLASH_KEY = "persona_flash_messages"
+PERSONA_SECTIONS = ["Build Personas", "Personas", "Expected Joiners By Persona", "Download Personas"]
+PERSONA_SECTIONS_KEY = "persona_sections"
+PERSONA_SECTION_PENDING_KEY = "persona_sections_pending"   # a build finished: open Personas
+NO_PERSONAS_YET = "No personas yet. Build them in the Build Personas tab."
 # {group_key: lead_count} for the last non-campaign run, used by the too-small
 # message (Requirement 6.10). Empty for the campaign level.
 PERSONA_GROUP_COUNTS_KEY = "persona_group_counts"
@@ -1581,7 +1585,6 @@ def _render_expected_joiners_by_persona(result: PersonaRunResult, run_result_key
     import streamlit as st
     import theme
 
-    st.subheader("Expected Joiners By Persona")
     run = st.session_state.get(run_result_key)
     cards = list(getattr(run, "cards", None) or [])
     if not cards:
@@ -1684,7 +1687,6 @@ def _render_downloads(selected_group: str | None = None) -> None:
     import streamlit as st
 
     exports: _PersonaExports | None = st.session_state.get(PERSONA_EXPORTS_KEY)
-    st.subheader("Download Personas")
 
     dl_cols = st.columns(2)
     if exports is None:
@@ -2005,12 +2007,6 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
     # Page lock while a loader is shown (idempotent per run; decision A7).
     ui_effects.install_page_lock()
 
-    st.subheader("Build Personas")
-    st.caption(
-        "Group your leads into personas, see what sets each one apart, and "
-        "download a CRM-ready list. Pick the attributes and press Build."
-    )
-
     # Flash messages from the previous Run survive the post-Run rerun. They sit
     # in a container that is always present, so when the one-time flash goes
     # away nothing below shifts slot; otherwise Streamlit remounts the group
@@ -2018,170 +2014,184 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
     with st.container():
         _show_messages(st.session_state.pop(PERSONA_FLASH_KEY, []))
 
-    columns = _joined_attribute_columns()
-    grouped = group_attributes_by_theme(columns)
-    # Default set minus anything hidden from the picker (Requirements 3.13, 3.21).
-    default_set = default_attribute_set(set(DEFAULT_ATTRIBUTE_SET) - set(columns))
-
-    # --- top controls: level, k, and the level-specific selector ---
-    import theme
-
-    theme.section_label("Audience And Grouping", "Who to group and how many personas to build.")
-    ctl_left, ctl_right = st.columns(2)
-    with ctl_left:
-        level_label = st.selectbox(
-            "How to group leads",
-            options=PAGE_LEVEL_LABEL_ORDER,
-            index=0,
-            key="persona_level_select",
-            help=(
-                "All leads builds personas over every lead. By campaign uses one "
-                "campaign's audience. To get a set of personas per group, use "
-                "the split option below."
-            ),
-        )
-        level = level_label_to_value(level_label)
-    with ctl_right:
-        # Default through session state (not value=), so "Use N" from the
-        # suggestion can set it without a Streamlit default-vs-state warning.
-        st.session_state.setdefault("persona_k_input", 3)
-        k = int(
-            st.number_input(
-                "Number of personas",
-                min_value=2,
-                max_value=6,
-                step=1,
-                key="persona_k_input",
-                help="Between 2 and 6. Start at 3 and adjust, or use Suggest a number below. "
-                     "Naming them with Bedrock later: " + ai_usage.TOKEN_HINTS["personas"],
-            )
-        )
-        # The suggest helper sits right under the field it fills. It needs the
-        # chosen attributes, which are created further down, so its place is
-        # reserved here and filled once they are known.
-        suggest_place = st.container()
-
-    business_segment_field: str | None = None
-    campaign_pool: str | None = None
-    grouping_attributes: list[str] = []
-    split_offered, split_left_out = _split_column_info()
-
-    # The left column keeps everything that belongs to "how to group" (audience,
-    # split), so a suggestion note appearing under "Number of personas" on the
-    # right never moves it. If the note is taller, the whole section grows and
-    # what follows moves down once, for both sides.
-    with ctl_left:
-        # The page never uses the business-segment level; split by "segment" instead.
-        if level == LEVEL_CAMPAIGN:
-            campaign_pool = _render_campaign_pool_selector(run_result_key)
-
-        # --- split control, above the picker, at both levels (Req 3.8, 3.22) ---
-        two_step = st.checkbox(
-            "Split into groups first, then build personas within each group",
-            value=False,
-            key="persona_two_step",
-            help=(
-                "Optional. Choose attributes to split leads into groups first; "
-                "personas are then built within each group."
-            ),
-        )
-        if two_step:
-            grouping_attributes = st.multiselect(
-                "Split by *",
-                options=split_offered,
-                default=[],
-                format_func=attribute_display_label,
-                key="persona_grouping_attrs",
-                help='Reads as "Split by [these] first, then create personas within each group".',
-            )
-            st.caption(split_columns_caption(split_left_out))
-
-    # --- Attribute_Picker: grouped multiselect with readable labels ---
-    # Chosen split columns are removed from the options and defaults (Req 3.23).
-    grouped, default_set = filter_picker_for_split(
-        grouped, default_set, grouping_attributes
+    # Owner request: one section at a time, picked from tabs. A finished
+    # build opens the Personas tab (set before the tabs exist).
+    if st.session_state.pop(PERSONA_SECTION_PENDING_KEY, False):
+        st.session_state[PERSONA_SECTIONS_KEY] = PERSONA_SECTIONS[1]
+    build_tab, personas_tab, joiners_tab, downloads_tab = st.tabs(
+        PERSONA_SECTIONS, key=PERSONA_SECTIONS_KEY, on_change="rerun"
     )
-    _exclusion = split_exclusion_caption(grouping_attributes)
-    if _exclusion is not None:
-        st.caption(_exclusion)
-    # Part 9: the section label already says what these are, so the extra
-    # "Attributes to build personas on" line was removed (owner request).
-    theme.section_label("Attributes", "What the personas are built from. Pick at least one.")
-    selected_attributes: list[str] = []
-    picker_cols = st.columns(2)
-    for i, (group, cols) in enumerate(grouped.items()):
-        with picker_cols[i % 2]:
-            defaults = [c for c in cols if c in default_set]
-            key = f"persona_attr_{group}"
-            # A removed option may still be selected in session state; drop it so
-            # Streamlit does not reject the stale value.
-            if key in st.session_state:
-                current = list(st.session_state[key])
-                kept = [c for c in current if c in cols]
-                if kept != current:
-                    st.session_state[key] = kept
-            chosen = st.multiselect(
-                group,
-                options=cols,
-                default=defaults,
-                format_func=attribute_display_label,
-                key=key,
+
+    with build_tab:
+        st.caption(
+            "Group your leads into personas, see what sets each one apart, and "
+            "download a CRM-ready list. Pick the attributes and press Build."
+        )
+
+        columns = _joined_attribute_columns()
+        grouped = group_attributes_by_theme(columns)
+        # Default set minus anything hidden from the picker (Requirements 3.13, 3.21).
+        default_set = default_attribute_set(set(DEFAULT_ATTRIBUTE_SET) - set(columns))
+
+        # --- top controls: level, k, and the level-specific selector ---
+        import theme
+
+        theme.section_label("Audience And Grouping", "Who to group and how many personas to build.")
+        ctl_left, ctl_right = st.columns(2)
+        with ctl_left:
+            level_label = st.selectbox(
+                "How to group leads",
+                options=PAGE_LEVEL_LABEL_ORDER,
+                index=0,
+                key="persona_level_select",
+                help=(
+                    "All leads builds personas over every lead. By campaign uses one "
+                    "campaign's audience. To get a set of personas per group, use "
+                    "the split option below."
+                ),
             )
-            selected_attributes.extend(chosen)
+            level = level_label_to_value(level_label)
+        with ctl_right:
+            # Default through session state (not value=), so "Use N" from the
+            # suggestion can set it without a Streamlit default-vs-state warning.
+            st.session_state.setdefault("persona_k_input", 3)
+            k = int(
+                st.number_input(
+                    "Number of personas",
+                    min_value=2,
+                    max_value=6,
+                    step=1,
+                    key="persona_k_input",
+                    help="Between 2 and 6. Start at 3 and adjust, or use Suggest a number below. "
+                         "Naming them with Bedrock later: " + ai_usage.TOKEN_HINTS["personas"],
+                )
+            )
+            # The suggest helper sits right under the field it fills. It needs the
+            # chosen attributes, which are created further down, so its place is
+            # reserved here and filled once they are known.
+            suggest_place = st.container()
 
-    # --- single-type warning (Requirement 6.11): non-blocking, above Run ---
-    _warning = single_type_warning(
-        selection_kind(
-            effective_clustering_attributes(
-                level, selected_attributes, business_segment_field
-            ),
-            _joined_attribute_kinds(),
+        business_segment_field: str | None = None
+        campaign_pool: str | None = None
+        grouping_attributes: list[str] = []
+        split_offered, split_left_out = _split_column_info()
+
+        # The left column keeps everything that belongs to "how to group" (audience,
+        # split), so a suggestion note appearing under "Number of personas" on the
+        # right never moves it. If the note is taller, the whole section grows and
+        # what follows moves down once, for both sides.
+        with ctl_left:
+            # The page never uses the business-segment level; split by "segment" instead.
+            if level == LEVEL_CAMPAIGN:
+                campaign_pool = _render_campaign_pool_selector(run_result_key)
+
+            # --- split control, above the picker, at both levels (Req 3.8, 3.22) ---
+            two_step = st.checkbox(
+                "Split into groups first, then build personas within each group",
+                value=False,
+                key="persona_two_step",
+                help=(
+                    "Optional. Choose attributes to split leads into groups first; "
+                    "personas are then built within each group."
+                ),
+            )
+            if two_step:
+                grouping_attributes = st.multiselect(
+                    "Split by",
+                    options=split_offered,
+                    default=[],
+                    format_func=attribute_display_label,
+                    key="persona_grouping_attrs",
+                    help='Reads as "Split by [these] first, then create personas within each group".',
+                )
+                st.caption(split_columns_caption(split_left_out))
+
+        # --- Attribute_Picker: grouped multiselect with readable labels ---
+        # Chosen split columns are removed from the options and defaults (Req 3.23).
+        grouped, default_set = filter_picker_for_split(
+            grouped, default_set, grouping_attributes
         )
-    )
-    if _warning is not None:
-        st.warning(_warning)
+        _exclusion = split_exclusion_caption(grouping_attributes)
+        if _exclusion is not None:
+            st.caption(_exclusion)
+        # Part 9: the section label already says what these are, so the extra
+        # "Attributes to build personas on" line was removed (owner request).
+        theme.section_label("Attributes", "What the personas are built from. Pick at least one.")
+        selected_attributes: list[str] = []
+        picker_cols = st.columns(2)
+        for i, (group, cols) in enumerate(grouped.items()):
+            with picker_cols[i % 2]:
+                defaults = [c for c in cols if c in default_set]
+                key = f"persona_attr_{group}"
+                # A removed option may still be selected in session state; drop it so
+                # Streamlit does not reject the stale value.
+                if key in st.session_state:
+                    current = list(st.session_state[key])
+                    kept = [c for c in current if c in cols]
+                    if kept != current:
+                        st.session_state[key] = kept
+                chosen = st.multiselect(
+                    group,
+                    options=cols,
+                    default=defaults,
+                    format_func=attribute_display_label,
+                    key=key,
+                )
+                selected_attributes.extend(chosen)
 
-    # --- Suggest a number (optional helper; never runs during a build) ---
-    # Drawn in the place reserved under "Number of personas".
-    with suggest_place:
-        _render_suggest_helper(
-            level=level,
-            attributes=selected_attributes,
-            business_segment_field=business_segment_field,
-            campaign_pool=campaign_pool,
-            run_result_key=run_result_key,
+        # --- single-type warning (Requirement 6.11): non-blocking, above Run ---
+        _warning = single_type_warning(
+            selection_kind(
+                effective_clustering_attributes(
+                    level, selected_attributes, business_segment_field
+                ),
+                _joined_attribute_kinds(),
+            )
         )
+        if _warning is not None:
+            st.warning(_warning)
 
-    # --- Run control + validation (Requirements 6.1, 6.2) ---
-    with st.container(key=ui_effects.P8_BTN_BUILD_PERSONAS):
-        # Ring slot sits before the button inside the keyed container (Req 7).
-        ring_slot = ui_effects.ring_slot("personas")
-        run_clicked = st.button("Build Personas", type="primary", key="persona_run")
-    # Part 9: the loader's slot is drawn on every render (empty when idle), so
-    # pressing Build adds nothing to the page; a slot added only on the click
-    # left a second, stale "Build Personas" showing under the live one.
-    loader_slot = st.empty()
-    if run_clicked:
-        error = validation_error(len(selected_attributes), k, level)
-        if error is None and missing_persona_split(two_step, grouping_attributes):
-            error = required_message(["Split by"], action="building personas")
-        if error is not None:
-            # Reject the run, RETAIN config + displayed results (Requirement 6.2):
-            # we simply show the error and fall through to re-render whatever run
-            # result is already in session state.
-            st.error(error)
-        else:
-            _handle_run(
+        # --- Suggest a number (optional helper; never runs during a build) ---
+        # Drawn in the place reserved under "Number of personas".
+        with suggest_place:
+            _render_suggest_helper(
                 level=level,
                 attributes=selected_attributes,
-                k=k,
                 business_segment_field=business_segment_field,
                 campaign_pool=campaign_pool,
-                grouping_attributes=grouping_attributes,
                 run_result_key=run_result_key,
-                ring_slot=ring_slot,
-                loader_slot=loader_slot,
             )
+
+        # --- Run control + validation (Requirements 6.1, 6.2) ---
+        with st.container(key=ui_effects.P8_BTN_BUILD_PERSONAS):
+            # Ring slot sits before the button inside the keyed container (Req 7).
+            ring_slot = ui_effects.ring_slot("personas")
+            run_clicked = st.button("Build Personas", type="primary", key="persona_run")
+        # Part 9: the loader's slot is drawn on every render (empty when idle), so
+        # pressing Build adds nothing to the page; a slot added only on the click
+        # left a second, stale "Build Personas" showing under the live one.
+        loader_slot = st.empty()
+        if run_clicked:
+            error = validation_error(len(selected_attributes), k, level)
+            if error is None and missing_persona_split(two_step, grouping_attributes):
+                error = required_message(["Split by"], action="building personas")
+            if error is not None:
+                # Reject the run, RETAIN config + displayed results (Requirement 6.2):
+                # we simply show the error and fall through to re-render whatever run
+                # result is already in session state.
+                st.error(error)
+            else:
+                _handle_run(
+                    level=level,
+                    attributes=selected_attributes,
+                    k=k,
+                    business_segment_field=business_segment_field,
+                    campaign_pool=campaign_pool,
+                    grouping_attributes=grouping_attributes,
+                    run_result_key=run_result_key,
+                    ring_slot=ring_slot,
+                    loader_slot=loader_slot,
+                )
 
     # --- results: summary cards + charts + cards-with-mix + downloads ---
     # Everything below persists across reruns and is gated on a run result
@@ -2190,62 +2200,67 @@ def render_persona_tab(run_result_key: str = "run_result") -> None:
     _apply_name_view()
     result: PersonaRunResult | None = st.session_state.get(PERSONA_RESULT_KEY)
     selected_group: str | None = None
-    if result is not None:
-        # Group selector (Requirements 3.16-3.19): shown only when the run yields
-        # more than one group. Filters already-computed data -- never refits.
-        options = group_options(result)
-        if options:
-            # Part 8: a Group_Visual pick is applied before the dropdown exists,
-            # so it lands in this render with no extra rerun (Req 12.4, 12.14).
-            picked = group_picker.pending_selection(st.session_state, options)
-            if picked is not None:
-                st.session_state[GROUP_SELECT_KEY] = picked
-            if st.session_state.get(GROUP_SELECT_KEY) not in options:
-                st.session_state[GROUP_SELECT_KEY] = default_group(options)
-            selected_group = st.selectbox(
-                "Show group",
-                options,
-                index=options.index(st.session_state[GROUP_SELECT_KEY]),
-                key=GROUP_SELECT_KEY,
-                help="Show the personas, comparison and download "
-                "for one group, or all groups together.",
+    if result is None:
+        for tab in (personas_tab, joiners_tab):
+            with tab:
+                st.info(NO_PERSONAS_YET)
+    else:
+        with personas_tab:
+            # Group selector (Requirements 3.16-3.19): shown only when the run yields
+            # more than one group. Filters already-computed data -- never refits.
+            options = group_options(result)
+            if options:
+                # Part 8: a Group_Visual pick is applied before the dropdown exists,
+                # so it lands in this render with no extra rerun (Req 12.4, 12.14).
+                picked = group_picker.pending_selection(st.session_state, options)
+                if picked is not None:
+                    st.session_state[GROUP_SELECT_KEY] = picked
+                if st.session_state.get(GROUP_SELECT_KEY) not in options:
+                    st.session_state[GROUP_SELECT_KEY] = default_group(options)
+                selected_group = st.selectbox(
+                    "Show group",
+                    options,
+                    index=options.index(st.session_state[GROUP_SELECT_KEY]),
+                    key=GROUP_SELECT_KEY,
+                    help="Show the personas, comparison and download "
+                    "for one group, or all groups together.",
+                )
+            scoped = scope_result_to_group(result, selected_group)
+
+            # Part 8: the build reveal (keyed to the personas generation, so it
+            # plays once and continues across a rerun) wins over the group-change
+            # crossfade; the previous group is stored every render (Req 22.14).
+            ui_effects.consume_oneshot("personas")
+            reveal_el = ui_effects.reveal_el("personas")
+            reveal = reveal_el is not None
+            prev_group = st.session_state.get(ui_effects.P8_GROUP_PREV)
+            xfade: bool | str = False
+            if group_changed(prev_group, selected_group, reveal=reveal):
+                flip = "b" if st.session_state.get("p8_xfade_flip") == "a" else "a"
+                st.session_state["p8_xfade_flip"] = flip
+                xfade = flip
+            st.session_state[ui_effects.P8_GROUP_PREV] = selected_group
+
+            _render_naming_controls()
+            _caption = clustering_kind_caption(st.session_state.get(PERSONA_KIND_KEY))
+            if _caption is not None:
+                st.caption(_caption)
+            _render_summary_cards(
+                scoped,
+                visual=(lambda: _render_group_visual(result, options, selected_group, reveal))
+                if options else None,
+                reveal=reveal,
+                xfade=xfade,
+                reveal_el=reveal_el,
             )
-        scoped = scope_result_to_group(result, selected_group)
 
-        # Part 8: the build reveal (keyed to the personas generation, so it
-        # plays once and continues across a rerun) wins over the group-change
-        # crossfade; the previous group is stored every render (Req 22.14).
-        ui_effects.consume_oneshot("personas")
-        reveal_el = ui_effects.reveal_el("personas")
-        reveal = reveal_el is not None
-        prev_group = st.session_state.get(ui_effects.P8_GROUP_PREV)
-        xfade: bool | str = False
-        if group_changed(prev_group, selected_group, reveal=reveal):
-            flip = "b" if st.session_state.get("p8_xfade_flip") == "a" else "a"
-            st.session_state["p8_xfade_flip"] = flip
-            xfade = flip
-        st.session_state[ui_effects.P8_GROUP_PREV] = selected_group
-
-        st.subheader("Personas")
-        _render_naming_controls()
-        _caption = clustering_kind_caption(st.session_state.get(PERSONA_KIND_KEY))
-        if _caption is not None:
-            st.caption(_caption)
-        _render_summary_cards(
-            scoped,
-            visual=(lambda: _render_group_visual(result, options, selected_group, reveal))
-            if options else None,
-            reveal=reveal,
-            xfade=xfade,
-            reveal_el=reveal_el,
-        )
-        # The "How the Personas Differ" table was removed in Part 9 (the
-        # persona cards already say what sets each one apart).
         # Expected joiners by persona over the current New Promo run; uses the
         # full (not group-scoped) persona run (Requirements 7.1-7.5).
-        _render_expected_joiners_by_persona(result, run_result_key)
+        with joiners_tab:
+            _render_expected_joiners_by_persona(result, run_result_key)
 
-    _render_downloads(selected_group)
+    with downloads_tab:
+        _render_downloads(selected_group)
 
 
 def _render_campaign_pool_selector(run_result_key: str) -> str | None:
@@ -2404,6 +2419,7 @@ def _handle_run(
         st.session_state[PERSONA_GROUP_COUNTS_KEY] = group_counts
 
         n_personas = sum(len(ps.personas) for ps in result.persona_sets)
+        st.session_state[PERSONA_SECTION_PENDING_KEY] = True
         st.session_state[PERSONA_FLASH_KEY] = [
             ("success", f"Built {n_personas} personas across {len(result.persona_sets)} "
                         f"{'group' if len(result.persona_sets) == 1 else 'groups'}.")

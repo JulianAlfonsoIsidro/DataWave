@@ -12,7 +12,7 @@
 # Fonts: family names and fallback stacks mirror app/theme.py (FONT_STACKS).
 # Dax and Avenir Next are commercial and git-ignored; if their files are
 # missing the browser falls back along the stack (Bahnschrift / Segoe UI).
-# Manrope (SIL OFL) is bundled and committed. Changing this file needs a
+# Only these two fonts are used (owner request). Changing this file needs a
 # server restart.
 [server]
 enableStaticServing = true
@@ -107,23 +107,5 @@ style = "normal"
 [[theme.fontFaces]]
 family = "Dax"
 url = "app/static/fonts/dax-web/Dax-Bold.otf"
-weight = "700"
-style = "normal"
-
-[[theme.fontFaces]]
-family = "Manrope"
-url = "app/static/fonts/manrope/medium.woff2"
-weight = "500"
-style = "normal"
-
-[[theme.fontFaces]]
-family = "Manrope"
-url = "app/static/fonts/manrope/semibold.woff2"
-weight = "600"
-style = "normal"
-
-[[theme.fontFaces]]
-family = "Manrope"
-url = "app/static/fonts/manrope/bold.woff2"
 weight = "700"
 style = "normal"

@@ -19,14 +19,14 @@ def _joined(names):
 @given(NAMES)
 def test_default_unchanged(names):
     assert required_message(names) == (
-        f"Fill in {_joined(names)} before running. Fields marked * are required."
+        f"Fill in {_joined(names)} before running."
     )
 
 
 @given(NAMES, st.text(alphabet="abcdefg ", min_size=1, max_size=15))
 def test_action_is_used(names, action):
     assert required_message(names, action=action) == (
-        f"Fill in {_joined(names)} before {action}. Fields marked * are required."
+        f"Fill in {_joined(names)} before {action}."
     )
 
 
@@ -37,5 +37,5 @@ def test_empty_list_gives_empty_string():
 
 def test_personas_text():
     text = required_message(["Split by"], action="building personas")
-    assert text == "Fill in Split by before building personas. Fields marked * are required."
+    assert text == "Fill in Split by before building personas."
     assert "before running" not in text

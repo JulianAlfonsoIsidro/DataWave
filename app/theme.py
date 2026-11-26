@@ -61,22 +61,18 @@ TEXT_DARK = PALETTE["TEXT_DARK"]
 # Dax (headings) and Avenir Next (body/UI) are commercial: their files live,
 # git-ignored, in app/static/fonts/{dax-web,avenir-next-web}. When a file is
 # missing the browser falls back along the stack, so the app still renders on
-# any machine (Bahnschrift for headings, Segoe UI for body). Manrope (SIL OFL)
-# is bundled in app/static/fonts/manrope and used for numbers. The
+# any machine (Bahnschrift for headings, Segoe UI for body). Owner request:
+# only these two fonts; numbers and Help equations use the body font. The
 # ``[[theme.fontFaces]]`` entries in .streamlit/config.toml load the files.
 
 FONT_FAMILIES = {
     "heading": "Dax",
     "body": "Avenir Next",
-    "number": "Manrope",
 }
 
 FONT_STACKS = {
     "heading": ("Dax", "Bahnschrift", "Segoe UI", "sans-serif"),
     "body": ("Avenir Next", "Segoe UI", "Arial", "sans-serif"),
-    "number": ("Manrope", "Avenir Next", "Segoe UI", "sans-serif"),
-    # Part 9 round 2: Help And FAQs equations (a system font; nothing bundled)
-    "math": ("Cambria Math", "Cambria", "STIX Two Math", "Times New Roman", "serif"),
 }
 
 FONT_WEIGHTS = {"regular": 400, "medium": 500, "demi": 600, "bold": 700}
@@ -85,15 +81,16 @@ FONT_WEIGHTS = {"regular": 400, "medium": 500, "demi": 600, "bold": 700}
 TYPE_ROLES = {
     "title": ("heading", 700, "2.5rem", "1.1"),
     "section": ("heading", 500, "1.5rem", "1.2"),
-    "subsection": ("heading", 500, "1.25rem", "1.2"),
-    "card-title": ("heading", 500, "1.125rem", "1.25"),
-    "body": ("body", 400, "1rem", "1.55"),
-    "kpi-hero": ("number", 700, "2.75rem", "1.05"),
-    "kpi-tile": ("number", 700, "1.5rem", "1.05"),
-    "caption": ("body", 400, "0.8125rem", "1.4"),
-    "button": ("body", 600, "0.9375rem", "1.2"),
-    "table": ("body", 400, "0.875rem", "1.4"),
-    "table-head": ("body", 600, "0.8125rem", "1.3"),
+    "subsection": ("heading", 500, "1.375rem", "1.2"),
+    "card-title": ("heading", 500, "1.25rem", "1.25"),
+    # Owner request: the content side reads larger (body 17px, captions 15px).
+    "body": ("body", 400, "1.0625rem", "1.55"),
+    "kpi-hero": ("body", 700, "2.75rem", "1.05"),
+    "kpi-tile": ("body", 700, "1.625rem", "1.05"),
+    "caption": ("body", 400, "0.9375rem", "1.45"),
+    "button": ("body", 600, "1rem", "1.2"),
+    "table": ("body", 400, "0.9375rem", "1.45"),
+    "table-head": ("body", 600, "0.875rem", "1.3"),
 }
 
 
@@ -139,6 +136,8 @@ def missing_font_files() -> list[str]:
 APP_TITLE = "Promo Audience Manager"
 
 # Tab labels in workflow order (Title Case). main.py builds its tabs from this.
+# Help sits last, at the bottom of the rail.
+HELP_TAB_LABEL = "Help and Support"
 TAB_LABELS = [
     "New Promo",
     "Results",
@@ -146,15 +145,16 @@ TAB_LABELS = [
     "Personas",
     "Past Promos",
     "Ask Assistant",
+    HELP_TAB_LABEL,
 ]
 
-# Segment -> marker shape (a shape as well as a colour, so segments differ
-# without relying on colour alone). The colour comes from the CSS class.
+# Segment -> (icon, colour class). The icon (owner-picked, app/static/segments/)
+# tells segments apart without relying on colour alone.
 SEGMENT_STYLES = {
-    "Ready Toppers": ("diamond", "ready"),
-    "Untapped Wealth": ("triangle", "untapped"),
-    "Willing but Stretched": ("circle", "stretched"),
-    "Not Now": ("square", "notnow"),
+    "Ready Toppers": ("ready", "ready"),
+    "Untapped Wealth": ("untapped", "untapped"),
+    "Willing but Stretched": ("stretched", "stretched"),
+    "Not Now": ("notnow", "notnow"),
 }
 
 # The single stylesheet, resolved relative to this file so it loads from any cwd.
@@ -702,52 +702,46 @@ def joiners_pair_html(forecast: float, *, full: bool = True, main_html: str | No
     )
 
 
-def run_header_html(
+def brand_html(title: str = APP_TITLE) -> str:
+    """The logo and app name, drawn at the top of the left rail."""
+    return (
+        '<div class="pan-brand">'
+        '<img src="app/static/logo.png" alt="" width="40" height="40">'
+        f'<h1 class="pan-wordmark pan-brand-name">{html.escape(title)}</h1></div>'
+    )
+
+
+def run_kpi_html(
     number: str,
     label: str,
     *,
-    has_run: bool,
     prev: str | None = None,
-    title: str = APP_TITLE,
     forecast: float | None = None,
     sendable_total: int | None = None,
 ) -> str:
-    """The page header: the wordmark and, once a run exists, its one number.
+    """The run's one headline number, shown at the top of Results and Personas.
 
-    Replaces the hero (Part 9). The run's details (promo, product, threshold
-    and so on) are not repeated here; before any run only the wordmark shows.
     Round 2 (Requirements 20, 21): ``number`` is the rounded whole number
-    (owner follow-up: no forecast bracket in the header); with ``forecast``
-    and ``sendable_total`` a muted line ``out of 1,595 sendable leads
-    (12.8%)`` sits under it, with a plain hover text.
+    (no forecast bracket); with ``forecast`` and ``sendable_total`` a muted
+    line ``out of 1,595 sendable leads (12.8%)`` sits under it, with a plain
+    hover text.
     """
     from webapp_core import number_help
 
-    wordmark = f'<h1 class="pan-wordmark">{html.escape(title)}</h1>'
-    # Round 3: before a run the slot is kept (hidden), so the header does not
-    # grow when the number first appears; it holds the sub-line too.
-    kpi = (
-        '<div class="pan-run-kpi is-empty" aria-hidden="true">'
-        f'<div class="pan-run-kpi-label">{html.escape(label)}</div>'
-        '<div class="pan-run-kpi-number kpi-number">0</div>'
-        '<div class="pan-run-kpi-sub">out of 0 sendable leads</div></div>'
-    )
-    if has_run:
-        sub = ""
-        if sendable_total is not None and forecast is not None:
-            text = number_help.joiners_of_sendable(forecast, sendable_total)
-            sub = (
-                '<div class="pan-run-kpi-sub">'
-                # Plain text: only the big number counts up (Requirement 20.10).
-                f"{tooltip_html(text, number_help.header_help(), html.escape(text))}</div>"
-            )
-        kpi = (
-            '<div class="pan-run-kpi">'
-            f'<div class="pan-run-kpi-label">{html.escape(label)}</div>'
-            f'<div class="pan-run-kpi-number"><span class="kpi-number">{_kpi_number_html(number, prev)}</span></div>'
-            f"{sub}</div>"
+    sub = ""
+    if sendable_total is not None and forecast is not None:
+        text = number_help.joiners_of_sendable(forecast, sendable_total)
+        sub = (
+            '<div class="pan-run-kpi-sub">'
+            # Plain text: only the big number counts up (Requirement 20.10).
+            f"{tooltip_html(text, number_help.header_help(), html.escape(text))}</div>"
         )
-    return f'<header class="pan-shell">{wordmark}{kpi}</header>'
+    return (
+        '<div class="pan-kpi-card"><div class="pan-run-kpi">'
+        f'<div class="pan-run-kpi-label">{html.escape(label)}</div>'
+        f'<div class="pan-run-kpi-number"><span class="kpi-number">{_kpi_number_html(number, prev)}</span></div>'
+        f"{sub}</div></div>"
+    )
 
 
 def _delta_text(delta: float, digits: int = 0) -> str:
@@ -958,9 +952,9 @@ def segment_marker_html(heading: str) -> tuple[str, str]:
     Matches a bare segment label ("Ready Toppers") or a promo-prefixed one
     ("P004 -- Ready Toppers"). Headings with no segment give ``("", "")``.
     """
-    for segment, (shape, key) in SEGMENT_STYLES.items():
+    for segment, (icon, key) in SEGMENT_STYLES.items():
         if heading == segment or heading.endswith(f" {segment}"):
-            marker = f'<span class="pan-marker pan-marker--{shape}" aria-hidden="true"></span>'
+            marker = f'<span class="pan-marker pan-marker--{icon}" aria-hidden="true"></span>'
             return marker, f"pan-seg--{key}"
     return "", ""
 
@@ -1022,7 +1016,7 @@ def tile(title: str, body_html: str, *, emphasis: bool = False) -> None:
 
     ``emphasis=True`` renders the red-gradient tile with white text (used for
     Ready Toppers); otherwise a surface tile with a segment-coloured edge. Each
-    segment also gets its own marker shape.
+    segment also gets its own icon.
     """
     kind = "red" if emphasis else "white"
     marker, seg_class = segment_marker_html(title)
@@ -1055,7 +1049,7 @@ def tile_html(title: str, body_html: str, *, recommended: bool = False) -> str:
 
     Every tile looks the same except the recommended one, which gets a
     primary edge and the "Act first" tag (Part 9). Colour lives only in the
-    marker, which also differs by shape.
+    marker, which also differs by icon.
     """
     marker, seg_class = segment_marker_html(title)
     text_cls, text_style = swoop_attrs(title, body_html)

@@ -64,7 +64,7 @@ from webapp_core import review_signoff  # noqa: E402  (audit item 1.1 sign-off r
 from webapp_core.number_format import shown_joiners  # noqa: E402
 from webapp_core.required_fields import missing_promo_fields, required_message  # noqa: E402
 from webapp_core.segment_flow import display_rank, flow_rows, flow_total  # noqa: E402
-import help_page  # noqa: E402  (Part 9 round 2 Help And FAQs dialog)
+import help_page  # noqa: E402  (Help and Support section)
 import ai_ui  # noqa: E402  (Part 9 round 3 AI notices and usage)
 from webapp_core import fairness  # noqa: E402  (Part 9 round 3 risk views)
 from webapp_core.run_promo import PromoSpec, run_promo  # noqa: E402
@@ -232,6 +232,28 @@ def _metric_from_run() -> tuple[str, str]:
     return f"{shown_joiners(forecast):,}", "Expected Joiners"
 
 
+def _render_run_kpi(where: str) -> None:
+    """The run's Expected Joiners at the top of a tab (Results, Personas).
+
+    Owner request: not fixed in the page header. Nothing shows before a run.
+    Counts up once after a run; rolls from the last shown value on later
+    changes (Part 8, F5). ``where`` keeps each tab's roll separate.
+    """
+    result = st.session_state.get(RUN_RESULT_KEY)
+    if result is None or not result.cards:
+        return
+    number, caption = _metric_from_run()
+    forecast, sendable = _run_forecast(result)
+    with theme.counting(*ui_effects.reveal("analysis")):
+        st.markdown(
+            theme.run_kpi_html(
+                number, caption, forecast=forecast, sendable_total=sendable,
+                prev=ui_effects.number_prev(f"kpi_{where}", number),
+            ),
+            unsafe_allow_html=True,
+        )
+
+
 def _run_context_items() -> list[str] | None:
     """The current run as short display items, or `None` before any run."""
     result = st.session_state.get(RUN_RESULT_KEY)
@@ -392,7 +414,6 @@ def _render_fill_in_details(*, segment_options: list[str], auto_promo_id: str) -
     )
 
     st.subheader("Design A Promo")
-    st.caption("Fields marked * are required.")
 
     # Threshold controls live above the form so a type change reruns the page
     # and the slider (keyed by type) resets to its default (Requirements 5.1-5.3).
@@ -478,7 +499,7 @@ def _render_fill_in_details(*, segment_options: list[str], auto_promo_id: str) -
         aud_a, aud_b = st.columns(2)
         with aud_a:
             eligible_segments = st.multiselect(
-                "Eligible Segments *",
+                "Eligible Segments",
                 options=segment_options,
                 help="Customer_DNA segments. Clients outside these are excluded.",
                 key=upload_panel.SEGMENTS_KEY,
@@ -486,7 +507,7 @@ def _render_fill_in_details(*, segment_options: list[str], auto_promo_id: str) -
             upload_panel.field_tag("eligible_segments")
         with aud_b:
             channels = st.multiselect(
-                "Channels *",
+                "Channels",
                 options=CHANNEL_OPTIONS,
                 key=upload_panel.CHANNELS_KEY,
             )
@@ -677,10 +698,12 @@ _TIP_COST_SAVED = (
 )
 
 
-def _render_impact_summary(result) -> None:
+def _render_impact_summary(result, *, show_banner: bool = True) -> None:
     """Show the Impact Summary banner and tiles for a run (Req 8.3, 8.5-8.8).
 
-    Shared by the Results and What-If tabs.
+    Shared by the Results and What-If tabs. What-If passes
+    ``show_banner=False`` (owner request: no "Messaging X% Fewer Clients ..."
+    headline there; the tiles below carry the same figures).
     """
     from webapp_core.impact import compute_impact, load_channel_costs
 
@@ -702,7 +725,8 @@ def _render_impact_summary(result) -> None:
         )
         return
     if impact.cost_available and impact.banner:
-        st.markdown(theme.banner_html(impact.banner, "info"), unsafe_allow_html=True)
+        if show_banner:
+            st.markdown(theme.banner_html(impact.banner, "info"), unsafe_allow_html=True)
     else:
         st.markdown(
             theme.banner_html(
@@ -750,15 +774,18 @@ def _render_results_tab() -> None:
         if str(card.get("action", "")) == RECOMMENDED_ACTION
     }
 
-    # --- Part 9 round 3: the forecast notice, once, at the top (Req 32) ---
+    # --- the run's headline number, then the forecast notice (Req 32) ---
+    _render_run_kpi("results")
     ai_ui.notice("prediction")
     # --- which threshold these results use, then the action bar (Part 9) ---
     _render_threshold_context(result)
     _render_forecast_caution(result)
 
+    # Owner request: one section at a time, picked from tabs at the top.
+    grid_tab, flow_tab, cards_tab, download_tab = st.tabs(RESULTS_SECTIONS)
+
     # --- 2x2 Results grid: score (rows) by capacity (columns), axes labelled ---
-    st.subheader("Results Grid")
-    with theme.counting(*run_el):
+    with grid_tab, theme.counting(*run_el):
         grid_rows = [
             (
                 row_label,
@@ -779,58 +806,29 @@ def _render_results_tab() -> None:
     # Part 9: only the headline figures count up (header and grid tiles). The
     # impact boxes and decision cards arrive with their final numbers: 70-odd
     # rolling digit columns at once made the reveal skip on slower machines.
-    _render_impact_summary(result)
+    with grid_tab:
+        _render_impact_summary(result)
 
     # --- where each segment's clients go (Part 9 round 2, Requirement 27) ---
-    _render_segment_flow(result, reveal=run_el[0] is not None)
+    with flow_tab:
+        _render_segment_flow(result, reveal=run_el[0] is not None)
 
     # --- decision cards, one column ---
-    st.subheader("Decision Cards")
     has_personas = st.session_state.get(persona_page.PERSONA_RESULT_KEY) is not None
-    if not has_personas:
-        st.caption(
-            "Personas were not generated for this run. Build them to see "
-            "expected joiners by persona on each card."
-        )
-    # Best action first (Prioritize, Offer lower tier, Include, Skip), then
-    # more expected joiners first within an action.
-    ordered_segments = sorted(
-        (
-            segment_label
-            for _row, cols in RESULTS_GRID
-            for _col, segment_label in cols
-            if segment_label in cards_by_segment
-        ),
-        key=lambda s: _action_rank(cards_by_segment[s]),
-    )
-    for segment_label in ordered_segments:
-        card = cards_by_segment[segment_label]
-        view = build_card_view(
-            card, persona=_results_persona_section(result, card, segment_label)
-        )
-        theme.card(
-            view.title,
-            theme.decision_card_body_html(view),
-            recommended=segment_label in recommended,
-        )
+    with cards_tab:
+        _render_decision_cards(result, cards_by_segment, recommended, has_personas)
 
     # --- Download Leads: one row per segment, in action order (Part 9) ---
     # Each row reconciles the grid: clients = not contacted + control group +
     # sendable, so the CSV count never looks unexplained.
-    # Round 2 (Requirement 25): one closed dropdown holding the same rows;
-    # every download key is unchanged.
     sendable = result.sendable_by_segment or {}
-    n_files = len(sendable)
-    with st.expander(
-        f"Download Leads ({n_files} {'file' if n_files == 1 else 'files'})",
-        expanded=False,
-        key="pan_download_leads",
-    ):
+    with download_tab:
         if not sendable:
             st.caption("No sendable leads were produced for this run.")
         else:
-            rows = [s for s in ordered_segments if s in sendable] + [
-                s for s in sendable if s not in ordered_segments
+            ordered = _ordered_segments(cards_by_segment)
+            rows = [s for s in ordered if s in sendable] + [
+                s for s in sendable if s not in ordered
             ]
             # Owner request: one picker instead of a row per segment. The
             # check card shows what the chosen segment contains, then the
@@ -849,6 +847,42 @@ def _render_results_tab() -> None:
         _nav_button("Try Another Threshold", "What-If", key="nav_results_whatif")
 
 
+RESULTS_SECTIONS = ["Results Grid", "Where Each Client Goes", "Decision Cards", "Download Leads"]
+
+
+def _ordered_segments(cards_by_segment: dict[str, dict]) -> list[str]:
+    """Best action first (Prioritize, Offer lower tier, Include, Skip), then
+    more expected joiners first within an action."""
+    return sorted(
+        (
+            segment_label
+            for _row, cols in RESULTS_GRID
+            for _col, segment_label in cols
+            if segment_label in cards_by_segment
+        ),
+        key=lambda s: _action_rank(cards_by_segment[s]),
+    )
+
+
+def _render_decision_cards(result, cards_by_segment, recommended, has_personas) -> None:
+    """Results: one decision card per segment, best action first."""
+    if not has_personas:
+        st.caption(
+            "Personas were not generated for this run. Build them to see "
+            "expected joiners by persona on each card."
+        )
+    for segment_label in _ordered_segments(cards_by_segment):
+        card = cards_by_segment[segment_label]
+        view = build_card_view(
+            card, persona=_results_persona_section(result, card, segment_label)
+        )
+        theme.card(
+            view.title,
+            theme.decision_card_body_html(view),
+            recommended=segment_label in recommended,
+        )
+
+
 FLOW_SEGMENT_KEY = "pan_flow_segment"
 FLOW_ALL = "All Segments"
 
@@ -861,7 +895,6 @@ def _render_segment_flow(result, *, reveal: bool) -> None:
     rows = flow_rows(result.cards)
     if not rows:
         return
-    st.subheader("Where Each Segment's Clients Go")
     st.caption(number_help.flow_help())
     # Owner follow-up: one segment at a time, picked from a dropdown, in the
     # display order, with "All Segments" (the Total) last. No separate table.
@@ -1296,16 +1329,18 @@ def _render_whatif_tab() -> None:
             ),
             unsafe_allow_html=True,
         )
-    _render_whatif_segments(result)
-    with theme.counting(*ui_effects.reveal("analysis")):
-        if result is not None:
-            _render_impact_summary(result)
-    if result is not None and result.cards:
-        st.caption(
-            f"Threshold ₱{float(result.promo_spec.threshold_php):,.0f}: "
-            f"{len(result.scored):,} eligible clients across "
-            f"{len(result.cards)} segments."
-        )
+    # Owner request: one section at a time, picked from tabs.
+    segments_tab, savings_tab = st.tabs(["Segments At This Threshold", "Savings"])
+    with segments_tab:
+        _render_whatif_segments(result)
+        if result.cards:
+            st.caption(
+                f"Threshold ₱{float(result.promo_spec.threshold_php):,.0f}: "
+                f"{len(result.scored):,} eligible clients across "
+                f"{len(result.cards)} segments."
+            )
+    with savings_tab, theme.counting(*ui_effects.reveal("analysis")):
+        _render_impact_summary(result, show_banner=False)
     with st.container(key="pan_whatif_actions", horizontal=True):
         _nav_button("View Results", "Results", key="nav_whatif_results")
         _label, base_label, changed = _threshold_context(result)
@@ -1431,23 +1466,8 @@ def main() -> None:
     # Locks the page while a job loader is shown (decision A7).
     ui_effects.install_page_lock()
 
-    # --- header (Part 9): wordmark, the current run and its one number. The
-    # hero is gone; theme.hero_kpi_html/hero_text_html remain available. ---
-    number, caption = _metric_from_run()
-    with theme.counting(*ui_effects.reveal("analysis")):
-        st.markdown(
-            theme.run_header_html(
-                number,
-                caption,
-                has_run=st.session_state.get(RUN_RESULT_KEY) is not None,
-                forecast=_run_forecast()[0],
-                sendable_total=_run_forecast()[1],
-                # Counts up once after a run; rolls from the last shown value
-                # on later changes (Part 8, F5).
-                prev=ui_effects.number_prev("hero", number),
-            ),
-            unsafe_allow_html=True,
-        )
+    # Logo and app name at the top of the left rail (CSS pins it there).
+    st.markdown(theme.brand_html(), unsafe_allow_html=True)
     st.markdown(
         theme.nav_state_html(
             has_run=st.session_state.get(RUN_RESULT_KEY) is not None,
@@ -1455,13 +1475,6 @@ def main() -> None:
         ),
         unsafe_allow_html=True,
     )
-
-    # Help And FAQs (Part 9 round 2, Requirement 28): a round "?" fixed at
-    # the top right, outside the tab bar; it opens a dialog over the page so
-    # no tab (and no widget state) is unmounted.
-    with st.container(key="pan_help"):
-        if st.button("?", key="help_open", help="Help And FAQs"):
-            help_page.open_help(_go_to_now)
 
     # A section asked for during the last render (after its tabs existed).
     pending = st.session_state.pop(NAV_PENDING_KEY, None)
@@ -1475,6 +1488,7 @@ def main() -> None:
         personas_tab,
         past_promos_tab,
         ask_assistant_tab,
+        help_tab,
     ) = st.tabs(theme.TAB_LABELS, key=NAV_KEY, on_change="rerun")
 
     # Each tab staggers its own card entrances (theme.card_group).
@@ -1485,11 +1499,14 @@ def main() -> None:
     with whatif_tab, theme.card_group("whatif"):
         _render_whatif_tab()
     with personas_tab, theme.card_group("personas"):
+        _render_run_kpi("personas")
         persona_page.render_persona_tab(run_result_key=RUN_RESULT_KEY)
     with past_promos_tab, theme.card_group("past_promos"):
         _render_past_promos_tab()
     with ask_assistant_tab, theme.card_group("assistant"):
         _render_ask_assistant_tab()
+    with help_tab, theme.card_group("help"):
+        help_page.render_help_tab(_go_to_now)
 
 
 main()

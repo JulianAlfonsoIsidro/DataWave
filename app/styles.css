@@ -330,7 +330,7 @@ html, body, [class*="css"], .stApp, .stMarkdown, p, span, div, label, input, sel
   font-family: var(--pan-font-body);
 }
 .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6 { font-family: var(--pan-font-heading); text-wrap: balance; }
-.stApp [data-testid="stMetricValue"] { font-family: var(--pan-font-number); font-variant-numeric: tabular-nums; }
+.stApp [data-testid="stMetricValue"] { font-family: var(--pan-font-body); font-variant-numeric: tabular-nums; }
 .stApp {
   font-size: var(--pan-type-body-size);
   line-height: var(--pan-type-body-leading);
@@ -338,9 +338,8 @@ html, body, [class*="css"], .stApp, .stMarkdown, p, span, div, label, input, sel
 .block-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding-top: 0.5rem;
-  /* Audit 1.10: clear the fixed "?" button (space-5 gap + control-h + space-5 margin) */
-  padding-bottom: calc(var(--pan-space-5) + var(--pan-control-h) + var(--pan-space-5));
+  padding-top: var(--pan-space-6);
+  padding-bottom: var(--pan-space-6);
 }
 .stApp h1, .stApp h2, .stApp h3, .stApp h4 { color: var(--pan-text); }
 .stApp h1 {
@@ -609,70 +608,169 @@ div[data-testid="collapsedControl"],
 /* ---- Tabs (Part 9) ----
    Streamlit 1.66.1 draws tabs with react-aria: .stTabs > div > [role=tablist]
    > [role=tab][aria-selected], plus a sliding .react-aria-SelectionIndicator.
-   The main sections (key main_nav) are a numbered stepper: the first four
-   tabs are the workflow, counted by CSS (the labels stay exactly as written),
-   and Past Promos / Ask Assistant sit apart on the right. Other tab sets
-   (New Promo's Fill In Details / Upload) are a small two-option switch. */
+   The main sections (key main_nav) are a left sidebar rail with an icon per
+   section (labels stay exactly as written). Every other tab set splits a
+   page into sections, each on its own white panel. */
 .stTabs > div > [role="tablist"] { gap: var(--pan-space-1); }
 .stTabs [role="tab"] { color: var(--pan-text-muted); }
 .stTabs [role="tab"] p { font-size: var(--pan-type-button-size); font-weight: var(--pan-weight-medium); }
 .stTabs [role="tab"]:hover { color: var(--pan-text); }
 .stTabs [role="tab"][aria-selected="true"] { color: var(--pan-text); }
 
-/* Main stepper */
-.st-key-main_nav > div > [role="tablist"] {
-  counter-reset: pan-step;
-  gap: var(--pan-space-1);
-  border-bottom: 1px solid var(--pan-divider);
-  margin-bottom: var(--pan-space-2);
+/* Main navigation: a brand-red rail on the left, content on the right
+   (owner reference: a coloured sidebar, the current section a page-coloured
+   row that joins the content). It stays st.tabs, so every section stays
+   mounted and no widget state is lost when switching; only the tab list is
+   restyled. Icons are alpha masks in app/static/nav/, painted with
+   currentColor so they follow the row's text colour. */
+:root {
+  --pan-rail-w: 248px;
+  --pan-rail-bg: light-dark(#AE1319, #6E1015);
+  --pan-rail-text: rgba(255, 255, 255, 0.9);   /* 6.0:1 on #AE1319, 9.9:1 on #6E1015 */
+  --pan-rail-hover: rgba(255, 255, 255, 0.12);
+  --pan-rail-line: rgba(255, 255, 255, 0.28);
+  --pan-brand-h: 104px;   /* logo block at the top of the rail */
 }
+.st-key-main_nav > div > [role="tablist"] {
+  position: fixed;
+  inset: 0 auto 0 0;
+  inline-size: var(--pan-rail-w);
+  z-index: 2;   /* under Streamlit's header and the page-lock overlay */
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: var(--pan-space-1);
+  padding: var(--pan-brand-h) 0 var(--pan-space-5) var(--pan-space-4);
+  margin: 0;
+  overflow-y: auto;
+  background: var(--pan-rail-bg);
+}
+:is(section.stMain, [data-testid="stMain"]):has(.st-key-main_nav) { padding-left: var(--pan-rail-w); }
 .st-key-main_nav > div > [role="tablist"] > .react-aria-SelectionIndicator,
 .st-key-main_nav > div > [role="tablist"] > [role="tab"] > .react-aria-SelectionIndicator { display: none; }
+.st-key-main_nav > div > [role="tablist"] > [role="tab"],
+.st-key-main_nav > div > [role="tablist"] > [role="tab"]:hover,
+.st-key-main_nav > div > [role="tablist"] > [role="tab"][data-focus-visible]:not([aria-selected="true"]) {
+  color: var(--pan-rail-text);
+}
 .st-key-main_nav > div > [role="tablist"] > [role="tab"] {
   position: relative;
-  height: var(--pan-control-h);
-  padding: 0 var(--pan-space-3);
-  gap: var(--pan-space-2);
-  border-radius: var(--pan-radius-sm) var(--pan-radius-sm) 0 0;
-}
-.st-key-main_nav > div > [role="tablist"] > [role="tab"]:nth-child(-n+4)::before {
-  counter-increment: pan-step;
-  content: counter(pan-step);
-  display: inline-grid;
-  place-items: center;
-  inline-size: 20px;
-  block-size: 20px;
-  border-radius: 50%;
-  border: 1px solid var(--pan-border-control);
-  font-family: var(--pan-font-number);
-  font-size: 0.75rem;
-  font-weight: var(--pan-weight-bold);
-  font-variant-numeric: tabular-nums;
-  color: var(--pan-text-muted);
   flex: none;
+  justify-content: flex-start;
+  min-block-size: 48px;
+  block-size: auto;
+  padding: 0 var(--pan-space-4);
+  gap: var(--pan-space-3);
+  border-radius: var(--pan-radius-lg) 0 0 var(--pan-radius-lg);
+  cursor: pointer;
+  /* No colour transition: switching sections is instant. A fade made the old
+     and new rows both half-tinted for a moment, which read as a blink. */
 }
-/* Current step: filled number, ink label, a 2px rule on the divider. */
+.st-key-main_nav > div > [role="tablist"] > [role="tab"] p { font-size: 1rem; }
+.st-key-main_nav > div > [role="tablist"] > [role="tab"]::before {
+  content: "";
+  /* 18px: a 20px icon read as taller than the label's letters. */
+  inline-size: 18px;
+  block-size: 18px;
+  flex: none;
+  background: currentColor;
+  -webkit-mask: var(--pan-nav-icon) center / contain no-repeat;
+  mask: var(--pan-nav-icon) center / contain no-repeat;
+}
+.st-key-main_nav > div > [role="tablist"] > [role="tab"]:nth-child(1) { --pan-nav-icon: url("app/static/nav/new-promo.png"); }
+.st-key-main_nav > div > [role="tablist"] > [role="tab"]:nth-child(2) { --pan-nav-icon: url("app/static/nav/results.png"); }
+.st-key-main_nav > div > [role="tablist"] > [role="tab"]:nth-child(3) { --pan-nav-icon: url("app/static/nav/what-if.png"); }
+.st-key-main_nav > div > [role="tablist"] > [role="tab"]:nth-child(4) { --pan-nav-icon: url("app/static/nav/personas.png"); }
+.st-key-main_nav > div > [role="tablist"] > [role="tab"]:nth-child(5) { --pan-nav-icon: url("app/static/nav/past-promos.png"); }
+.st-key-main_nav > div > [role="tablist"] > [role="tab"]:nth-child(6) { --pan-nav-icon: url("app/static/nav/ask-assistant.png"); }
+/* Help and Support sits apart at the bottom of the rail. */
+.st-key-main_nav > div > [role="tablist"] > [role="tab"]:nth-child(7) { --pan-nav-icon: url("app/static/nav/help.png"); margin-top: auto; }
+.st-key-main_nav > div > [role="tablist"] > [role="tab"]:not([aria-selected="true"]):hover { background: var(--pan-rail-hover); }
+/* Current section: a page-coloured row that runs into the content, ink
+   label, red icon, heavier weight (shape and weight, not colour alone). */
+.st-key-main_nav > div > [role="tablist"] > [role="tab"][aria-selected="true"],
+.st-key-main_nav > div > [role="tablist"] > [role="tab"][aria-selected="true"][data-focus-visible] {
+  background: var(--pan-bg);
+  color: var(--pan-text);
+}
+.st-key-main_nav > div > [role="tablist"] > [role="tab"][aria-selected="true"]::before { background: var(--pan-primary-text); }
 .st-key-main_nav > div > [role="tablist"] > [role="tab"][aria-selected="true"] p { font-weight: var(--pan-weight-demi); }
-.st-key-main_nav > div > [role="tablist"] > [role="tab"][aria-selected="true"]::after {
+/* Keyboard focus in the rail: a ring in the row's own text colour. */
+.st-key-main_nav > div > [role="tablist"] > [role="tab"][data-focus-visible] {
+  outline: 2px solid currentColor !important;
+  outline-offset: -4px;
+}
+/* Past Promos and Ask Assistant are tools, not workflow steps: a line sets
+   them apart from the first four. */
+.st-key-main_nav > div > [role="tablist"] > [role="tab"]:nth-child(5) { margin-top: var(--pan-space-5); }
+.st-key-main_nav > div > [role="tablist"] > [role="tab"]:nth-child(5)::after {
   content: "";
   position: absolute;
-  inset: auto 0 -1px 0;
-  block-size: 2px;
-  background: var(--pan-primary);
+  inset: calc(-1 * var(--pan-space-3) - 1px) var(--pan-space-4) auto var(--pan-space-4);
+  block-size: 1px;
+  background: var(--pan-rail-line);
 }
-.st-key-main_nav > div > [role="tablist"] > [role="tab"][aria-selected="true"]:nth-child(-n+4)::before {
-  background: var(--pan-primary);
-  border-color: var(--pan-primary);
-  color: var(--pan-on-primary);
-}
-/* Part 9: no done (check mark) or needs-a-run (dashed) states; every
-   step number is the same plain grey circle except the current one. */
-/* Past Promos and Ask Assistant: set apart on the right, no number. */
-.st-key-main_nav > div > [role="tablist"] > [role="tab"]:nth-child(5) { margin-left: auto; }
-/* When the six steps do not fit, they wrap to a second row instead of
-   scrolling behind an arrow (the arrow covered "Ask Assistant"). */
-.st-key-main_nav > div > [role="tablist"] { flex-wrap: wrap; overflow: visible; }
 .st-key-main_nav [data-testid^="stTabsScroll"] { display: none !important; }
+
+/* Brand: logo and app name at the top of the rail. Its page slot takes no row,
+   and it never dims while Streamlit reruns after a click (it never changes). */
+[data-testid="stElementContainer"]:has(.pan-brand) { position: absolute; inline-size: 0; block-size: 0; }
+div[data-testid="stElementContainer"][data-stale="true"]:has(.pan-brand) { opacity: 1 !important; transition: none !important; }
+/* Reserve the scrollbar's space so content keeps its width between sections
+   that scroll and sections that do not. */
+:is(section.stMain, [data-testid="stMain"]) { scrollbar-gutter: stable; }
+.pan-brand {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  inline-size: var(--pan-rail-w);
+  block-size: var(--pan-brand-h);
+  display: flex;
+  align-items: center;
+  gap: var(--pan-space-3);
+  padding: 0 var(--pan-space-5);
+}
+.pan-brand img { inline-size: 40px; block-size: 40px; flex: none; border-radius: 10px; }
+.stApp h1.pan-wordmark.pan-brand-name {
+  margin: 0;
+  padding: 0;
+  font-family: var(--pan-font-heading);
+  font-size: 1.125rem;
+  font-weight: var(--pan-weight-bold);
+  line-height: 1.2;
+  letter-spacing: 0;
+  color: #FFFFFF;
+}
+
+/* Phones: the rail would eat the screen, so the brand and the sections
+   become a header and a wrapping strip above the content. */
+@media (max-width: 760px) {
+  .st-key-main_nav > div > [role="tablist"] {
+    position: static;
+    inline-size: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 0 0 var(--pan-space-2);
+    margin-bottom: var(--pan-space-4);
+    overflow: visible;
+    background: none;
+    border-bottom: 1px solid var(--pan-divider);
+  }
+  :is(section.stMain, [data-testid="stMain"]):has(.st-key-main_nav) { padding-left: 0; }
+  .st-key-main_nav > div > [role="tablist"] > [role="tab"],
+  .st-key-main_nav > div > [role="tablist"] > [role="tab"]:hover,
+  .st-key-main_nav > div > [role="tablist"] > [role="tab"][data-focus-visible]:not([aria-selected="true"]) { color: var(--pan-text-muted); }
+  .st-key-main_nav > div > [role="tablist"] > [role="tab"] { border-radius: var(--pan-radius-md); min-block-size: 44px; padding: 0 var(--pan-space-3); }
+  .st-key-main_nav > div > [role="tablist"] > [role="tab"]:not([aria-selected="true"]):hover { background: var(--pan-surface-2); }
+  .st-key-main_nav > div > [role="tablist"] > [role="tab"][aria-selected="true"] { background: var(--pan-primary-tint); }
+  .st-key-main_nav > div > [role="tablist"] > [role="tab"]:nth-child(5),
+  .st-key-main_nav > div > [role="tablist"] > [role="tab"]:nth-child(7) { margin-top: 0; }
+  .st-key-main_nav > div > [role="tablist"] > [role="tab"]:nth-child(5)::after { display: none; }
+  [data-testid="stElementContainer"]:has(.pan-brand) { position: static; inline-size: auto; block-size: auto; }
+  .pan-brand { position: static; inline-size: auto; block-size: auto; padding: var(--pan-space-2) 0 var(--pan-space-4); }
+  .stApp h1.pan-wordmark.pan-brand-name { color: var(--pan-text); font-size: 1.375rem; max-inline-size: calc(100% - var(--pan-help-clearance)); }
+}
 /* Part 9: while a job locks the page, a stale copy of a job button left by
    Streamlit (seen as a second "Build Personas" under the first) is hidden.
    The live button is redrawn before the loader, so it is never stale here. */
@@ -683,29 +781,96 @@ html[data-p8-locked] [class*="st-key-p8_btn_"][data-stale="true"] {
 /* The state marker takes no row (and no row gap) in the page. */
 [data-testid="stElementContainer"]:has(.pan-nav-state) { display: none; }
 
-/* Sub-tabs (Fill In Details / Upload Campaign File): a two-option switch. */
+/* Section tabs inside a page: folder tabs (owner request). Only the top
+   corners are rounded; the current tab is lifted by a shadow cast upward
+   only, and its bottom runs over the divider straight into its panel, so
+   tab and panel read as one sheet. A short red bar marks it as well. */
 .stTabs:not(.st-key-main_nav) > div > [role="tablist"] {
-  display: inline-flex;
-  inline-size: fit-content;
-  gap: 2px;
-  padding: 2px;
-  background: var(--pan-surface-2);
-  border: 1px solid var(--pan-border);
-  border-radius: var(--pan-radius-md);
-  margin-bottom: var(--pan-space-4);
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  inline-size: auto;
+  gap: var(--pan-space-1);
+  padding: 0;
+  background: none;
+  border: 0;
+  margin-bottom: 0;
+  overflow: visible;
 }
+/* The divider: Streamlit's own line under the tabs, 1px in the border colour. */
+.stTabs:not(.st-key-main_nav) > div > [role="tablist"]::after {
+  inset: auto 0 0 0;
+  block-size: 1px;
+  background: var(--pan-divider);
+  z-index: 0;
+}
+.stTabs:not(.st-key-main_nav) [data-testid^="stTabsScroll"] { display: none !important; }
 .stTabs:not(.st-key-main_nav) > div > [role="tablist"] > .react-aria-SelectionIndicator,
 .stTabs:not(.st-key-main_nav) > div > [role="tablist"] > [role="tab"] > .react-aria-SelectionIndicator { display: none; }
 .stTabs:not(.st-key-main_nav) > div > [role="tablist"] > [role="tab"] {
-  height: calc(var(--pan-control-h) - 8px);
-  padding: 0 var(--pan-space-3);
-  border-radius: var(--pan-radius-sm);
+  position: relative;
+  min-height: 44px;
+  height: auto;
+  padding: 0 var(--pan-space-5);
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 10px 10px 0 0;
+  cursor: pointer;
 }
+.stTabs:not(.st-key-main_nav) > div > [role="tablist"] > [role="tab"]:not([aria-selected="true"]):hover { background: var(--pan-surface-2); }
 .stTabs:not(.st-key-main_nav) > div > [role="tablist"] > [role="tab"][aria-selected="true"] {
+  z-index: 1;   /* above the divider, so the line stops at the tab's edges */
   background: var(--pan-surface);
-  box-shadow: 0 1px 2px var(--pan-shadow);
+  border-color: var(--pan-divider);
+  box-shadow: 0 -4px 10px -4px var(--pan-shadow);
+}
+.stTabs:not(.st-key-main_nav) > div > [role="tablist"] > [role="tab"][aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  inset: auto calc(50% - 8px) 6px;
+  block-size: 3px;
+  border-radius: 2px;
+  background: var(--pan-primary);
 }
 .stTabs:not(.st-key-main_nav) > div > [role="tablist"] > [role="tab"][aria-selected="true"] p { font-weight: var(--pan-weight-demi); }
+.stTabs:not(.st-key-main_nav) > div > [role="tablist"] > [role="tab"][data-focus-visible] {
+  outline: 2px solid var(--pan-focus) !important;
+  outline-offset: -3px;
+}
+/* Each section's content sits on one white panel, hanging from the tabs:
+   no top border (the divider is its top edge), rounded bottom corners. */
+.stTabs:not(.st-key-main_nav) > div > [role="tabpanel"] {
+  margin-top: 0;
+  background: var(--pan-surface);
+  border: 1px solid var(--pan-divider);
+  border-top: 0;
+  border-radius: 0 0 14px 14px;
+  padding: var(--pan-space-5) var(--pan-space-6) var(--pan-space-6);
+}
+@media (max-width: 640px) {
+  .stTabs:not(.st-key-main_nav) > div > [role="tabpanel"] { padding: var(--pan-space-4); }
+  .stTabs:not(.st-key-main_nav) > div > [role="tablist"] > [role="tab"] { padding: 0 var(--pan-space-3); }
+}
+
+/* Section headings (st.subheader, e.g. "Design A Promo"): a larger title
+   with a line divider under it, no background (owner request). */
+:is(section.stMain, [data-testid="stMain"]) [data-testid="stHeading"]:has(h3) {
+  padding-bottom: var(--pan-space-3);
+  margin-bottom: var(--pan-space-2);
+  border-bottom: 1px solid var(--pan-divider);
+}
+:is(section.stMain, [data-testid="stMain"]) [data-testid="stHeading"]:has(h3) h3 {
+  padding: 0;
+  margin: 0;
+  font-size: 1.75rem;
+  line-height: 1.2;
+}
+/* Streamlit pulls the heading wrapper up 16px at the bottom, which would put
+   the divider through the title. */
+:is(section.stMain, [data-testid="stMain"]) [data-testid="stHeading"]:has(h3) > div { margin-bottom: 0; }
+@media (max-width: 640px) {
+  :is(section.stMain, [data-testid="stMain"]) [data-testid="stHeading"]:has(h3) h3 { font-size: 1.5rem; }
+}
 
 /* ---- Cards (decision, persona, Expected Joiners, Past Promos) ---- */
 .pan-card {
@@ -875,11 +1040,20 @@ html[data-p8-locked] [class*="st-key-p8_btn_"][data-stale="true"] {
 .pan-tile .pan-tile-accent { font-size: var(--pan-type-card-title-size); font-weight: var(--pan-weight-bold); }
 
 /* Segment markers: a shape as well as a colour, so segments differ without colour */
-.pan-marker { flex: none; width: 12px; height: 12px; display: inline-block; background: var(--pan-seg-color, var(--pan-primary-text)); }
-.pan-marker--diamond { transform: rotate(45deg) scale(0.85); }
-.pan-marker--triangle { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
-.pan-marker--circle { border-radius: 50%; }
-.pan-marker--square { background: transparent; border: 2px solid var(--pan-seg-color, var(--pan-primary-text)); }
+.pan-marker {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  background: var(--pan-seg-color, var(--pan-primary-text));
+  -webkit-mask: var(--pan-seg-icon) center / contain no-repeat;
+  mask: var(--pan-seg-icon) center / contain no-repeat;
+}
+/* Segment icons (owner-picked), alpha masks in app/static/segments/. */
+.pan-marker--ready { --pan-seg-icon: url("app/static/segments/ready.png"); }
+.pan-marker--stretched { --pan-seg-icon: url("app/static/segments/stretched.png"); }
+.pan-marker--untapped { --pan-seg-icon: url("app/static/segments/untapped.png"); }
+.pan-marker--notnow { --pan-seg-icon: url("app/static/segments/notnow.png"); }
 .pan-seg--ready { --pan-seg-color: var(--pan-seg-ready); }
 .pan-seg--untapped { --pan-seg-color: var(--pan-seg-untapped); }
 .pan-seg--stretched { --pan-seg-color: var(--pan-seg-stretched); }
@@ -1500,17 +1674,8 @@ html[data-p9-job-click]::after {
 /* ===================================================================== */
 /* 7a. PART 9 HEADER: wordmark, current run, its one number              */
 /* ===================================================================== */
-/* Replaces the hero: the wordmark on the left and, once a run exists,
-   Expected Joiners as the one large number on the right, in ink. */
-.pan-shell {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--pan-space-4);
-  min-block-size: var(--pan-control-h);
-  padding-right: 56px;                 /* clear of the fixed Settings menu */
-  margin: 0 0 var(--pan-space-3) 0;
-}
+/* The wordmark now sits in the rail (.pan-brand); Expected Joiners shows as
+   one large number in ink at the top of Results and Personas (.pan-kpi-card). */
 .pan-wordmark {
   font-family: var(--pan-font-heading);
   font-size: var(--pan-type-card-title-size);
@@ -1574,8 +1739,6 @@ html[data-p9-job-click]::after {
   padding: 0 !important;
   border-radius: 0 !important;
 }
-/* New Promo reads at a form's width, not stretched across the page. */
-.st-key-new_promo_mode { max-width: 840px; }
 .pan-section-label .pan-section-title { font-family: var(--pan-font-heading); font-weight: var(--pan-weight-medium); font-size: var(--pan-type-card-title-size); color: var(--pan-text); }
 .pan-section-label .pan-section-help { display: block; color: var(--pan-text-muted); font-size: var(--pan-type-caption-size); line-height: var(--pan-type-caption-leading); }
 /* Part 9: the remaining "Next:" lines are a quiet note (no side stripe);
@@ -2851,9 +3014,9 @@ div[data-testid="stElementContainer"][data-stale="true"]:has(.pan-loading) {
 /* Streamlit also turns a focused or hovered tab's label red; keep our colours. */
 .stTabs [role="tab"][data-focus-visible]:not([aria-selected="true"]) { color: var(--pan-text-muted); }
 .stTabs [role="tab"][data-focus-visible][aria-selected="true"] { color: var(--pan-text); }
-/* The sub-tab switch keeps its raised selected option while focused. */
+/* A section tab keeps its upward shadow while focused. */
 .stTabs:not(.st-key-main_nav) > div > [role="tablist"] > [role="tab"][aria-selected="true"]:is(:focus, [data-focus-visible]) {
-  box-shadow: 0 1px 2px var(--pan-shadow) !important;
+  box-shadow: 0 -4px 10px -4px var(--pan-shadow) !important;
 }
 
 /* Loader endings wait for the page (page_lock.js hold): frozen on their
@@ -3294,56 +3457,30 @@ html.p9-theme-wave::view-transition-new(root) {
 .pan-help-line { margin: var(--pan-space-1) 0 var(--pan-space-2) 0; }
 .pan-group-head { margin: var(--pan-space-4) 0 var(--pan-space-2) 0; color: var(--pan-text); }
 
-/* The header keeps clear of the Settings menu and the ? button. */
-.pan-shell { padding-right: var(--pan-help-clearance); }
-/* Phone: the wordmark keeps its own line (clear of the two buttons) and the
-   number block sits under it, left aligned, free to wrap. */
+/* The run's headline number, at the top of Results and Personas (owner
+   request: not fixed in the page header). Left aligned, on its own panel. */
+.pan-kpi-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--pan-space-4);
+  margin-bottom: var(--pan-space-4);
+  padding: var(--pan-space-4) var(--pan-space-5);
+  background: var(--pan-surface);
+  border: 1px solid var(--pan-divider);
+  border-radius: 14px;
+}
+.pan-kpi-card .pan-run-kpi,
+.pan-kpi-card .pan-run-kpi:not(.is-empty) { align-items: flex-start; text-align: left; }
+.pan-kpi-card .pan-run-kpi-sub { text-align: left; }
+.pan-kpi-card .pan-run-kpi-sub .pan-tip-text { left: 0; right: auto; }
 @media (max-width: 640px) {
-  .pan-shell { flex-direction: column; align-items: flex-start; gap: var(--pan-space-2); }
-  .pan-shell .pan-wordmark { max-inline-size: calc(100% - var(--pan-help-clearance)); line-height: 1.25; }
-  .pan-shell { padding-right: 0; }
-  .pan-run-kpi { text-align: left; }
-  .pan-run-kpi:not(.is-empty) { align-items: flex-start; }
-  .pan-run-kpi-sub { text-align: left; }
   .pan-run-kpi-number { white-space: normal; }
-  .pan-run-kpi-sub .pan-tip-text { left: 0; right: auto; }
 }
-
-/* The ? button: fixed beside the Settings menu, outside the tab bar. Its
-   container takes no row in the page (like the effects container). */
-[data-testid="stLayoutWrapper"]:has(> .st-key-pan_help),
-[data-testid="stLayoutWrapper"]:has(> [data-testid="stVerticalBlock"] > .st-key-pan_help) {
-  position: absolute;
-  inline-size: 0;
-  block-size: 0;
-  margin: 0;
-  padding: 0;
-  gap: 0;
-}
-/* Owner request: the ? button sits at the bottom right of the window. */
-.st-key-pan_help {
-  position: fixed;
-  bottom: var(--pan-space-5);
-  right: var(--pan-space-5);
-  z-index: var(--pan-z-help);
-  inline-size: auto !important;
-  gap: 0;
-}
-.stApp .st-key-pan_help button {
-  inline-size: var(--pan-control-h);
-  block-size: var(--pan-control-h);
-  min-height: var(--pan-control-h);
-  padding: 0;
-  border-radius: var(--pan-radius-pill);
-  font-family: var(--pan-font-heading);
-  font-weight: var(--pan-weight-bold);
-}
-/* Toasts share the bottom-right corner: they sit above the ? button. */
-:root:has(.st-key-pan_help) .p8-toasts { bottom: calc(var(--pan-space-5) + var(--pan-control-h) + var(--pan-space-3)); }
 
 /* Button labels: room on both sides, centred, and a long label wraps
    instead of being cut (Requirement 26). */
-.stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button:not(.st-key-pan_help button) {
+.stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button {
   padding-inline: var(--pan-space-4);
   text-align: center;
   justify-content: center;
@@ -3358,25 +3495,6 @@ html.p9-theme-wave::view-transition-new(root) {
 .stApp .st-key-persona_suggest_row [data-testid="stBaseButton-tertiary"] {
   padding-inline: var(--pan-space-4);
 }
-
-/* Download Leads dropdown: the disclosure look (chevron, quiet label), no box,
-   so the rows inside read as before (Requirement 25.4). */
-.st-key-pan_download_leads details,
-.st-key-pan_download_leads[data-testid="stExpander"] details {
-  border: 0;
-  background: transparent;
-}
-.st-key-pan_download_leads summary {
-  padding-inline: 0;
-  font-family: var(--pan-font-heading);
-  font-size: var(--pan-type-section-size);
-  font-weight: var(--pan-type-section-weight);
-  color: var(--pan-text);
-}
-.st-key-pan_download_leads summary [data-testid="stMarkdownContainer"] p { font: inherit; color: inherit; margin: 0; }
-.st-key-pan_download_leads summary:hover { background: transparent; color: var(--pan-text); }
-.st-key-pan_download_leads summary:focus-visible { outline: 2px solid var(--pan-focus); outline-offset: 2px; border-radius: var(--pan-radius-sm); }
-.st-key-pan_download_leads [data-testid="stExpanderDetails"] { padding-inline: 0; }
 
 /* Segment Flow (Requirement 27, owner follow-up): one segment at a time,
    one stacked bar with each part's count and share inside it, and a legend
@@ -3469,16 +3587,7 @@ html.p9-theme-wave::view-transition-new(root) {
 html[data-p9-scheme="dark"] { color-scheme: dark; }
 html[data-p9-scheme="light"] { color-scheme: light; }
 
-/* Help And FAQs dialog (Requirement 28): the page's surface, type and radius. */
-[data-testid="stDialog"] [role="dialog"] {
-  background: var(--pan-surface);
-  color: var(--pan-text);
-  border: 1px solid var(--pan-border);
-  border-radius: var(--pan-radius-lg);
-}
-[data-testid="stDialog"] h2,
-[data-testid="stDialog"] h3 { font-family: var(--pan-font-heading); color: var(--pan-text); }
-/* Two columns, four rows (owner follow-up); one column on a phone. */
+/* Help and Support formulas (Requirement 28): two columns, four rows (owner follow-up); one column on a phone. */
 .pan-formulas {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3504,7 +3613,7 @@ html[data-p9-scheme="light"] { color-scheme: light; }
   border: 1px solid var(--pan-border);
   border-radius: var(--pan-radius-md);
   background: var(--pan-surface-2);
-  font-family: var(--pan-font-math);
+  font-family: var(--pan-font-body);
   font-size: var(--pan-type-body-size);
   font-weight: var(--pan-weight-regular);
   line-height: 1.5;
@@ -3868,3 +3977,82 @@ html[data-p9-scheme="light"] { color-scheme: light; }
 /* The woven lattice was removed (Part 9): the page is the flat background
    token only (charcoal in dark mode). */
 /* <<< PART 9 MOTIFS (generated) <<< */
+
+/* Ask Assistant: one three-dot "More" button under each answer (owner
+   request, chat-app style). Only the dots show; "More" stays as the
+   button's accessible name, and Streamlit's dropdown chevron is hidden. */
+.stApp [class*="st-key-assistant_more_"] [data-testid="stPopoverButton"] {
+  inline-size: 36px;
+  min-inline-size: 36px;
+  block-size: 36px;
+  min-height: 36px;
+  padding: 0;
+  justify-content: center;
+  border-radius: var(--pan-radius-lg);
+  color: var(--pan-text-muted);
+}
+.stApp [class*="st-key-assistant_more_"] [data-testid="stPopoverButton"]:hover,
+.stApp [class*="st-key-assistant_more_"] [data-testid="stPopoverButton"][aria-expanded="true"] {
+  background: var(--pan-surface-2);
+  color: var(--pan-text);
+}
+.stApp [class*="st-key-assistant_more_"] [data-testid="stPopoverButton"]:focus-visible {
+  outline: 2px solid var(--pan-focus);
+  outline-offset: 2px;
+}
+.stApp [class*="st-key-assistant_more_"] [data-testid="stPopoverButton"] [data-testid="stIconMaterial"] { font-size: 22px; }
+.stApp [class*="st-key-assistant_more_"] [data-testid="stPopoverButton"] [data-testid="stMarkdownContainer"] {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.stApp [class*="st-key-assistant_more_"] [data-testid="stPopoverButton"] > div > div:last-child:not(:first-child) { display: none; }
+/* The menu it opens. Streamlit draws popovers outside .stApp, so these rules
+   are scoped by the popover body, not .stApp. Both items read as plain menu
+   rows: icon or chevron, label, a tint on hover. */
+[data-testid="stPopoverBody"]:has([class*="st-key-assistant_report_"], [class*="st-key-assistant_used_"]) {
+  min-inline-size: 280px;
+  padding: var(--pan-space-2);
+}
+[data-testid="stPopoverBody"] [class*="st-key-assistant_used_"] details {
+  border: 0;
+  border-radius: var(--pan-radius-lg);
+  background: transparent;
+}
+[data-testid="stPopoverBody"] [class*="st-key-assistant_used_"] summary {
+  min-block-size: 40px;
+  padding: 0 var(--pan-space-3);
+  border-radius: var(--pan-radius-lg);
+  color: var(--pan-text);
+}
+[data-testid="stPopoverBody"] [class*="st-key-assistant_used_"] summary:hover { background: var(--pan-surface-2); }
+[data-testid="stPopoverBody"] [class*="st-key-assistant_report_"] button {
+  inline-size: 100%;
+  min-block-size: 40px;
+  justify-content: flex-start;
+  gap: var(--pan-space-2);
+  padding: 0 var(--pan-space-3);
+  border: 0;
+  border-radius: var(--pan-radius-lg);
+  background: transparent;
+  box-shadow: none;
+  color: var(--pan-text);
+  font-weight: var(--pan-weight-regular);
+  text-decoration: none;
+  transform: none;
+}
+[data-testid="stPopoverBody"] [class*="st-key-assistant_report_"] button:hover:not(:disabled),
+[data-testid="stPopoverBody"] [class*="st-key-assistant_report_"] button[data-p9-pressed] {
+  background: var(--pan-surface-2);
+  color: var(--pan-text);
+  box-shadow: none;
+  transform: none;
+}
+[data-testid="stPopoverBody"] [class*="st-key-assistant_report_"] button:focus-visible,
+[data-testid="stPopoverBody"] [class*="st-key-assistant_used_"] summary:focus-visible {
+  outline: 2px solid var(--pan-focus);
+  outline-offset: -2px;
+}

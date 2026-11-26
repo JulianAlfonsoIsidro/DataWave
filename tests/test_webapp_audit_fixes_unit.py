@@ -213,19 +213,6 @@ def test_export_cache_key_does_not_use_id():
 
 
 # --------------------------------------------------------------------------
-# 1.10 bottom padding
-# --------------------------------------------------------------------------
-def test_block_container_bottom_padding_covers_help_button():
-    """**Validates: Requirements 2.10**"""
-    m = re.search(r"\.block-container\s*\{([^}]*)\}", CSS_SRC)
-    assert m, "no .block-container rule"
-    pad = re.search(r"padding-bottom:\s*([^;]+);", m.group(1))
-    assert pad, "no padding-bottom in .block-container"
-    value = pad.group(1)
-    assert "--pan-control-h" in value and "--pan-space-5" in value, f"padding-bottom: {value}"
-
-
-# --------------------------------------------------------------------------
 # 1.12 Build Personas job click
 # --------------------------------------------------------------------------
 def test_js_has_is_job_button_used_by_click_and_settle():

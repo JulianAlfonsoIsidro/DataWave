@@ -1,17 +1,15 @@
-"""Help And FAQs dialog (Part 9 round 2, Requirement 28).
+"""Help and Support section (Part 9 round 2, Requirement 28).
 
 Presentation only. The words live in ``webapp_core.help_content`` (pure, no
-Streamlit); this module only draws them in an ``st.dialog`` opened by the
-round "?" button (key ``help_open``) at the top right.
+Streamlit); this module draws them in the "Help and Support" section at the
+bottom of the left rail (owner request; it was a "?" button and dialog).
+The rail is ``st.tabs``, which keeps every section mounted, so opening Help
+loses no widget state on the other pages.
 
-Why a dialog: a separate page or a seventh tab would unmount the other tabs,
-and Streamlit drops the state of widgets that are not rendered, so the New
-Promo form would lose its values. A dialog draws over the page instead.
-
-Three parts, in order (Requirement 28.6): "How The Numbers Fit Together"
-(the formulas), "Common Questions" (closed dropdowns, one per question) and
-"Where To Go Next" (buttons that switch the section; they change no widget
-value). Pressing one reruns the app, which closes the dialog.
+Three parts, each its own tab (Requirement 28.6): "How The Numbers Fit
+Together" (the formulas), "Common Questions" (closed dropdowns, one per
+question) and "Where To Go Next" (buttons that switch the section; they
+change no widget value).
 """
 
 from __future__ import annotations
@@ -67,17 +65,21 @@ def entry_html(entry) -> str:
     return out
 
 
-def _draw(go_to: Callable[[str], None] | None) -> None:
-    st.subheader("How The Numbers Fit Together")
-    st.markdown(formulas_html(), unsafe_allow_html=True)
+HELP_SECTIONS = ["How The Numbers Fit Together", "Common Questions", "Where To Go Next"]
 
-    st.subheader("Common Questions")
-    for entry in ENTRIES:
-        with st.expander(marked_md(entry.question), key=f"help_q_{entry.id}"):
-            st.markdown(entry_html(entry), unsafe_allow_html=True)
 
-    st.subheader("Where To Go Next")
-    with st.container(key="pan_help_next", horizontal=True):
+def render_help_tab(go_to: Callable[[str], None] | None = None) -> None:
+    """The Help and Support section. ``go_to`` switches the section (``_go_to_now``)."""
+    numbers_tab, questions_tab, next_tab = st.tabs(HELP_SECTIONS)
+    with numbers_tab:
+        st.markdown(formulas_html(), unsafe_allow_html=True)
+
+    with questions_tab:
+        for entry in ENTRIES:
+            with st.expander(marked_md(entry.question), key=f"help_q_{entry.id}"):
+                st.markdown(entry_html(entry), unsafe_allow_html=True)
+
+    with next_tab, st.container(key="pan_help_next", horizontal=True):
         for section, why in NEXT_STEPS:
             st.button(
                 section,
@@ -87,8 +89,3 @@ def _draw(go_to: Callable[[str], None] | None) -> None:
                 args=(section,) if go_to else None,
             )
 
-
-@st.dialog("Help And FAQs", width="large")
-def open_help(go_to: Callable[[str], None] | None = None) -> None:
-    """The Help And FAQs dialog. ``go_to`` switches the section (``_go_to_now``)."""
-    _draw(go_to)

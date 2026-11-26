@@ -115,10 +115,10 @@ def test_finishing_sequence_logic_kept():
 _REWRITTEN = {"recommended", "act_first"}
 _FROZEN_QUESTIONS = {
     "sendable": "On the [[Results]] tab, why are the sendable leads fewer than the total clients in each segment?",
-    "expected_joiners": "What does the Expected Joiners number at the top right and on the [[Results Grid]] actually mean?",
+    "expected_joiners": "What does the Expected Joiners number at the top of [[Results]] and on the [[Results Grid]] actually mean?",
     "forecasted": "On the [[Results Grid]], why does Expected Joiners show a whole number like 87 and then (Forecasted: 87.3) beside it?",
     "totals": "In the [[What-If]] table, why don't the Expected Joiners rows add up exactly to the total?",
-    "percentage": "What does the percentage under Expected Joiners at the top right of the page mean?",
+    "percentage": "What does the percentage under Expected Joiners at the top of [[Results]] mean?",
     "control": "What is the Control Group in the [[Download Leads]] rows, and why are some leads held back?",
     "not_contacted": "Who falls under Not Contacted on the [[Results]] tab, and why are they left out?",
     "threshold": "What does the threshold on the [[New Promo]] form do, and what changes when I move the [[What-If]] slider?",
@@ -148,7 +148,7 @@ def test_untouched_help_entries_keep_id_and_question():
 def test_help_formulas_and_config_figures_unchanged():
     """Validates: Requirement 3.4"""
     names = [f.name for f in help_content.FORMULAS]
-    assert names == ["Clients", "Expected Joiners", "Top-Right Percentage", "Likely Range (90%)",
+    assert names == ["Clients", "Expected Joiners", "Share Of Sendable Leads", "Likely Range (90%)",
                      "Expected Value", "Joiners Kept", "Similarity Score", "Gap"]
     eq = {f.name: f.equation for f in help_content.FORMULAS}
     assert f"{p4cfg.VALUE_PER_JOIN_PHP:,}" in eq["Expected Value"]
@@ -235,14 +235,14 @@ def test_required_message_default_text_unchanged(names):
         assert got == ""
         return
     joined = names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
-    assert got == f"Fill in {joined} before running. Fields marked * are required."
+    assert got == f"Fill in {joined} before running."
 
 
 def test_required_message_examples_and_new_promo_caller():
     """Validates: Requirement 3.15"""
-    assert required_message(["Channels"]) == "Fill in Channels before running. Fields marked * are required."
+    assert required_message(["Channels"]) == "Fill in Channels before running."
     assert required_message(["Eligible Segments", "Channels"]) == (
-        "Fill in Eligible Segments and Channels before running. Fields marked * are required.")
+        "Fill in Eligible Segments and Channels before running.")
     assert "st.error(required_message(required_missing))" in MAIN_SRC
     for node in ast.walk(MAIN_TREE):
         if isinstance(node, ast.Call) and getattr(node.func, "id", "") == "required_message":

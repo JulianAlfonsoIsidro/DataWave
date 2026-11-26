@@ -100,18 +100,17 @@ def test_results_with_seeded_run_renders(no_aws, seeded_run):
     assert seeded_run.cards, "seeded run should produce cards"
     at = _open(seeded_run)
     assert not at.exception
-    subs = [s.value for s in at.subheader]
-    # Part 9 round 2: Download Leads is a dropdown (expander), not a subheader,
-    # and the Segment Flow block adds its own heading (Requirements 25, 27).
-    for name in ("Results Grid", "Decision Cards", "Where Each Segment's Clients Go"):
-        assert name in subs
-    expanders = [e.proto.label for e in at.expander]
-    assert any(label.startswith("Download Leads (") for label in expanders)
-    # Part 9: Export Summary moved into the Results action bar (no heading).
+    # Owner request: each Results section is its own tab.
+    tabs = [t.label for t in at.tabs]
+    for name in ("Results Grid", "Where Each Client Goes", "Decision Cards", "Download Leads"):
+        assert name in tabs
+    # Export Summary sits in the Download Leads section.
     labels = [w.proto.label for w in at.get("download_button")]
     assert "Export Summary" in labels
-    # Part 9 round 2: the Help And FAQs button sits outside the tabs (Req 28).
-    assert any(b.key == "help_open" for b in at.button)
+    # Help and Support is the last section of the left rail (owner request).
+    assert any("Help and Support" in label for label in tabs)
+    # The run's headline number shows at the top of Results (and Personas).
+    assert any("pan-kpi-card" in str(m.value) for m in at.markdown)
 
 
 def test_whatif_with_seeded_run_renders(no_aws, seeded_run):

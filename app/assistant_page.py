@@ -238,28 +238,36 @@ def _render_turn(index: int, message: dict) -> None:
             )
         if message.get("log_notice"):
             st.caption(LOG_NOTICE)
-        if message.get("mode") != "Local":
-            with st.expander("What The AI Used", key=f"assistant_used_{index}"):
-                sent = [FIELD_NAMES.get(k, k) for k in message.get("fields_sent", [])]
-                st.caption("Sent: " + (", ".join(sent) if sent else "nothing"))
-                mode = "Bedrock" if message.get("mode") == "Bedrock" else "Built-in rules (Demo Mode)"
-                st.caption(f"Answered by: {mode}")
-                if rec is not None:
-                    st.caption(ai_usage.usage_line(rec))
-                st.caption("No client-level data is ever sent. Only totals and the campaign.")
         if message.get("reported"):
             st.caption("Reported as wrong. Thank you; it was logged for review.")
-        elif message.get("mode") != "Local":
-            if st.button("Report A Wrong Answer", key=f"assistant_report_{index}", type="tertiary"):
-                question = ""
-                history = st.session_state.get(HISTORY_KEY, [])
-                for earlier in reversed(history[:index]):
-                    if earlier["role"] == "user":
-                        question = earlier["text"]
-                        break
-                report_wrong_answer(question, message["text"])
-                message["reported"] = True
-                st.rerun()
+        if message.get("mode") != "Local":
+            # Owner request: one "more" button per answer (three dots) opens a
+            # small menu with What The AI Used and Report A Wrong Answer,
+            # instead of both sitting under every answer. "More" is the
+            # button's accessible name; CSS shows only the icon.
+            with st.popover("More", icon=":material/more_horiz:", type="tertiary",
+                            key=f"assistant_more_{index}"):
+                with st.expander("What The AI Used", key=f"assistant_used_{index}"):
+                    sent = [FIELD_NAMES.get(k, k) for k in message.get("fields_sent", [])]
+                    st.caption("Sent: " + (", ".join(sent) if sent else "nothing"))
+                    mode = "Bedrock" if message.get("mode") == "Bedrock" else "Built-in rules (Demo Mode)"
+                    st.caption(f"Answered by: {mode}")
+                    if rec is not None:
+                        st.caption(ai_usage.usage_line(rec))
+                    st.caption("No client-level data is ever sent. Only totals and the campaign.")
+                if not message.get("reported") and st.button(
+                    "Report A Wrong Answer", key=f"assistant_report_{index}",
+                    type="tertiary", icon=":material/flag:",
+                ):
+                    question = ""
+                    history = st.session_state.get(HISTORY_KEY, [])
+                    for earlier in reversed(history[:index]):
+                        if earlier["role"] == "user":
+                            question = earlier["text"]
+                            break
+                    report_wrong_answer(question, message["text"])
+                    message["reported"] = True
+                    st.rerun()
 
 
 def _reveal_steps(text: str) -> list[str]:
