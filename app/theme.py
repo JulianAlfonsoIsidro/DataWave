@@ -58,21 +58,18 @@ TEXT_DARK = PALETTE["TEXT_DARK"]
 
 # --- type tokens: the single source of truth for fonts, weights and sizes ---
 #
-# Dax (headings) and Avenir Next (body/UI) are commercial: their files live,
-# git-ignored, in app/static/fonts/{dax-web,avenir-next-web}. When a file is
-# missing the browser falls back along the stack, so the app still renders on
-# any machine (Bahnschrift for headings, Segoe UI for body). Owner request:
-# only these two fonts; numbers and Help equations use the body font. The
-# ``[[theme.fontFaces]]`` entries in .streamlit/config.toml load the files.
+# League Spartan (headings/titles) and IBM Plex Sans (everything else). Files
+# live in app/static/fonts/; [[theme.fontFaces]] in .streamlit/config.toml
+# loads them.
 
 FONT_FAMILIES = {
-    "heading": "Dax",
-    "body": "Avenir Next",
+    "heading": "League Spartan",
+    "body": "IBM Plex Sans",
 }
 
 FONT_STACKS = {
-    "heading": ("Dax", "Bahnschrift", "Segoe UI", "sans-serif"),
-    "body": ("Avenir Next", "Segoe UI", "Arial", "sans-serif"),
+    "heading": ("League Spartan",),
+    "body": ("IBM Plex Sans",),
 }
 
 FONT_WEIGHTS = {"regular": 400, "medium": 500, "demi": 600, "bold": 700}
@@ -80,9 +77,9 @@ FONT_WEIGHTS = {"regular": 400, "medium": 500, "demi": 600, "bold": 700}
 # role -> (font key, weight, font size, line height)
 TYPE_ROLES = {
     "title": ("heading", 700, "2.5rem", "1.1"),
-    "section": ("heading", 500, "1.5rem", "1.2"),
-    "subsection": ("heading", 500, "1.375rem", "1.2"),
-    "card-title": ("heading", 500, "1.25rem", "1.25"),
+    "section": ("heading", 700, "1.5rem", "1.2"),
+    "subsection": ("heading", 700, "1.375rem", "1.2"),
+    "card-title": ("heading", 700, "1.25rem", "1.25"),
     # Owner request: the content side reads larger (body 17px, captions 15px).
     "body": ("body", 400, "1.0625rem", "1.55"),
     "kpi-hero": ("body", 700, "2.75rem", "1.05"),
@@ -113,23 +110,6 @@ def type_tokens_css() -> str:
             f"  --pan-type-{role}-leading: {leading};",
         ]
     return ":root {\n" + "\n".join(lines) + "\n}"
-
-
-# Licensed font files that should exist locally (flat copies, git-ignored).
-_FONTS_DIR = Path(__file__).resolve().parent / "static" / "fonts"
-COMMERCIAL_FONT_FILES = (
-    "avenir-next-web/AvenirNext-Regular.woff2",
-    "avenir-next-web/AvenirNext-Medium.woff2",
-    "avenir-next-web/AvenirNext-Demi.woff2",
-    "avenir-next-web/AvenirNext-Bold.woff2",
-    "dax-web/Dax-Medium.ttf",
-    "dax-web/Dax-Bold.otf",
-)
-
-
-def missing_font_files() -> list[str]:
-    """Return the commercial font files not present, i.e. using fallbacks."""
-    return [f for f in COMMERCIAL_FONT_FILES if not (_FONTS_DIR / f).is_file()]
 
 
 # The app title is text only -- no logo image.

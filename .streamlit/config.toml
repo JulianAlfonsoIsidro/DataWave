@@ -9,11 +9,10 @@
 # Light and dark are both defined below. Streamlit follows the OS setting by
 # default and the user can switch in Settings (top-right menu).
 #
-# Fonts: family names and fallback stacks mirror app/theme.py (FONT_STACKS).
-# Dax and Avenir Next are commercial and git-ignored; if their files are
-# missing the browser falls back along the stack (Bahnschrift / Segoe UI).
-# Only these two fonts are used (owner request). Changing this file needs a
-# server restart.
+# Fonts: family names mirror app/theme.py (FONT_FAMILIES).
+# League Spartan for headings/titles, IBM Plex Sans for all other text. Files
+# live in app/static/fonts/ (faces at the end of this file).
+# Changing this file needs a server restart.
 [server]
 enableStaticServing = true
 # Campaign uploads are capped at 10 MB (src/ai/extractor.py MAX_UPLOAD_BYTES);
@@ -40,8 +39,8 @@ primaryColor = "#AE1319"
 backgroundColor = "#FFFFFF"
 secondaryBackgroundColor = "#F1F2F5"
 textColor = "#1F2328"
-font = "Avenir Next, Segoe UI, Arial, sans-serif"
-headingFont = "Dax, Bahnschrift, Segoe UI, sans-serif"
+font = "IBM Plex Sans"
+headingFont = "League Spartan"
 baseRadius = "6px"
 buttonRadius = "6px"
 showWidgetBorder = true
@@ -85,37 +84,49 @@ dataframeHeaderBackgroundColor = "#23262C"
 chartCategoricalColors = ["#FF8A8E", "#4FC3D6", "#A592E8", "#7FA8FF", "#F2C14E", "#A7ADB8"]
 
 [[theme.fontFaces]]
-family = "Avenir Next"
-url = "app/static/fonts/avenir-next-web/AvenirNext-Regular.woff2"
+family = "IBM Plex Sans"
+url = "app/static/fonts/IBM_Plex_Sans,League_Spartan/IBM_Plex_Sans/static/IBMPlexSans-Regular.ttf"
 weight = "400"
 style = "normal"
 
 [[theme.fontFaces]]
-family = "Avenir Next"
-url = "app/static/fonts/avenir-next-web/AvenirNext-Medium.woff2"
+family = "IBM Plex Sans"
+url = "app/static/fonts/IBM_Plex_Sans,League_Spartan/IBM_Plex_Sans/static/IBMPlexSans-Medium.ttf"
 weight = "500"
 style = "normal"
 
 [[theme.fontFaces]]
-family = "Avenir Next"
-url = "app/static/fonts/avenir-next-web/AvenirNext-Demi.woff2"
+family = "IBM Plex Sans"
+url = "app/static/fonts/IBM_Plex_Sans,League_Spartan/IBM_Plex_Sans/static/IBMPlexSans-SemiBold.ttf"
 weight = "600"
 style = "normal"
 
 [[theme.fontFaces]]
-family = "Avenir Next"
-url = "app/static/fonts/avenir-next-web/AvenirNext-Bold.woff2"
+family = "IBM Plex Sans"
+url = "app/static/fonts/IBM_Plex_Sans,League_Spartan/IBM_Plex_Sans/static/IBMPlexSans-Bold.ttf"
 weight = "700"
 style = "normal"
 
 [[theme.fontFaces]]
-family = "Dax"
-url = "app/static/fonts/dax-web/Dax-Medium.ttf"
+family = "League Spartan"
+url = "app/static/fonts/IBM_Plex_Sans,League_Spartan/League_Spartan/static/LeagueSpartan-Regular.ttf"
+weight = "400"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "League Spartan"
+url = "app/static/fonts/IBM_Plex_Sans,League_Spartan/League_Spartan/static/LeagueSpartan-Medium.ttf"
 weight = "500"
 style = "normal"
 
 [[theme.fontFaces]]
-family = "Dax"
-url = "app/static/fonts/dax-web/Dax-Bold.otf"
+family = "League Spartan"
+url = "app/static/fonts/IBM_Plex_Sans,League_Spartan/League_Spartan/static/LeagueSpartan-SemiBold.ttf"
+weight = "600"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "League Spartan"
+url = "app/static/fonts/IBM_Plex_Sans,League_Spartan/League_Spartan/static/LeagueSpartan-Bold.ttf"
 weight = "700"
 style = "normal"

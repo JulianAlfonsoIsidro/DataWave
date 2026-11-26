@@ -14,9 +14,6 @@ proc.txt
 scratch/
 scratch_*.txt
 
-# Commercial fonts (Avenir Next, Dax): local use only, never commit.
-# Manrope (SIL OFL) in app/static/fonts/manrope/ may be committed.
-app/static/fonts/Avenir-Next-Font/
-app/static/fonts/avenir-next-web/
-app/static/fonts/dax/
-app/static/fonts/dax-web/
+# Sk-Modernist's license forbids redistribution: local use only, never commit.
+# Metropolis (SIL OFL) may be committed.
+app/static/fonts/Sk-Modernist/

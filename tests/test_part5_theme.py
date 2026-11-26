@@ -148,17 +148,15 @@ def test_header_escapes_custom_title_and_stays_image_free(monkeypatch):
     assert "A &amp; B &lt;promo&gt;" in html
     assert "<img" not in html.lower()
 
-def test_type_tokens_have_fallback_stacks_for_missing_licensed_fonts():
-    """Dax and Avenir Next fall back to Bahnschrift / Segoe UI when absent."""
+def test_type_tokens_use_league_spartan_and_ibm_plex_sans():
+    """Headings use League Spartan, everything else IBM Plex Sans, no fallbacks."""
     heading = theme.font_stack("heading")
     body = theme.font_stack("body")
-    assert heading.startswith('"Dax"') and '"Bahnschrift"' in heading
-    assert body.startswith('"Avenir Next"') and '"Segoe UI"' in body
-    assert heading.endswith("sans-serif") and body.endswith("sans-serif")
+    assert heading == '"League Spartan"'
+    assert body == '"IBM Plex Sans"'
     root = theme.type_tokens_css()
     assert f"--pan-font-heading: {heading};" in root
     assert "--pan-type-kpi-hero-font: var(--pan-font-body);" in root
-    # Owner request: only two fonts, Dax and Avenir Next.
     assert set(theme.FONT_STACKS) == {"heading", "body"}
 
 
@@ -169,11 +167,7 @@ def test_config_font_faces_match_tokens():
     block = parsed["theme"]
     assert block["font"].split(",")[0].strip() == theme.FONT_FAMILIES["body"]
     assert block["headingFont"].split(",")[0].strip() == theme.FONT_FAMILIES["heading"]
-    faces = block["fontFaces"]
-    assert {f["family"] for f in faces} == set(theme.FONT_FAMILIES.values())
-
-
-def test_missing_font_files_reports_only_commercial_files():
-    """The helper only ever names the git-ignored commercial font files."""
-    missing = theme.missing_font_files()
-    assert set(missing) <= set(theme.COMMERCIAL_FONT_FILES)
+    families = {f["family"] for f in block["fontFaces"]}
+    assert set(theme.FONT_FAMILIES.values()) <= families
+    for face in block["fontFaces"]:
+        assert face["url"].startswith("app/static/fonts/")
