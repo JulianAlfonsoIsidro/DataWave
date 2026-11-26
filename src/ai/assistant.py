@@ -27,7 +27,7 @@ from ai.mocks import CONTEXT_KEYS, mock_assistant_answer
 
 MAX_QUESTION_CHARS = 500
 MAX_ANSWER_WORDS = 150
-MAX_REPLY_TOKENS = 1500  # inferenceConfig.maxTokens; room for reasoning (design "Limits")
+MAX_REPLY_TOKENS = 3000  # inferenceConfig.maxTokens; reasoning tokens count against it (was 1500; benchmark showed cut-offs)
 LOG_PATH = Path(__file__).resolve().parents[2] / "scratch" / "assistant_log.jsonl"
 
 SUGGESTED_QUESTIONS: tuple[str, ...] = (

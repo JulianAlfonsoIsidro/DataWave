@@ -235,3 +235,34 @@ def test_payload_rejection_message_does_not_echo_content():
     with pytest.raises(bedrock.PayloadRejected) as info:
         bedrock.assert_private({"client_id": SECRET_KEY})
     assert SECRET_KEY not in str(info.value)
+
+
+class StopClient:
+    """Returns text with a given stopReason and token usage."""
+
+    def __init__(self, stop: str, text: str = "partial answer") -> None:
+        self.stop = stop
+        self.text = text
+
+    def converse(self, **kwargs):
+        return {"output": {"message": {"content": [{"text": self.text}]}}, "stopReason": self.stop,
+                "usage": {"inputTokens": 100, "outputTokens": 3000, "totalTokens": 3100}}
+
+
+def test_max_tokens_stop_is_a_failure_and_keeps_usage():
+    result = converse("system", PAYLOAD, client=StopClient("max_tokens"), env=FAKE_ENV)
+    assert result.mode == "Demo"
+    assert result.reason == bedrock.REASON_TRUNCATED
+    assert result.text is None
+    assert result.stop_reason == "max_tokens"
+    assert result.usage is not None and result.usage.total_tokens == 3100
+
+
+def test_max_tokens_stop_with_json_expected_is_truncated_not_bad_json():
+    result = converse("system", PAYLOAD, client=StopClient("max_tokens", '{"fields": {'), env=FAKE_ENV, expect_json=True)
+    assert result.reason == bedrock.REASON_TRUNCATED
+
+
+def test_end_turn_stop_is_a_normal_answer():
+    result = converse("system", PAYLOAD, client=StopClient("end_turn", "all good"), env=FAKE_ENV)
+    assert result.mode == "Bedrock" and result.text == "all good" and result.stop_reason == "end_turn"

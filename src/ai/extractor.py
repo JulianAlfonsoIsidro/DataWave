@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import io
 import math
+import re
 import time
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
@@ -34,7 +35,7 @@ from webapp_core.threshold import THRESHOLD_SPECS, ThresholdType
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 MAX_PROMPT_CHARS = 30_000
 EXTRACTION_BUDGET_SECONDS = 60
-MAX_REPLY_TOKENS = 1200  # inferenceConfig.maxTokens; room for reasoning (design "Limits")
+MAX_REPLY_TOKENS = 3000  # inferenceConfig.maxTokens; reasoning tokens count against it (was 1200; benchmark showed cut-offs)
 MAX_REWARD_CHARS = 200
 
 PRODUCT_TYPE_OPTIONS: tuple[str, ...] = ("Savings", "Time Deposit", "Investment", "Credit Card")
@@ -68,7 +69,11 @@ SYSTEM_PROMPT = (
     + "), threshold_type (one of "
     + ", ".join(t.value for t in ThresholdType)
     + "), threshold_value (number), reward (short text), eligible_segments "
-    "(list of customer segments), min_adb (number in PHP), channels (list "
+    "(list of customer segments, using only these exact names: "
+    + ", ".join(KNOWN_SEGMENTS)
+    + "; write Affluent - Gold as Affluent-Gold, Affluent - Preferred as "
+    "Affluent-Preferred and Core Mass Market as Mass; leave out any other "
+    "segment), min_adb (number in PHP), channels (list "
     "of In-app, Email, SMS). Allowed keys in context: "
     + ", ".join(CONTEXT_KEYS)
     + ". Omit any key the document does not state. Never guess."
@@ -167,6 +172,34 @@ def _as_list(value: Any) -> list[Any]:
     return list(value) if isinstance(value, (list, tuple, set, frozenset)) else []
 
 
+# Common spellings of the four PAM segments (keys come from _segment_key).
+_SEGMENT_ALIASES = {
+    "gold": "Affluent-Gold",
+    "preferred": "Affluent-Preferred",
+    "mass market": "Mass",
+    "core mass": "Mass",
+    "core mass market": "Mass",
+    "midmarket": "Mid-Market",
+}
+
+
+def _segment_key(text: str) -> str:
+    """Lower-case, drop '(Segment Code 02)', treat dashes/underscores as spaces."""
+    t = re.sub(r"\(.*?\)", " ", text.lower())
+    t = re.sub(r"[-_\u2010-\u2015\u2212/]+", " ", t)
+    t = re.sub(r"\bsegment\b", " ", t)
+    return " ".join(t.split())
+
+
+def canonical_segment(text: str) -> str | None:
+    """Map a segment spelling to PAM's name, or None (for example Top Personal, Next)."""
+    key = _segment_key(text)
+    for known in KNOWN_SEGMENTS:
+        if _segment_key(known) == key:
+            return known
+    return _SEGMENT_ALIASES.get(key)
+
+
 def validate_fields(raw: Mapping[str, Any]) -> dict[str, Any]:
     """Keep only valid Campaign_Fields; invalid values are dropped, not fixed."""
     out: dict[str, Any] = {}
@@ -202,13 +235,11 @@ def validate_fields(raw: Mapping[str, Any]) -> dict[str, Any]:
             out["reward"] = reward
 
     if "eligible_segments" in raw:
-        known = {s.lower(): s for s in KNOWN_SEGMENTS}
         segments: list[str] = []
         for item in _as_list(raw.get("eligible_segments")):
-            if isinstance(item, str) and item.strip().lower() in known:
-                canon = known[item.strip().lower()]
-                if canon not in segments:
-                    segments.append(canon)
+            canon = canonical_segment(item) if isinstance(item, str) else None
+            if canon is not None and canon not in segments:
+                segments.append(canon)
         if segments:
             out["eligible_segments"] = segments
 

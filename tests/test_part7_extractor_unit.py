@@ -427,3 +427,45 @@ def test_exactly_at_budget_still_uses_bedrock():
 def test_under_budget_uses_bedrock():
     result, _ = _run(json.dumps(VALID), clock=FakeClock(100.0, 110.0))
     assert result.mode == "Bedrock"
+
+
+@pytest.mark.parametrize(
+    "spelling, expected",
+    [
+        ("Affluent-Gold", "Affluent-Gold"),
+        ("Affluent \u2013 Gold", "Affluent-Gold"),
+        ("Affluent \u2013 Gold (Segment Code 02)", "Affluent-Gold"),
+        ("affluent preferred", "Affluent-Preferred"),
+        ("Gold", "Affluent-Gold"),
+        ("Core Mass Market", "Mass"),
+        ("Core Mass Market (Segment Code 03)", "Mass"),
+        ("Mass Market", "Mass"),
+        ("Mid-Market", "Mid-Market"),
+        ("mid market", "Mid-Market"),
+    ],
+)
+def test_segment_spellings_map_to_canonical_names(spelling, expected):
+    assert validate_fields({"eligible_segments": [spelling]})["eligible_segments"] == [expected]
+
+
+@pytest.mark.parametrize("spelling", ["Affluent \u2013 Top Personal", "Affluent \u2013 Next", "Private Wealth", "Platinum"])
+def test_segments_pam_does_not_have_are_still_dropped(spelling):
+    assert "eligible_segments" not in validate_fields({"eligible_segments": [spelling]})
+
+
+def test_segment_spellings_are_deduplicated_in_order():
+    raw = {"eligible_segments": ["Affluent \u2013 Gold", "Gold", "Core Mass Market", "Affluent \u2013 Next"]}
+    assert validate_fields(raw)["eligible_segments"] == ["Affluent-Gold", "Mass"]
+
+
+def test_prompt_lists_the_canonical_segment_names():
+    for name in extractor.KNOWN_SEGMENTS:
+        assert name in extractor.SYSTEM_PROMPT
+
+
+def test_caps_are_three_thousand_and_persona_cap_unchanged():
+    from ai import assistant, persona_narrator
+
+    assert assistant.MAX_REPLY_TOKENS == 3000
+    assert extractor.MAX_REPLY_TOKENS == 3000
+    assert persona_narrator.MAX_REPLY_TOKENS == 800

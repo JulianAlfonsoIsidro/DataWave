@@ -52,6 +52,7 @@ REASON_TIMEOUT = "timeout"
 REASON_BAD_JSON = "bad_json"
 REASON_PAYLOAD_REJECTED = "payload_rejected"
 REASON_EMPTY = "empty_response"
+REASON_TRUNCATED = "truncated"  # reply stopped at max_tokens (cut off); usage is kept
 
 _CLIENT_ID_KEY = "clientid"
 _CLIENT_ID_VALUE = re.compile(r"\bC\d{5,}\b")
@@ -119,6 +120,7 @@ class BedrockResult:
     reason: str = ""
     usage: Usage | None = None
     seconds: float = 0.0
+    stop_reason: str = ""   # Converse stopReason when Bedrock answered (for example end_turn, max_tokens)
 
 
 class PayloadRejected(ValueError):
@@ -224,9 +226,10 @@ def _build_client(values: Mapping[str, str]) -> Any:
     )
 
 
-def _demo(reason: str, usage: Usage | None = None, seconds: float = 0.0) -> BedrockResult:
+def _demo(reason: str, usage: Usage | None = None, seconds: float = 0.0,
+          stop_reason: str = "") -> BedrockResult:
     return BedrockResult(mode="Demo", text=None, parsed=None, reason=reason,
-                         usage=usage, seconds=seconds)
+                         usage=usage, seconds=seconds, stop_reason=stop_reason)
 
 
 def converse(
@@ -286,18 +289,22 @@ def converse(
             return _demo(REASON_ERROR, seconds=seconds)
 
         usage = Usage.from_response(box["response"])
+        stop = str(box["response"].get("stopReason") or "") if isinstance(box["response"], Mapping) else ""
+        if stop == "max_tokens":
+            # Cut off by the output cap: never show a partial answer as a normal one.
+            return _demo(REASON_TRUNCATED, usage, seconds, stop)
         text = _extract_text(box["response"])
     except Exception:
         return _demo(REASON_ERROR)
 
     if not text or not text.strip():
-        return _demo(REASON_EMPTY, usage, seconds)
+        return _demo(REASON_EMPTY, usage, seconds, stop)
 
     if not expect_json:
-        return BedrockResult(mode="Bedrock", text=text, parsed=None, usage=usage, seconds=seconds)
+        return BedrockResult(mode="Bedrock", text=text, parsed=None, usage=usage, seconds=seconds, stop_reason=stop)
 
     try:
         parsed = json.loads(_strip_fence(text))
     except (ValueError, TypeError):
-        return _demo(REASON_BAD_JSON, usage, seconds)
-    return BedrockResult(mode="Bedrock", text=text, parsed=parsed, usage=usage, seconds=seconds)
+        return _demo(REASON_BAD_JSON, usage, seconds, stop)
+    return BedrockResult(mode="Bedrock", text=text, parsed=parsed, usage=usage, seconds=seconds, stop_reason=stop)

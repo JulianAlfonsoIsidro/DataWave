@@ -52,6 +52,7 @@ REASONS = {
     "error": "the AI service could not be reached",
     "bad_json": "the AI reply could not be read",
     "empty_response": "the AI reply was empty",
+    "truncated": "the AI reply was cut off before it finished",
     "payload_rejected": "the request was blocked because it held client data",
     "invalid_reply": "the AI reply broke the naming rules",
     "cap_reached": "the session token allowance was used up",
