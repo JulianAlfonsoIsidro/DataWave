@@ -129,3 +129,60 @@ Script: `evaluation/run_benchmark.py`. Expected facts and prompts: `evaluation/e
 
 1. Done after this pilot: stop-reason diagnostic, suggested-question test and the 3,000-token cap test (`evaluation/CAP_COMPARISON.md`). The 3,000 cap lifted successful operations from 39 of 47 to 46 of 47 for 1% more spend.
 2. Full batch: 3 repetitions, about 90 more calls on the app's current caps (pilot results reused), with the suggested-question case now added (+2 calls). A second full set at 3,000 is optional.
+
+
+## 10. Post-fix experiment (branch `part-12-experiment`)
+
+**Baseline versus experimental.** Everything above is the baseline: the app as committed (`part-11-final-changes`, 1,500 and 1,200 token caps), plus the `cap3000` run where the cap was raised inside the script only. This section is the experimental run: the fixes applied as real code changes in a separate git worktree. The original application source was not modified. Full record (branch, commits, caps, model, patch): `evaluation/results/experimental/RUN_INFO.md`.
+
+### What was changed (experimental branch only)
+
+| File | Change |
+|---|---|
+| `src/ai/assistant.py` | output cap 1,500 to 3,000 |
+| `src/ai/extractor.py` | output cap 1,200 to 3,000; prompt lists the exact segment names; common spellings ("Affluent – Gold", "Core Mass Market", "Mass Market", with or without "(Segment Code 02)") map to PAM's names; Top Personal, Next and Private Wealth are still dropped |
+| `src/ai/bedrock.py` | a `max_tokens` stop returns the Demo fallback with reason `truncated`, token usage kept; new `stop_reason` field |
+| `src/webapp_core/ai_usage.py` | plain wording for `truncated` |
+| two test files | 20 new tests; persona cap checked to stay at 800 |
+
+### Results (one repetition, 43 standard operations, five proposals as PDFs)
+
+| | App as committed (1,500) | Script-only 3,000 cap | Experimental code (3,000 + fixes) |
+|---|---:|---:|---:|
+| Successful operations | 35 of 43 | 42 of 43 | **43 of 43** |
+| Cost of those operations | $1.003 | $1.014 | $1.018 |
+| Cost per successful operation | $0.0287 | $0.0241 | $0.0237 |
+| Extraction: runs that returned usable fields | 2 of 5 | 5 of 5 | 5 of 5 |
+| Extraction: mean field accuracy (successful runs) | 58% | 60% | **93%** |
+| Heavy draft prompt (SMS, email, criteria) | 0 of 5 | 5 of 5 | 5 of 5 |
+
+- **Segment fix.** Extraction accuracy rose from 60% to 93% on the same five PDFs. Horizon, Forex and Bonds went to 100%; FORWARD stayed at 100%; Better Together reached 67% (its base product is not stated clearly, so `product_type` came back empty). Segments were now matched in all five.
+- **Truncation handling.** All 46 post-fix calls ended normally (`end_turn`); none stopped at the cap. The new truncation check could therefore not be exercised against the live model, but unit tests cover it.
+- **Cap headroom.** The longest reply was 2,123 tokens (a draft prompt), so 3,000 leaves about 41% headroom. The suggested question "Draft An SMS For This Offer" again passed (1,054 tokens) and again noted that SMS is not ticked for FORWARD.
+- **Quality unchanged.** No unsupported figures and no proposal-only figures leaked in any answer. Known facts kept in summaries were 92% (90% in the script-only run); long-prompt facts 71% (75%), which is within normal variation for one repetition and the 150-word answer cap. Known issues (Bonds promo without mechanics, Better Together date error) were still caught.
+- **Cost.** Total post-fix pilot spend was $1.051 (₱67.2) for 46 calls; the 43 comparable operations cost $1.018, about the same as the other two arms ($1.003 and $1.014). The old cap did not save money: it paid for failed calls.
+- **Persona naming:** 3 of 3 valid this time (1 of 3 was rejected in the script-only run), so naming validity still varies between runs; this fix does not target it.
+
+### Assumptions and limitations
+
+- Assumptions from the top of this file apply (3,000 assistant cap, truncation counts as failure, users always upload the proposal).
+- One repetition per arm. Differences of a few percent in fact rates or cost are noise; the success-rate and extraction gains are large and consistent with the cause found in the diagnostic.
+- Extraction accuracy is scored on five fields against expected values I derived from the proposals; Better Together's `product_type` is treated as expected "Savings", which is a judgment call.
+- The DOCX reference arm was not rerun; the DOCX findings in section 4 stand unchanged.
+- The worktree used copies of the model outputs and proposals and a read-only link to `.env.eval`.
+
+### Recommendation
+
+The fixes work as intended and cost no more per successful operation. Next: (1) run the full 3-repetition batch on the experimental branch to confirm consistency (about 92 calls, roughly $2.2 or ₱140, with this pilot reused); (2) if it holds, review the patch (`experimental_changes.patch`) and merge `part-12-experiment` into your branch yourself. I have not merged or pushed anything, and the worktree is still in place.
+
+
+## 11. Full batch and costing reports
+
+The full 3-repetition batch was run on the experimental branch (`part-12-experiment` @ `0d85049`): 132 operations, all succeeded on their final attempt. Six operations in repetition 3 first failed because the AWS session token expired; they were rejected before reaching the model (no usage, no cost), kept in the raw results, and succeeded on retry after the credentials were refreshed.
+
+- Technical costing report (audit detail): `evaluation/TECHNICAL_COST_REPORT.md`
+- Business costing report (stakeholders): `evaluation/BUSINESS_COST_REPORT.md`
+- Regenerate both from stored results, no Bedrock calls: `.venv/bin/python evaluation/build_cost_reports.py`
+- Results: `evaluation/results/experimental/postfix/` (full batch) and `evaluation/results/experimental/costing/` (report tables)
+
+These figures are for the experimental configuration. The submitted version was measured only in the pilot above.
