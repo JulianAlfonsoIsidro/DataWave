@@ -40,7 +40,7 @@ def test_card_view_has_no_raw_codes(card):
     assert parsed == sorted(parsed, key=lambda p: (-p[1], p[0]))
 
     # 4.8: whole-number stats with L <= N <= H.
-    likely = int(re.search(r"About ([\d,]+) Likely", view.stats[0].label).group(1).replace(",", ""))
+    likely = int(re.search(r"About ([\d,]+) Expected Joiners", view.stats[0].label).group(1).replace(",", ""))
     low, high = (
         int(x.replace(",", ""))
         for x in re.search(r"Range: ([\d,]+) To ([\d,]+)", view.stats[1].label).groups()

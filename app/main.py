@@ -486,7 +486,7 @@ def _render_fill_in_details(*, segment_options: list[str], auto_promo_id: str) -
         terms_a, _terms_spacer = st.columns(2)
         with terms_a:
             min_adb = st.number_input(
-                "Minimum ADB (PHP)",
+                "Minimum ADB (₱)",
                 min_value=0.0,
                 step=10_000.0,
                 format="%.2f",
@@ -753,6 +753,7 @@ def _render_impact_summary(result, *, show_banner: bool = True) -> None:
 
 def _render_results_tab() -> None:
     """Render the Results tab: 2x2 grid, decision cards, Download Leads."""
+    st.subheader("Results")
     result = st.session_state.get(RUN_RESULT_KEY)
     if result is None or not result.cards:
         st.info(
@@ -1112,7 +1113,17 @@ def _render_download_picker(result, rows: list[str], sendable: dict, recommended
         mime="text/csv",
         key=f"download_leads_{choice}",
         disabled=not reviewed,
+        type="primary",
+        on_click=_downloaded_toast,
+        args=(len(leads),),
     )
+    if not reviewed:
+        st.caption("Tick I Checked These Figures above to download.")
+
+
+def _downloaded_toast(n: int) -> None:
+    """Confirm a finished download (the browser saves the file quietly)."""
+    st.toast(f"Downloaded {n:,} leads.", icon=":material/download_done:")
 
 
 def _render_review_card(result, segments: list[str], title: str, slug: str,
@@ -1273,11 +1284,12 @@ def _render_whatif_tab() -> None:
                 st.rerun()
 
     st.subheader("What-If: Vary The Threshold")
-    ai_ui.notice("prediction")
+    # The forecast notice shows once, on Results (critique: it repeated on
+    # four pages); What-If reshapes that same forecast.
     st.caption(
-        "Drag the threshold to rescore the current eligible audience with the "
-        "already-fitted model. No model is retrained; only the threshold "
-        "changes, so the audience is rescored, resegmented, and recarded."
+        "Drag the threshold to see how the same audience responds. The model "
+        "is not retrained: each client is scored again at the new amount, and "
+        "the segments, cards and lead files update to match."
     )
 
     new_threshold = st.slider(
@@ -1499,6 +1511,7 @@ def main() -> None:
     with whatif_tab, theme.card_group("whatif"):
         _render_whatif_tab()
     with personas_tab, theme.card_group("personas"):
+        st.subheader("Personas")
         _render_run_kpi("personas")
         persona_page.render_persona_tab(run_result_key=RUN_RESULT_KEY)
     with past_promos_tab, theme.card_group("past_promos"):

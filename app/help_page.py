@@ -70,12 +70,22 @@ HELP_SECTIONS = ["How The Numbers Fit Together", "Common Questions", "Where To G
 
 def render_help_tab(go_to: Callable[[str], None] | None = None) -> None:
     """The Help and Support section. ``go_to`` switches the section (``_go_to_now``)."""
+    st.subheader("Help and Support")
     numbers_tab, questions_tab, next_tab = st.tabs(HELP_SECTIONS)
     with numbers_tab:
         st.markdown(formulas_html(), unsafe_allow_html=True)
 
     with questions_tab:
-        for entry in ENTRIES:
+        # Critique: 22 questions in one list; a search narrows it as you type.
+        query = st.text_input(
+            "Search Questions", key="help_search",
+            placeholder="For example: control group, threshold, similarity",
+        ).strip().lower()
+        shown = [e for e in ENTRIES if not query or query in
+                 f"{e.question} {e.answer} {e.where}".lower()]
+        if not shown:
+            st.caption(f'No question mentions "{query}". Try a shorter word.')
+        for entry in shown:
             with st.expander(marked_md(entry.question), key=f"help_q_{entry.id}"):
                 st.markdown(entry_html(entry), unsafe_allow_html=True)
 

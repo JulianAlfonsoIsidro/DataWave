@@ -102,7 +102,7 @@ def build_card_view(card: Mapping[str, Any], *, persona: Any | None = None) -> C
     value = round_half_up(_num(card, "expected_value"))
 
     stats = (
-        StatView(f"About {n:,} Likely To Join", _tip(LIKELY_TOOLTIP)),
+        StatView(f"About {n:,} Expected Joiners", _tip(LIKELY_TOOLTIP)),
         StatView(f"Likely Range: {low:,} To {high:,}", _tip(RANGE_TOOLTIP)),
         StatView(f"Expected Value: ₱{value:,}", _tip(VALUE_TOOLTIP)),
     )

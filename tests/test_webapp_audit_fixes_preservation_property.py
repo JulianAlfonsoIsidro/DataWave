@@ -116,7 +116,7 @@ _REWRITTEN = {"recommended", "act_first"}
 _FROZEN_QUESTIONS = {
     "sendable": "On the [[Results]] tab, why are the sendable leads fewer than the total clients in each segment?",
     "expected_joiners": "What does the Expected Joiners number at the top of [[Results]] and on the [[Results Grid]] actually mean?",
-    "forecasted": "On the [[Results Grid]], why does Expected Joiners show a whole number like 87 and then (Forecasted: 87.3) beside it?",
+    "forecasted": "On the [[Results Grid]], why is Expected Joiners a whole number like 87 when the forecast is 87.3?",
     "totals": "In the [[What-If]] table, why don't the Expected Joiners rows add up exactly to the total?",
     "percentage": "What does the percentage under Expected Joiners at the top of [[Results]] mean?",
     "control": "What is the Control Group in the [[Download Leads]] rows, and why are some leads held back?",

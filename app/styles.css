@@ -3338,9 +3338,11 @@ html.p9-theme-wave::view-transition-new(root) {
 /* ===================================================================== */
 /* Every st.button, download and form button rests neutral: the surface,
    an ink label and a hairline with a 2px key edge underneath, so it reads
-   as pressable without shouting. The area's main action (primary buttons
-   and Run Analysis) is marked by an ink outline and a red key edge, not a
-   red fill. On hover it lifts a pixel. Pressed, it turns red at once and
+   as pressable without shouting. The area's main action (primary buttons,
+   Run Analysis, Build Personas, Download Leads) is filled brand red and
+   44px tall, so it is the first thing seen (critique: it was the weakest
+   element on the page). Disabled, it falls back to the grey disabled look.
+   On hover it lifts a pixel. Pressed, it turns red at once and
    sinks into its edge; released, it springs back with a small overshoot
    and stays red (data-p9-pressed, set by ui_interactions.js) until the
    rerun or job it started has finished; then the red fades out. Job buttons drop their hover colour plate.
@@ -3360,11 +3362,18 @@ html.p9-theme-wave::view-transition-new(root) {
     border-color var(--pan-dur-press-out) var(--pan-ease),
     box-shadow var(--pan-dur-fast) var(--pan-ease);
 }
-.stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button:is([data-testid="stBaseButton-primary"], [kind="primary"]),
-.stApp [class*="st-key-p8_btn_"] :is(.stButton, .stFormSubmitButton) button {
-  border-color: var(--pan-text);
-  box-shadow: 0 2px 0 var(--pan-primary);
+.stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button:is([data-testid="stBaseButton-primary"], [kind="primary"]):not(:disabled),
+.stApp [class*="st-key-p8_btn_"] :is(.stButton, .stFormSubmitButton) button:not(:disabled) {
+  min-height: 44px;
+  padding-inline: var(--pan-space-5);
+  background: var(--pan-primary);
+  color: var(--pan-on-primary);
+  border-color: var(--pan-primary);
+  /* key edge and hover are the brand red darkened, so white text only gains contrast */
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--pan-primary) 70%, black);
 }
+.stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button:is([data-testid="stBaseButton-primary"], [kind="primary"]):disabled,
+.stApp [class*="st-key-p8_btn_"] :is(.stButton, .stFormSubmitButton) button:disabled { min-height: 44px; }
 @media (hover: hover) and (pointer: fine) {
   .stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button:hover:not(:disabled) {
     background: var(--pan-surface);
@@ -3375,7 +3384,10 @@ html.p9-theme-wave::view-transition-new(root) {
   }
   .stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button:is([data-testid="stBaseButton-primary"], [kind="primary"]):hover:not(:disabled),
   .stApp [class*="st-key-p8_btn_"] :is(.stButton, .stFormSubmitButton) button:hover:not(:disabled) {
-    box-shadow: 0 3px 0 var(--pan-primary);
+    background: color-mix(in srgb, var(--pan-primary) 88%, black);
+    color: var(--pan-on-primary);
+    border-color: color-mix(in srgb, var(--pan-primary) 88%, black);
+    box-shadow: 0 3px 0 color-mix(in srgb, var(--pan-primary) 70%, black);
   }
 }
 .stApp :is(.stButton, .stDownloadButton, .stFormSubmitButton) button:active:not(:disabled),
@@ -4057,4 +4069,60 @@ html[data-p9-scheme="light"] { color-scheme: light; }
 [data-testid="stPopoverBody"] [class*="st-key-assistant_used_"] summary:focus-visible {
   outline: 2px solid var(--pan-focus);
   outline-offset: -2px;
+}
+
+/* Decision card: the action leads (critique: it was one field among many). */
+.pan-card-action { display: flex; align-items: baseline; gap: var(--pan-space-3); margin: 0 0 var(--pan-space-3); }
+.pan-card-action-k { color: var(--pan-text-muted); font-size: var(--pan-type-caption-size); }
+.pan-card-action-v {
+  font-family: var(--pan-font-heading);
+  font-size: var(--pan-type-subsection-size);
+  font-weight: var(--pan-weight-bold);
+  line-height: 1.2;
+  color: var(--pan-text);
+}
+
+/* Captions keep a readable measure (critique: one ran about 141 characters
+   per line across the Results panel). */
+:is(section.stMain, [data-testid="stMain"]) [data-testid="stCaptionContainer"] { max-inline-size: 72ch; }
+
+/* ---- Phone adaptations (critique) ---- */
+.pan-grid-cell { display: flex; flex-direction: column; min-width: 0; }
+.pan-grid-cell > .pan-tile { flex: 1; }
+.pan-grid-quad { display: none; }
+@media (max-width: 560px) {
+  /* The 2x2 grid stacks; each tile names its quadrant instead of the axes. */
+  .pan-grid { grid-template-columns: minmax(0, 1fr); gap: var(--pan-space-3); }
+  .pan-grid-corner, .pan-grid-col, .pan-grid-row { display: none; }
+  .pan-grid-quad {
+    display: block;
+    margin-bottom: var(--pan-space-1);
+    font-size: var(--pan-type-caption-size);
+    color: var(--pan-text-muted);
+  }
+}
+@media (max-width: 760px) {
+  /* The section strip and in-page section tabs stay one row and scroll
+     sideways (they wrapped into tall blocks); a fade at the right edge
+     says there is more. */
+  .st-key-main_nav > div > [role="tablist"],
+  .stTabs:not(.st-key-main_nav) > div > [role="tablist"] {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 32px), transparent);
+    mask-image: linear-gradient(to right, black calc(100% - 32px), transparent);
+  }
+  .st-key-main_nav > div > [role="tablist"]::-webkit-scrollbar,
+  .stTabs:not(.st-key-main_nav) > div > [role="tablist"]::-webkit-scrollbar { display: none; }
+  .st-key-main_nav > div > [role="tablist"] > [role="tab"],
+  .stTabs:not(.st-key-main_nav) > div > [role="tablist"] > [role="tab"] { flex: none; }
+  /* room for the selected folder tab's upward shadow inside the scroller */
+  .stTabs:not(.st-key-main_nav) > div > [role="tablist"] { padding-top: 6px; }
+  /* Wide tables scroll inside; the fade shows the hidden columns. */
+  .pan-wis {
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 28px), transparent);
+    mask-image: linear-gradient(to right, black calc(100% - 28px), transparent);
+  }
 }

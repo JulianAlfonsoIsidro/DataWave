@@ -685,20 +685,29 @@ def _kpi_number_html(number: str, prev: str | None) -> str:
     return number_html
 
 
+def forecast_tip(forecast: float) -> str:
+    """The hover/focus text that carries the exact forecast behind a whole number."""
+    from webapp_core.number_format import forecast_text
+
+    return f"Exact forecast: {forecast_text(forecast, short=True)}. Shown rounded to whole people."
+
+
 def joiners_pair_html(forecast: float, *, full: bool = True, main_html: str | None = None) -> str:
-    """Expected Joiners as a whole number with the forecast beside it.
+    """Expected Joiners as a whole number; the exact forecast is in its tip.
 
-    Part 9 round 2, Requirement 20: ``87 (Forecasted: 87.3)``, or ``87 (87.3)``
-    with ``full=False`` for table cells. ``main_html`` replaces the plain
-    whole number (a count-up or roll of it); the bracket is plain text and
-    never adds digit columns.
+    Critique (one number, one display): the decimal no longer sits in a
+    bracket beside the number; hovering or focusing the number shows
+    "Exact forecast: 87.3" (also its accessible label). ``full`` is kept for
+    callers; both forms render the same. ``main_html`` replaces the plain
+    whole number (a count-up or roll of it).
     """
-    from webapp_core.number_format import forecast_text, shown_joiners
+    from webapp_core.number_format import shown_joiners
 
-    main = main_html if main_html is not None else html.escape(f"{shown_joiners(forecast):,}")
+    whole = f"{shown_joiners(forecast):,}"
+    main = main_html if main_html is not None else html.escape(whole)
     return (
-        f'<span class="pan-jp"><span class="pan-jp-main">{main}</span> '
-        f'<span class="pan-jp-fc">({html.escape(forecast_text(forecast, short=not full))})</span></span>'
+        f'<span class="pan-jp"><span class="pan-jp-main">'
+        f"{tooltip_html(whole, forecast_tip(forecast), main)}</span></span>"
     )
 
 
@@ -868,21 +877,19 @@ def whatif_change_html(
     """What-If headline (Part 9): the number as run, at this threshold, and
     the change, as plain figures. With no baseline, or at the run's own
     threshold, only the current figure shows. Round 2 (Requirement 20): the
-    figures are whole numbers with the forecast in brackets, and the change
-    is the difference of the two whole numbers shown.
+    figures are whole numbers (the exact forecast is each figure's tip), and
+    the change is the difference of the two whole numbers shown.
     """
-    from webapp_core.number_format import forecast_text
+    def tip(shown: str, display: str, value: float | None) -> str:
+        """The exact forecast as the figure's tip (no bracket beside it)."""
+        return display if value is None else tooltip_html(shown, forecast_tip(value), display)
 
-    def fc(value: float | None) -> str:
-        if value is None:
-            return ""
-        return f' <span class="pan-jp-fc">({html.escape(forecast_text(value))})</span>'
     def fig(k: str, v_html: str, cls: str = "", *, key_below: bool = False) -> str:
         key = f'<span class="pan-wi-k">{html.escape(k)}</span>'
         val = f'<span class="pan-wi-v">{v_html}</span>'
         return f'<div class="pan-wi-fig{cls}">{val + key if key_below else key + val}</div>'
 
-    now_html = _kpi_number_html(number, prev) + fc(forecast)
+    now_html = tip(str(number), _kpi_number_html(number, prev), forecast)
     if base_number is None or base_label is None or base_label == now_label:
         # One figure: the number leads and the threshold is one muted line
         # under it (the slider already shows the amount).
@@ -894,7 +901,8 @@ def whatif_change_html(
             delta_text = _delta_text(delta)
         except ValueError:
             delta_text = ""
-        figs = fig(f"As Run, At {base_label}", html.escape(str(base_number)) + fc(base_forecast))
+        figs = fig(f"As Run, At {base_label}",
+                   tip(str(base_number), html.escape(str(base_number)), base_forecast))
         figs += fig(f"At {now_label}", now_html, " is-now")
         if delta_text:
             figs += fig("Change", delta_text, " is-delta")
@@ -1082,8 +1090,15 @@ def results_grid_html(rows, recommended: set[str] | frozenset[str] = frozenset()
             '<div class="pan-grid-row">'
             f"<span>{html.escape(GRID_AXIS_LABELS.get(row_label, row_label))}</span></div>"
         )
-        for _col, segment, tile_body in cols:
-            body += tile_html(segment, tile_body, recommended=segment in recommended)
+        for col_label, segment, tile_body in cols:
+            # On a phone the grid stacks to one column and the axis labels
+            # hide, so each tile names its quadrant (hidden on wide screens).
+            quad = (f"{GRID_AXIS_LABELS.get(row_label, row_label)} · "
+                    f"{GRID_AXIS_LABELS.get(col_label, col_label)}")
+            body += (
+                f'<div class="pan-grid-cell"><div class="pan-grid-quad">{html.escape(quad)}</div>'
+                f"{tile_html(segment, tile_body, recommended=segment in recommended)}</div>"
+            )
     return (
         '<div class="pan-grid" role="group" aria-label="Results grid: score by capacity">'
         f"{head}{body}</div>"
@@ -1145,8 +1160,8 @@ _ABOUT_RE = re.compile(r"^(About) (\d[\d,]*(?:\.\d+)?) (.+)$")
 def _stat_parts(label: str) -> tuple[str, str] | None:
     """Split a stat label into (key, value) for the label-over-number layout.
 
-    "Likely Range: 75 To 99" -> ("Likely Range", "75 To 99"); "About 87 Likely
-    To Join" -> ("Likely To Join", "About 87"). The words are unchanged.
+    "Likely Range: 75 To 99" -> ("Likely Range", "75 To 99"); "About 87
+    Expected Joiners" -> ("Expected Joiners", "About 87"). The words are unchanged.
     """
     m = _ABOUT_RE.match(label)
     if m:
@@ -1264,19 +1279,23 @@ def decision_card_body_html(view, extra_html: str = "") -> str:
         ", ".join(html.escape(e) for e in view.exclusions) if view.exclusions else "None"
     )
     rows = [
-        ("Action", html.escape(view.action)),
         ("Dominant Channel", html.escape(view.channel)),
         ("Message Angle", html.escape(view.angle)),
     ]
-    # Part 9: the reasons and the exclusions sit behind one disclosure, so
-    # the card leads with what to do (action, channel, angle).
+    # Critique: the card leads with its decision. The action is the first,
+    # largest line; the figures, channel and angle support it.
+    action = (
+        '<div class="pan-card-action"><span class="pan-card-action-k">Action</span>'
+        f'<strong class="pan-card-action-v">{html.escape(view.action or "Not set")}</strong></div>'
+    )
+    # Part 9: the reasons and the exclusions sit behind one disclosure.
     details = (
         '<details class="pan-details"><summary>Targeting Details</summary>'
         + fields_html([(view.why_heading, drivers), (view.not_contacted_heading, exclusions)])
         + "</details>"
     )
     persona = persona_section_html(view.persona_lines)
-    return stats + fields_html(rows) + details + persona + extra_html
+    return action + stats + fields_html(rows) + details + persona + extra_html
 
 
 def decision_card_split_body_html(view, extra_html: str = "") -> str:
@@ -1921,9 +1940,12 @@ def ai_notice_html(
     """
     bedrock = kind == "bedrock"
     words = AI_NOTICE_BEDROCK if bedrock else AI_NOTICE_PREDICTION
+    show_chips = bedrock if powered is None else powered
+    # Critique: "Powered by Amazon Bedrock" next to "Demo Mode" contradicted
+    # itself. In Demo Mode only the Demo Mode chip shows.
     chip = (
         ai_chip_html("Powered by Amazon Bedrock", icon=True, kind="bedrock")
-        if (bedrock if powered is None else powered) else ""
+        if show_chips and not demo else ""
     )
     if chip and model:
         # The model sits in its own neutral chip beside "Powered by", in plain
@@ -1932,7 +1954,7 @@ def ai_notice_html(
         provider, name = model_display(model)
         text = f"Model from {provider}: {name}" if provider else f"Model: {name}"
         chip += ai_chip_html(text, logo="claude" if provider == "Anthropic" else "", kind="model")
-    if chip and demo:
+    if show_chips and demo:
         # Keep the session honest: the built-in rules are answering.
         chip += ai_chip_html("Demo Mode", kind="demo")
     extra = ""

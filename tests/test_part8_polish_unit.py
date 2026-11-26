@@ -95,7 +95,7 @@ def test_counting_context_only_inside_the_window():
 # --- tooltip and loader -------------------------------------------------------
 
 def test_tooltip_has_no_native_title_and_stays_keyboard_accessible():
-    out = theme.tooltip_html("About 76 Likely To Join", "Our best estimate.")
+    out = theme.tooltip_html("About 76 Expected Joiners", "Our best estimate.")
     assert "title=" not in out
     assert 'tabindex="0"' in out and "Our best estimate." in out
 

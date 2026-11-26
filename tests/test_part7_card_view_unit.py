@@ -63,7 +63,7 @@ def test_exactly_three_stats_with_tooltips_within_120_chars():
 
 def test_stat_labels_are_whole_numbers_with_peso_value():
     view = build_card_view(_card())
-    assert view.stats[0].label == "About 11 Likely To Join"
+    assert view.stats[0].label == "About 11 Expected Joiners"
     assert view.stats[1].label == "Likely Range: 4 To 21"
     assert view.stats[2].label == "Expected Value: ₱12,346"
 

@@ -55,8 +55,8 @@ def test_hand_computed_x_y_z():
     assert s.cost_saved == 21
     assert s.available and s.cost_available
     assert s.banner == (
-        "Messaging 60% Fewer Clients Keeps 69% Of Expected Joiners "
-        "And Saves ₱21 In Channel Costs"
+        "Messaging 60% fewer clients keeps 69% of expected joiners "
+        "and saves ₱21 in channel costs."
     )
 
 

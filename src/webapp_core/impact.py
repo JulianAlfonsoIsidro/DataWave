@@ -148,8 +148,8 @@ def compute_impact(run, costs: Mapping[str, float] | None) -> ImpactSummary:
     if cost_ok:
         z: int | None = int(round(baseline.channel_cost - recommended.channel_cost))
         banner: str | None = (
-            f"Messaging {x}% Fewer Clients Keeps {y}% Of Expected Joiners "
-            f"And Saves ₱{z:,} In Channel Costs"
+            f"Messaging {x}% fewer clients keeps {y}% of expected joiners "
+            f"and saves ₱{z:,} in channel costs."
         )
         cost_message = None
     else:

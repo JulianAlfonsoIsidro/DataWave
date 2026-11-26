@@ -108,9 +108,9 @@ ENTRIES: tuple[HelpEntry, ...] = (
     ),
     HelpEntry(
         "forecasted",
-        "On the [[Results Grid]], why does Expected Joiners show a whole number like 87 and then (Forecasted: 87.3) beside it?",
-        "People come in whole numbers, so the main figure is rounded (halves round "
-        "up). The bracket keeps the exact forecast for anyone who wants it.",
+        "On the [[Results Grid]], why is Expected Joiners a whole number like 87 when the forecast is 87.3?",
+        "People come in whole numbers, so the figure is rounded (halves round "
+        "up). Point at the number, or tab to it, to see the exact forecast.",
         None,
         "[[Results Grid]] and the [[What-If]] tab",
     ),
@@ -119,7 +119,7 @@ ENTRIES: tuple[HelpEntry, ...] = (
         "In the [[What-If]] table, why don't the Expected Joiners rows add up exactly to the total?",
         "Each row is rounded on its own, and the total is rounded from the exact "
         "sum. So the rounded rows can differ from the rounded total by 1. The "
-        "forecasts in brackets always add up.",
+        "exact forecasts (point at a number to see one) always add up.",
         None,
         "[[What-If]] tab and the [[Results Grid]]",
     ),

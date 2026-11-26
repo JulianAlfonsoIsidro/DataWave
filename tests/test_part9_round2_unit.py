@@ -127,14 +127,15 @@ def test_reconciles_flags_a_mismatch():
 
 # --- theme HTML builders (Requirements 20, 21, 24, 27) ------------------------
 
-def test_joiners_pair_full_and_short():
+def test_joiners_pair_shows_whole_number_with_exact_forecast_in_tip():
     full = theme.joiners_pair_html(87.3)
-    assert '<span class="pan-jp-main">87</span>' in full
-    assert "(Forecasted: 87.3)" in full
-    short = theme.joiners_pair_html(87.3, full=False)
-    assert "(87.3)" in short and "Forecasted" not in short
+    # Critique: no bracket beside the number; the exact forecast is its tip
+    # (visible on hover/focus and in the accessible label).
+    assert ">87<" in full and "(Forecasted" not in full
+    assert "Exact forecast: 87.3" in full
+    assert theme.joiners_pair_html(87.3, full=False) == full
     zero = theme.joiners_pair_html(0.3)
-    assert '<span class="pan-jp-main">0</span>' in zero and "(Forecasted: 0.3)" in zero
+    assert ">0<" in zero and "Exact forecast: 0.3" in zero
 
 
 def test_run_kpi_sub_line_and_brand():
@@ -156,7 +157,7 @@ def test_whatif_segments_cells_and_heading():
     ]
     out = theme.whatif_segments_html(rows)
     assert "Expected Joiners (Forecast)" in out
-    assert "(87.3)" in out and "Forecasted" not in out
+    assert "Exact forecast: 87.3" in out and "(87.3)" not in out
     # The joiners change is the difference of the shown whole numbers: 87 - 86.
     assert "+1</span>" in out
     assert out.index("Ready Toppers") < out.index("Not Now")
@@ -166,7 +167,8 @@ def test_whatif_change_uses_whole_numbers():
     out = theme.whatif_change_html("Expected Joiners", "203", "₱560,000",
                                    base_number="204", base_label="₱530,000",
                                    forecast=203.4, base_forecast=204.4)
-    assert "(Forecasted: 203.4)" in out and "(Forecasted: 204.4)" in out
+    assert "Exact forecast: 203.4" in out and "Exact forecast: 204.4" in out
+    assert "(Forecasted" not in out
     assert "−1" in out
 
 

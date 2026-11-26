@@ -84,6 +84,7 @@ from __future__ import annotations
 
 import html
 import re
+from pathlib import Path
 from dataclasses import dataclass, replace
 
 import pandas as pd
@@ -1688,8 +1689,8 @@ def _render_downloads(selected_group: str | None = None) -> None:
 
     exports: _PersonaExports | None = st.session_state.get(PERSONA_EXPORTS_KEY)
 
-    dl_cols = st.columns(2)
     if exports is None:
+        dl_cols = st.columns(2)
         with dl_cols[0]:
             st.download_button(
                 "Download Campaign Leads (CSV)",
@@ -1717,14 +1718,21 @@ def _render_downloads(selected_group: str | None = None) -> None:
     labeled_frame = scope_export_frame(exports.labeled_leads, selected_group)
     campaign_bytes = campaign_frame.to_csv(index=False).encode("utf-8")
     full_bytes = labeled_frame.to_csv(index=False).encode("utf-8")
+    # The same check as Results' Download Leads: these files include the
+    # control group (flagged, not to be messaged), so their count differs
+    # from Results' sendable leads. Say so, and gate both files on a check.
+    reviewed = _render_download_review(campaign_frame, selected_group)
+    dl_cols = st.columns(2)
     with dl_cols[0]:
         st.download_button(
             f"Download Campaign Leads ({len(campaign_frame):,})",
             data=campaign_bytes,
             file_name=group_download_filename("campaign_leads", selected_group),
             mime="text/csv",
-            disabled=campaign_frame.empty,
+            disabled=campaign_frame.empty or not reviewed,
+            type="primary",
             key="persona_dl_campaign",
+            on_click=_downloaded_toast, args=(len(campaign_frame), "campaign leads"),
             help=(
                 "The CRM-ready list: client id, persona, group, best channel, "
                 "join probability, and control flag."
@@ -1736,11 +1744,63 @@ def _render_downloads(selected_group: str | None = None) -> None:
             data=full_bytes,
             file_name=group_download_filename("persona_labeled_leads", selected_group),
             mime="text/csv",
-            disabled=labeled_frame.empty,
+            disabled=labeled_frame.empty or not reviewed,
             key="persona_dl_full",
+            on_click=_downloaded_toast, args=(len(labeled_frame), "labeled leads"),
             help="The full list with every joined attribute, for deeper analysis.",
         )
+    if not reviewed:
+        st.caption("Tick I Checked These Figures above to download.")
     st.caption(group_download_caption(selected_group, len(campaign_frame), "leads"))
+
+
+def _downloaded_toast(n: int, what: str) -> None:
+    """Confirm a finished download (the browser saves the file quietly)."""
+    import streamlit as st
+
+    st.toast(f"Downloaded {n:,} {what}.", icon=":material/download_done:")
+
+
+def _render_download_review(frame: pd.DataFrame, selected_group: str | None) -> bool:
+    """Check Before You Download for persona files; returns whether it is ticked.
+
+    Mirrors Results' review card. The files are built from the lead files the
+    data pipeline saved (``Config().leads_dir``, one per promo and segment),
+    not from the New Promo run on Results, so the card names that source and
+    why the count can differ from Results' sendable leads.
+    """
+    from part5_personas.config import Config
+    import html as _html
+
+    import streamlit as st
+    import theme
+
+    total = len(frame)
+    control = int(frame["control"].astype(bool).sum()) if "control" in frame.columns else 0
+    group = "All groups" if _is_all_groups(selected_group) else str(selected_group)
+    try:
+        promos = sorted({f.name.split("_", 1)[0] for f in Path(Config().leads_dir).glob("*.csv")})
+    except OSError:
+        promos = []
+    source = ("Saved lead files for " + ", ".join(promos)) if promos else "Saved lead files"
+    theme.st_markdown(
+        '<div class="pan-review" role="group" aria-label="Check before you download">'
+        '<div class="pan-review-title">Check Before You Download</div>'
+        '<ul class="pan-review-list">'
+        f"<li><span>Source</span><strong>{_html.escape(source)}</strong>"
+        "<em>From the data pipeline's saved promos, not your New Promo run on "
+        "Results, so the count can differ from Results' sendable leads.</em></li>"
+        f"<li><span>Group</span><strong>{_html.escape(group)}</strong></li>"
+        f"<li><span>Leads in file</span><strong>{total:,}</strong>"
+        "<em>One row per client, with its persona.</em></li>"
+        f"<li><span>Control group</span><strong>{control:,}</strong>"
+        "<em>Marked in the control column. Do not message them; they show "
+        "whether the promo worked.</em></li>"
+        f"<li><span>To message</span><strong>{total - control:,}</strong></li>"
+        "</ul></div>"
+    )
+    slug = "".join(ch if ch.isalnum() else "_" for ch in group.lower())
+    return st.checkbox("I Checked These Figures", key=f"persona_review_ok_{slug}")
 
 
 SUGGEST_STATE_KEY = "persona_k_suggestion"
@@ -1805,7 +1865,12 @@ def _render_suggest_helper(*, level, attributes, business_segment_field, campaig
                 try:
                     found = _get_suggester()(key, spec, live_leads)
                 except Exception as exc:  # noqa: BLE001 - surface as a message
-                    st.warning(f"Could not suggest a number: {exc}")
+                    st.warning(
+                        "A number could not be suggested for these choices. "
+                        "Pick one yourself: 3 is a good start."
+                    )
+                    with st.expander("Technical details"):
+                        st.code(str(exc), language=None)
                     return
                 st.session_state[SUGGEST_STATE_KEY] = {"key": key, **found}
                 headline = f"{found['k']} Personas Suggested"
@@ -1929,7 +1994,10 @@ def _render_naming_controls() -> None:
     )
     if measured:
         note += f" The token report measured about {measured:,} tokens per persona in total."
-    st.caption(note)
+    # Critique: token arithmetic is detail, not the decision. It sits one
+    # click away, beside the button it describes.
+    with st.expander("What Naming Sends To Bedrock", key="persona_naming_details"):
+        st.caption(note)
     allowed, off_reason = ai_ui.can_call()
     clicked = st.button(
         "Name Personas with Bedrock",
@@ -2381,7 +2449,13 @@ def _handle_run(
         except Exception as exc:  # noqa: BLE001 - surface any backend halt as a message
             if ring_slot is not None:
                 ui_effects.fail_job_in_place("personas", ring_slot, signature)
-            st.error(f"Could not build personas: {exc}")
+            st.error(
+                "Personas could not be built with these choices. Try fewer "
+                "attributes or a different number of personas, then press "
+                "Build Personas again."
+            )
+            with st.expander("Technical details"):
+                st.code(str(exc), language=None)
             return
 
         # Everything below is stored inside the loader block, before its
