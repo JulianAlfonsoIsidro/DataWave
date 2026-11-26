@@ -1,0 +1,831 @@
+{
+  "_note": "Expected facts, form values and prompts for the PAM benchmark. Facts come only from the proposal text. A form key is left out when the proposal does not state it or PAM cannot represent it. Regexes run on lower-cased answer text with thousands commas, peso signs and 'php' removed.",
+  "standard_prompts": {
+    "summary": "Summarize This Campaign",
+    "short": "Which segments and channels does this campaign target?",
+    "medium_gaps": "List the main gaps or unclear points in this proposal that a CRM manager should resolve before launch.",
+    "medium_draft": "Draft an SMS and an email for this offer, and mention the key eligibility criteria.",
+    "long": "I am preparing the approval review for this campaign. Please summarize the offer, the target audience, the channels and the timeline, point out anything that is unclear or inconsistent in the proposal, and recommend the three most important actions the CRM team should take before launch, using only the information provided in the proposal."
+  },
+  "proposals": {
+    "forward": {
+      "title": "Project FORWARD (Mid-Market OF Remitters)",
+      "rank": 1,
+      "pdf": "evaluation/proposals/Project FORWARD_MM OF Remitters.pdf",
+      "docx": null,
+      "form": {
+        "product_type": "Investment",
+        "mechanic": "Other",
+        "threshold_type": "Opening Amount For A New Account",
+        "threshold_value": 1000,
+        "reward": "",
+        "eligible_segments": [
+          "Mid-Market"
+        ],
+        "channels": [
+          "Email",
+          "In-app"
+        ]
+      },
+      "run_form": {
+        "product_type": "Investment",
+        "mechanic": "OTHER",
+        "threshold_php": 1000.0,
+        "threshold_type": "Opening Amount For A New Account",
+        "threshold_label": "₱1,000",
+        "eligible_segments": [
+          "Mid-Market"
+        ],
+        "channels": [
+          "Email",
+          "In-app"
+        ]
+      },
+      "context": {
+        "objective": "Increase product availment: BPI Wealth Builder",
+        "target_audience": "Mid-Market Overseas Filipino (OF) remitters with no existing BPI Wealth Builder account or other investment products",
+        "offer_details": "Eligible OF remitters will be introduced to BPI Wealth Builder, with an initial investment of ₱1,000 and succeeding investments for as low as ₱100.",
+        "timeline": "From Sep 18, 2026 to Dec 31, 2026",
+        "key_messages": "positioning investing as the next step in their financial journey"
+      },
+      "expected_extraction": {
+        "product_type": "Investment",
+        "threshold_type": "Opening Amount For A New Account",
+        "threshold_value": 1000,
+        "eligible_segments": [
+          "Mid-Market"
+        ],
+        "channels": [
+          "Email",
+          "In-app"
+        ],
+        "absent": [
+          "min_adb"
+        ],
+        "ambiguous": [
+          "mechanic"
+        ]
+      },
+      "doc_facts": [
+        {
+          "id": "name",
+          "any": [
+            "project forward"
+          ]
+        },
+        {
+          "id": "start",
+          "any": [
+            "sep(tember|\\.)? 18"
+          ]
+        },
+        {
+          "id": "end",
+          "any": [
+            "dec(ember|\\.)? 31"
+          ]
+        },
+        {
+          "id": "product",
+          "any": [
+            "wealth builder"
+          ]
+        },
+        {
+          "id": "segment",
+          "any": [
+            "mid-market"
+          ]
+        },
+        {
+          "id": "target_leads",
+          "any": [
+            "236932"
+          ]
+        },
+        {
+          "id": "conversions",
+          "any": [
+            "23693"
+          ]
+        },
+        {
+          "id": "email",
+          "any": [
+            "email|edm"
+          ]
+        },
+        {
+          "id": "in_app",
+          "any": [
+            "in-app|in app"
+          ]
+        },
+        {
+          "id": "initial_amount",
+          "any": [
+            "1000"
+          ]
+        }
+      ],
+      "doc_only_numbers": [
+        "236932",
+        "23693",
+        "142215",
+        "46205",
+        "118.45"
+      ],
+      "known_issues": [],
+      "specific": [
+        {
+          "id": "F1",
+          "prompt": "Which customer personas are defined in this proposal, and how many leads does each have?",
+          "groups": [
+            [
+              "disciplined saver"
+            ],
+            [
+              "aspiring affluent"
+            ],
+            [
+              "digital investor"
+            ],
+            [
+              "catch.?all"
+            ],
+            [
+              "142215"
+            ],
+            [
+              "46205"
+            ],
+            [
+              "24144"
+            ],
+            [
+              "24368"
+            ]
+          ]
+        }
+      ]
+    },
+    "horizon": {
+      "title": "Horizon Reactive Deepening",
+      "rank": 2,
+      "pdf": "evaluation/proposals/Horizon Reactive Deepening Campaign Proposal.pdf",
+      "docx": null,
+      "form": {
+        "reward": "",
+        "eligible_segments": [
+          "Affluent-Gold",
+          "Affluent-Preferred",
+          "Mass",
+          "Mid-Market"
+        ],
+        "channels": [
+          "SMS",
+          "Email",
+          "In-app"
+        ]
+      },
+      "context": {
+        "objective": "Deepen the relationship with clients recently approved for credit cards, personal loans, auto loans and housing loans (improve revenue, increase product availment, increase fund volume)",
+        "target_audience": "Affluent, Mid-Market and Core Mass clients recently approved for a credit card, personal loan, auto loan or housing loan",
+        "offer_details": "Cohort-based cross-sell offers: clients without a deposit account are offered deposit products; clients with a deposit account are offered investments, insurance, credit card-related offers and VYBE enrollment.",
+        "timeline": "08 01 2026 to 12 31 2026",
+        "key_messages": ""
+      },
+      "expected_extraction": {
+        "eligible_segments": [
+          "Affluent-Gold",
+          "Affluent-Preferred",
+          "Mass",
+          "Mid-Market"
+        ],
+        "channels": [
+          "SMS",
+          "Email",
+          "In-app"
+        ],
+        "absent": [
+          "threshold_type",
+          "threshold_value",
+          "min_adb"
+        ],
+        "ambiguous": [
+          "product_type",
+          "mechanic"
+        ]
+      },
+      "doc_facts": [
+        {
+          "id": "name",
+          "any": [
+            "reactive deepening"
+          ]
+        },
+        {
+          "id": "start",
+          "any": [
+            "august 1|aug 1|1 august|08 01 2026|august 2026|aug 2026"
+          ]
+        },
+        {
+          "id": "end",
+          "any": [
+            "december 31|dec 31|31 december|12 31 2026|december 2026|dec 2026"
+          ]
+        },
+        {
+          "id": "seg_core_mass",
+          "any": [
+            "core mass"
+          ]
+        },
+        {
+          "id": "seg_mid_market",
+          "any": [
+            "mid-market"
+          ]
+        },
+        {
+          "id": "seg_affluent",
+          "any": [
+            "affluent"
+          ]
+        },
+        {
+          "id": "total_leads",
+          "any": [
+            "419358"
+          ]
+        },
+        {
+          "id": "conversions",
+          "any": [
+            "33549"
+          ]
+        },
+        {
+          "id": "sms",
+          "any": [
+            "sms"
+          ]
+        },
+        {
+          "id": "email",
+          "any": [
+            "email|edm"
+          ]
+        },
+        {
+          "id": "in_app",
+          "any": [
+            "in-app|in app"
+          ]
+        },
+        {
+          "id": "trigger",
+          "any": [
+            "credit card|loan"
+          ]
+        }
+      ],
+      "doc_only_numbers": [
+        "419358",
+        "33549",
+        "335486",
+        "4780",
+        "4073",
+        "24695",
+        "85.71",
+        "155040"
+      ],
+      "known_issues": [],
+      "specific": [
+        {
+          "id": "H1",
+          "prompt": "Which products does the campaign offer to Core Mass cohort 2, and which clients are excluded from that cohort?",
+          "groups": [
+            [
+              "investment"
+            ],
+            [
+              "personal loan|\\bpl\\b"
+            ],
+            [
+              "existing pl clients with investments|with investments|already.{0,30}invest|existing invest"
+            ]
+          ]
+        },
+        {
+          "id": "H2",
+          "prompt": "What are the total estimated leads, the number after the marketing exclusion and the target conversions?",
+          "groups": [
+            [
+              "419358"
+            ],
+            [
+              "335486"
+            ],
+            [
+              "33549"
+            ]
+          ]
+        },
+        {
+          "id": "H3",
+          "prompt": "Which clients are excluded from the campaign contact lists?",
+          "groups": [
+            [
+              "opt-out|opt out"
+            ],
+            [
+              "invalid contact"
+            ],
+            [
+              "blacklist|bankrupt|terror"
+            ]
+          ]
+        }
+      ]
+    },
+    "forex": {
+      "title": "Forex Solutions Campaign Refresh",
+      "rank": 3,
+      "pdf": "evaluation/proposals/2026 Forex Solutions CRM Campaign Proposal ao 080326.pdf",
+      "docx": null,
+      "form": {
+        "reward": "",
+        "eligible_segments": [
+          "Affluent-Gold",
+          "Affluent-Preferred",
+          "Mass",
+          "Mid-Market"
+        ],
+        "channels": [
+          "SMS",
+          "Email",
+          "In-app"
+        ]
+      },
+      "context": {
+        "objective": "Increase Forex transaction penetration, investment participation and client engagement among retail clients",
+        "target_audience": "Retail clients likely to perform a Forex transaction, identified through the Forex Propensity Model, in four lead lists (A to D)",
+        "offer_details": "Forex, BPI Online Enrollment, Deposits, Investments, BPI Bonds",
+        "timeline": "July 2026 – June 2027",
+        "key_messages": ""
+      },
+      "expected_extraction": {
+        "eligible_segments": [
+          "Affluent-Gold",
+          "Affluent-Preferred",
+          "Mass",
+          "Mid-Market"
+        ],
+        "channels": [
+          "SMS",
+          "Email",
+          "In-app"
+        ],
+        "absent": [
+          "threshold_type",
+          "threshold_value",
+          "min_adb"
+        ],
+        "ambiguous": [
+          "product_type",
+          "mechanic"
+        ]
+      },
+      "doc_facts": [
+        {
+          "id": "name",
+          "any": [
+            "forex solutions"
+          ]
+        },
+        {
+          "id": "start",
+          "any": [
+            "july 2026|jul 2026"
+          ]
+        },
+        {
+          "id": "end",
+          "any": [
+            "june 2027|jun 2027"
+          ]
+        },
+        {
+          "id": "propensity",
+          "any": [
+            "propensity"
+          ]
+        },
+        {
+          "id": "list_a_leads",
+          "any": [
+            "216151"
+          ]
+        },
+        {
+          "id": "list_b_leads",
+          "any": [
+            "271960"
+          ]
+        },
+        {
+          "id": "list_a_conv",
+          "any": [
+            "86460"
+          ]
+        },
+        {
+          "id": "four_lists",
+          "any": [
+            "four|4 (lead )?lists|lists a"
+          ]
+        },
+        {
+          "id": "sms",
+          "any": [
+            "sms"
+          ]
+        },
+        {
+          "id": "email",
+          "any": [
+            "email|edm"
+          ]
+        },
+        {
+          "id": "in_app",
+          "any": [
+            "in-app|in app"
+          ]
+        }
+      ],
+      "doc_only_numbers": [
+        "216151",
+        "271960",
+        "178555",
+        "86460",
+        "13598",
+        "432302000"
+      ],
+      "known_issues": [],
+      "specific": [
+        {
+          "id": "X1",
+          "prompt": "Which lead list has the highest target conversions, and how many conversions and annualized revenue does it target?",
+          "groups": [
+            [
+              "list a"
+            ],
+            [
+              "86460"
+            ],
+            [
+              "432302000|432\\.3"
+            ]
+          ]
+        }
+      ]
+    },
+    "bonds": {
+      "title": "2026 Bonds Beyond Borders Manila",
+      "rank": 4,
+      "pdf": "evaluation/proposals_pdf/2026 CRM Targeted Campaign Proposal_Bonds Beyond Borders Manila 052026.pdf",
+      "docx": "evaluation/proposals/2026 CRM Targeted Campaign Proposal_Bonds Beyond Borders Manila 052026.docx",
+      "form": {
+        "product_type": "Investment",
+        "eligible_segments": [
+          "Affluent-Gold",
+          "Affluent-Preferred"
+        ],
+        "channels": [
+          "SMS",
+          "Email"
+        ]
+      },
+      "context": {
+        "objective": "Educate affluent clients on global bond investing and international diversification; drive consideration of BPI Global Bond and offshore investment options",
+        "target_audience": "Affluent – Gold and Preferred clients (Preferred with 5Mn total relationship balance) invited through an event",
+        "offer_details": "BPI Global Bond Income Feeder Fund, promoted through a Bonds Beyond Borders Manila event",
+        "timeline": "April 26, 2026 (or 1 week after approval) to June 30, 2026",
+        "key_messages": ""
+      },
+      "expected_extraction": {
+        "product_type": "Investment",
+        "eligible_segments": [
+          "Affluent-Gold",
+          "Affluent-Preferred"
+        ],
+        "channels": [
+          "SMS",
+          "Email"
+        ],
+        "absent": [
+          "threshold_type",
+          "threshold_value",
+          "min_adb"
+        ],
+        "ambiguous": [
+          "mechanic"
+        ]
+      },
+      "doc_facts": [
+        {
+          "id": "name",
+          "any": [
+            "bonds beyond borders"
+          ]
+        },
+        {
+          "id": "product",
+          "any": [
+            "global bond"
+          ]
+        },
+        {
+          "id": "start",
+          "any": [
+            "april 26|apr 26"
+          ]
+        },
+        {
+          "id": "end",
+          "any": [
+            "june 30|jun 30"
+          ]
+        },
+        {
+          "id": "target_leads",
+          "any": [
+            "22051"
+          ]
+        },
+        {
+          "id": "gold",
+          "any": [
+            "gold"
+          ]
+        },
+        {
+          "id": "preferred",
+          "any": [
+            "preferred"
+          ]
+        },
+        {
+          "id": "attendees_target",
+          "any": [
+            "\\b150\\b"
+          ]
+        },
+        {
+          "id": "revenue",
+          "any": [
+            "625000"
+          ]
+        },
+        {
+          "id": "manila",
+          "any": [
+            "manila"
+          ]
+        }
+      ],
+      "doc_only_numbers": [
+        "22051",
+        "625000",
+        "159.6",
+        "52415.23",
+        "410"
+      ],
+      "known_issues": [
+        {
+          "id": "promo_yes_no_mechanics",
+          "all_of": [
+            [
+              "promo|mechanic|reward"
+            ],
+            [
+              "missing|not (specified|stated|provided|defined|detailed)|unclear|no (details|mechanic)|lack"
+            ]
+          ]
+        }
+      ],
+      "specific": [
+        {
+          "id": "B1",
+          "prompt": "In the proposal, what did the previous Bonds Beyond Borders events achieve in total, and which city performed best?",
+          "groups": [
+            [
+              "410"
+            ],
+            [
+              "99"
+            ],
+            [
+              "159\\.6"
+            ],
+            [
+              "quezon city"
+            ]
+          ]
+        }
+      ]
+    },
+    "better_together": {
+      "title": "2026 Better Together Bundles",
+      "rank": 5,
+      "pdf": "evaluation/proposals_pdf/(1) Campaign Proposal 2026_Better Together Bundles.pdf",
+      "docx": "evaluation/proposals/(1) Campaign Proposal 2026_Better Together Bundles.docx",
+      "form": {
+        "product_type": "Savings",
+        "mechanic": "ADB Increase",
+        "reward": "Free non-life insurance (WealthProtect, Travel Secure Max or Cyber Benefits) for each bundle availed",
+        "eligible_segments": [
+          "Affluent-Gold",
+          "Affluent-Preferred"
+        ],
+        "channels": [
+          "SMS",
+          "Email",
+          "In-app"
+        ]
+      },
+      "context": {
+        "objective": "Drive sustainable revenue by increasing deposit balances, expanding investment portfolios and generating incremental loan volume through need-based offerings",
+        "target_audience": "Affluent – Gold, Preferred, Top Personal and Next clients, including OF beneficiaries and OF remitters",
+        "offer_details": "Clients will receive free non-life insurance for every bundle availed.",
+        "timeline": "August 2026 to August 2027",
+        "key_messages": ""
+      },
+      "expected_extraction": {
+        "product_type": "Savings",
+        "mechanic": "ADB_INCREASE",
+        "eligible_segments": [
+          "Affluent-Gold",
+          "Affluent-Preferred"
+        ],
+        "channels": [
+          "SMS",
+          "Email",
+          "In-app"
+        ],
+        "absent": [
+          "threshold_type",
+          "threshold_value",
+          "min_adb"
+        ],
+        "ambiguous": [
+          "reward"
+        ]
+      },
+      "doc_facts": [
+        {
+          "id": "name",
+          "any": [
+            "better together"
+          ]
+        },
+        {
+          "id": "start",
+          "any": [
+            "august 2026|aug 2026"
+          ]
+        },
+        {
+          "id": "end",
+          "any": [
+            "august 2027|aug 2027"
+          ]
+        },
+        {
+          "id": "identified_clients",
+          "any": [
+            "759101"
+          ]
+        },
+        {
+          "id": "opt_in_target",
+          "any": [
+            "23758"
+          ]
+        },
+        {
+          "id": "conversion_target",
+          "any": [
+            "3227"
+          ]
+        },
+        {
+          "id": "reward",
+          "any": [
+            "wealthprotect|non-life insurance|insurance"
+          ]
+        },
+        {
+          "id": "top_personal",
+          "any": [
+            "top personal"
+          ]
+        },
+        {
+          "id": "six_months",
+          "any": [
+            "six|\\b6\\b"
+          ]
+        }
+      ],
+      "doc_only_numbers": [
+        "759101",
+        "23758",
+        "3227",
+        "21557825"
+      ],
+      "known_issues": [
+        {
+          "id": "date_inconsistency",
+          "all_of": [
+            [
+              "july 2027"
+            ],
+            [
+              "inconsisten|conflict|contradict|unclear|mismatch|discrepan|error|typo"
+            ]
+          ]
+        }
+      ],
+      "specific": [
+        {
+          "id": "T1",
+          "prompt": "Which reward can a Preferred client choose, and what funds must they place to qualify?",
+          "groups": [
+            [
+              "travel secure max diamond"
+            ],
+            [
+              "wealthprotect prime"
+            ],
+            [
+              "200000|200k"
+            ]
+          ]
+        }
+      ]
+    }
+  },
+  "local_docx_pdf_checks": {
+    "better_together": [
+      "2026 BETTER TOGETHER BUNDLES",
+      "August 2026 to August 2027",
+      "759,101",
+      "23,758",
+      "3,227",
+      "21,557,825",
+      "Php 500k ADB in Pamana",
+      "WealthProtect Basic",
+      "Unique Promo Code",
+      "BTBGO1ABCD",
+      "☒Affluent – Gold",
+      "☒Affluent – Preferred",
+      "☒Affluent – Top Personal",
+      "☒Affluent – Next",
+      "☐Core Mass",
+      "☐Mid-Market",
+      "☒ SMS Channel",
+      "☒ Email Channel",
+      "☒ BPI In-app",
+      "April 30, 2027",
+      "Maxi-Saver",
+      "0.264 per 1 part SMS",
+      "HO 02458",
+      "July 2027 until December 2026"
+    ],
+    "bonds": [
+      "2026 Bonds Beyond Borders Manila",
+      "BPI Global Bond Income Feeder Fund",
+      "410 attendees",
+      "99 promo availments",
+      "159.6",
+      "22,051",
+      "Target F2F attendees: 150",
+      "625,000",
+      "HO07445",
+      "52,415.23",
+      "April 26, 2026",
+      "June 30, 2026",
+      "☒Affluent – Gold",
+      "☒Affluent – Preferred",
+      "☐Affluent – Top Personal",
+      "Money Market Fund Peso (AMTC)",
+      "2026BBBManila",
+      "Quezon City delivered the strongest",
+      "32.5%"
+    ]
+  }
+}
