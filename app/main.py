@@ -23,6 +23,18 @@ message (Requirement 3.4). The app never retrains -- it only reloads the model.
 
 from __future__ import annotations
 
+import os, sys, subprocess, pathlib
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+# On a fresh server, build the model and outputs once before the app loads.
+if not (ROOT / "outputs" / "cards.json").exists():
+    subprocess.run(
+        [sys.executable, str(ROOT / "src" / "run_pipeline.py")],
+        cwd=ROOT, env={**os.environ, "PYTHONPATH": str(ROOT / "src")}, check=True,
+    )
+
 import dataclasses
 import html
 import json
